@@ -1,9 +1,9 @@
 const CACHE_NAME = 'muszakrend-cache-v1';
 const urlsToCache = [
-  '/naptar/',
-  '/naptar/index.html',
-  '/naptar/icon.png',
-  '/naptar/manifest.json'
+  '/naptarupdate/',
+  '/naptarupdate/index.html',
+  '/naptarupdate/icon.png',
+  '/naptarupdate/manifest.json'
 ];
 
 self.addEventListener('install', event => {
