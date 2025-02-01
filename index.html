@@ -17,7 +17,18 @@
     <link rel="icon" type="image/png" href="./icon.png">
     <title>Műszak Naptár</title>
     <style>
+    @font-face {
+        font-family: 'Verdana';
+        src: url('verdana.woff2') format('woff2'),
+            url('verdana.woff') format('woff'),
+            url('verdana.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    
     * {
+        font-family: 'Verdana', sans-serif;
+        font-weight: normal;
         box-sizing: border-box;
         margin: 0;
         padding: 0;
@@ -890,7 +901,7 @@
         </div>
         <div class="setting-group">
             <h3>Éves szabadság</h3>
-            <input type="number" id="vacation-days" class="mobile-button" placeholder="Éves szabadságnapok">
+            <input type="number" id="vacation-days" class="mobile-button" placeholder="Éves szabadságnapok" step="0.5">
         </div>
 
         <!-- Évközi változás -->
@@ -2910,8 +2921,8 @@
         
                 const changes = this.yearlyData[this.currentSettingsYear].settings.midyear_changes;
                 const months = [
-                    "Január", "Február", "Március", "Április", "Május", "Június",
-                    "Július", "Augusztus", "Szeptember", "Október", "November", "December"
+                    "JANUÁR", "FEBRUÁR", "MÁRCIUS", "ÁPRILIS", "MÁJUS", "JÚNIUS",
+                    "JÚLIUS", "AUGUSZTUS", "SZEPTEMBER", "OKTÓBER", "NOVEMBER", "DECEMBER"
                 ];
         
                 changes.forEach(change => {
@@ -3718,8 +3729,8 @@
         
                 // Hónapok nevei
                 const months = [
-                    "Január", "Február", "Március", "Április", "Május", "Június",
-                    "Július", "Augusztus", "Szeptember", "Október", "November", "December"
+                    "JANUÁR", "FEBRUÁR", "MÁRCIUS", "ÁPRILIS", "MÁJUS", "JÚNIUS",
+                    "JÚLIUS", "AUGUSZTUS", "SZEPTEMBER", "OKTÓBER", "NOVEMBER", "DECEMBER"
                 ];
         
                 // Hónap és év kiírása a fejlécbe
@@ -4784,8 +4795,8 @@
                 const currentPayrollMonthElement = document.getElementById("current-payroll-month");
         
                 const months = [
-                    "Január", "Február", "Március", "Április", "Május", "Június",
-                    "Július", "Augusztus", "Szeptember", "Október", "November", "December"
+                    "JANUÁR", "FEBRUÁR", "MÁRCIUS", "ÁPRILIS", "MÁJUS", "JÚNIUS",
+                    "JÚLIUS", "AUGUSZTUS", "SZEPTEMBER", "OKTÓBER", "NOVEMBER", "DECEMBER"
                 ];
         
                 currentPayrollMonthElement.textContent = 
