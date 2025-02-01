@@ -679,7 +679,7 @@
     }
     
     #calendar-body, #payroll-body {
-        animation-duration: 0.3s;
+        animation-duration: 0.2s;
         animation-fill-mode: both;
     }
     
@@ -749,19 +749,19 @@
     }
     
     .slide-year-in-right {
-        animation: slideYearInRight 0.3s forwards;
+        animation: slideYearInRight 0.2s forwards;
     }
     
     .slide-year-in-left {
-        animation: slideYearInLeft 0.3s forwards;
+        animation: slideYearInLeft 0.2s forwards;
     }
     
     .slide-year-out-right {
-        animation: slideYearOutRight 0.3s forwards;
+        animation: slideYearOutRight 0.2s forwards;
     }
     
     .slide-year-out-left {
-        animation: slideYearOutLeft 0.3s forwards;
+        animation: slideYearOutLeft 0.2s forwards;
     }
         
     </style>
@@ -3278,7 +3278,7 @@
                 
                 // Add slide in animation
                 settingsContent.className = `section active ${direction > 0 ? 'slide-year-in-right' : 'slide-year-in-left'}`;
-            }, 300);
+            }, 200);
         }
 
         loadYearSettings(year) {
@@ -3553,7 +3553,7 @@
                 
                 // Add slide in animation
                 calendarBody.className = direction > 0 ? 'slide-in-right' : 'slide-in-left';
-            }, 300); // Match this with animation duration
+            }, 200); // Match this with animation duration
         }
         
         changePayrollMonth(direction) {
@@ -3590,7 +3590,7 @@
                 
                 // Add slide in animation
                 payrollBody.className = direction > 0 ? 'slide-in-right' : 'slide-in-left';
-            }, 300); // Match this with animation duration
+            }, 200); // Match this with animation duration
         }
 
         getHolidays(year) {
