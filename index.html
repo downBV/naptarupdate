@@ -1025,129 +1025,143 @@
     <script>
     let app;
 
-function initSalaryVisibility() {
-    const salaryInput = document.getElementById('base-salary');
-    const toggleButton = document.createElement('button');
-    toggleButton.id = 'toggle-salary-visibility';
-    toggleButton.className = 'visibility-toggle';
-    toggleButton.innerHTML = '👁️‍🗨️';
-    let isVisible = false;
-    let originalValue = salaryInput?.value || '';
-    let inputTimeout;
-
-    // Stílusok beállítása
-    toggleButton.style.cssText = `
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 15px;
-        font-size: 24px;
-        z-index: 10;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-    `;
-
-    // Érték maszkolása
-    const maskValue = (value, visibleDigits = 0) => {
-        const valueStr = String(value);
-        if (visibleDigits === 0) return '•'.repeat(valueStr.length);
-        return '•'.repeat(Math.max(0, valueStr.length - visibleDigits)) + 
-               valueStr.slice(-visibleDigits);
-    };
-
-    if (salaryInput) {
-        salaryInput.parentElement.style.position = 'relative';
-        salaryInput.style.paddingRight = '45px';
-        salaryInput.parentElement.appendChild(toggleButton);
-
-        // Input eseménykezelő
-        salaryInput.addEventListener('input', function(e) {
-            if (isVisible) return; // Ha látható módban vagyunk, nem maszkolunk
-
-            clearTimeout(inputTimeout);
-            originalValue = this.value;
-            
-            // Az utolsó karakter legyen látható
-            this.type = 'text';
-            this.value = maskValue(originalValue, 1);
-
-            // 1.5 másodperc után maszkoljuk az összes karaktert
-            inputTimeout = setTimeout(() => {
-                this.value = maskValue(originalValue);
-            }, 1500);
-        });
-
-        // Láthatóság váltás kezelése
-        const toggleVisibility = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            isVisible = !isVisible;
-            clearTimeout(inputTimeout);
-            
+    function initSalaryVisibility() {
+        const salaryInput = document.getElementById('base-salary');
+        const toggleButton = document.createElement('button');
+        toggleButton.id = 'toggle-salary-visibility';
+        toggleButton.className = 'visibility-toggle';
+        toggleButton.innerHTML = '👁️‍🗨️';
+        let isVisible = false;
+        let originalValue = salaryInput?.value || '';
+        let hideTimeout;
+    
+        // CSS animációk
+        const style = document.createElement('style');
+        style.textContent = `
+            .salary-input {
+                transition: opacity 0.3s ease-in-out;
+            }
+            .salary-fade {
+                opacity: 0.5;
+            }
+            .visibility-toggle {
+                transition: transform 0.2s ease;
+            }
+            .visibility-toggle:active {
+                transform: translateY(-50%) scale(0.9);
+            }
+        `;
+        document.head.appendChild(style);
+    
+        // Stílusok beállítása
+        toggleButton.style.cssText = `
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 15px;
+            font-size: 24px;
+            z-index: 10;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        `;
+    
+        // Érték maszkolása
+        const maskValue = (value) => '•'.repeat(String(value).length);
+    
+        // Érték megjelenítés kezelése
+        const updateInputVisibility = () => {
             if (isVisible) {
                 salaryInput.type = 'number';
                 salaryInput.value = originalValue;
             } else {
+                // Először állítsuk be text típusúra
                 salaryInput.type = 'text';
+                // Majd maszkoljuk az értéket
                 salaryInput.value = maskValue(originalValue);
             }
-            
-            toggleButton.innerHTML = isVisible ? '👁️' : '👁️‍🗨️';
         };
-
-        // Touch és click események
-        toggleButton.addEventListener('touchstart', toggleVisibility, { passive: false });
-        toggleButton.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        }, { passive: false });
-        toggleButton.addEventListener('click', toggleVisibility);
-
-        // Focus események
-        salaryInput.addEventListener('focus', function() {
-            if (!isVisible) {
-                originalValue = this.value.replace(/•/g, '');
-                this.type = 'number';
-                this.value = originalValue;
-            }
-        });
-
-        salaryInput.addEventListener('blur', function() {
-            if (!isVisible) {
-                originalValue = this.value;
-                this.type = 'text';
-                this.value = maskValue(originalValue);
-            }
-        });
-
-        // Kezdeti állapot beállítása
-        if (salaryInput.value) {
-            salaryInput.type = 'text';
-            salaryInput.value = maskValue(originalValue);
-        }
-    }
-
-    return {
-        getValue: () => originalValue,
-        setValue: (value) => {
-            originalValue = value;
-            if (salaryInput) {
+    
+        if (salaryInput) {
+            salaryInput.parentElement.style.position = 'relative';
+            salaryInput.style.paddingRight = '45px';
+            salaryInput.parentElement.appendChild(toggleButton);
+    
+            // Kezdeti állapot beállítása
+            updateInputVisibility();
+    
+            // Input eseménykezelő
+            salaryInput.addEventListener('input', function(e) {
+                clearTimeout(hideTimeout);
+                if (this.type === 'number') {
+                    originalValue = this.value;
+                    
+                    if (!isVisible) {
+                        hideTimeout = setTimeout(() => {
+                            this.type = 'text';
+                            this.value = maskValue(originalValue);
+                        }, 1500);
+                    }
+                }
+            });
+    
+            // Láthatóság váltás kezelése
+            const toggleVisibility = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                isVisible = !isVisible;
+                clearTimeout(hideTimeout);
+                
+                updateInputVisibility();
+                toggleButton.innerHTML = isVisible ? '👁️' : '👁️‍🗨️';
+            };
+    
+            // Touch és click események
+            toggleButton.addEventListener('touchstart', toggleVisibility, { passive: false });
+            toggleButton.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            toggleButton.addEventListener('click', toggleVisibility);
+    
+            // Focus események
+            salaryInput.addEventListener('focus', function() {
+                clearTimeout(hideTimeout);
                 if (!isVisible) {
-                    salaryInput.type = 'text';
-                    salaryInput.value = maskValue(value);
-                } else {
-                    salaryInput.type = 'number';
-                    salaryInput.value = value;
+                    this.type = 'number';
+                    this.value = originalValue;
+                }
+            });
+    
+            salaryInput.addEventListener('blur', function() {
+                if (!isVisible) {
+                    originalValue = this.value;
+                    this.type = 'text';
+                    this.value = maskValue(originalValue);
+                }
+            });
+        }
+    
+        return {
+            getValue: () => originalValue,
+            setValue: (value) => {
+                originalValue = value;
+                if (salaryInput) {
+                    if (!isVisible) {
+                        salaryInput.type = 'text';
+                        salaryInput.value = maskValue(value);
+                    } else {
+                        salaryInput.type = 'number';
+                        salaryInput.value = value;
+                    }
                 }
             }
-        }
-    };
-}
+        };
+    }
     
     const SHIFT_COLORS = {
         Nappal: ["#FFD700", "black"],
