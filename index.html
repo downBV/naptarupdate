@@ -1025,6 +1025,117 @@
     <script>
     let app;
 
+    function initSalaryVisibility() {
+        const salaryInput = document.getElementById('base-salary');
+        const toggleButton = document.createElement('button');
+        toggleButton.id = 'toggle-salary-visibility';
+        toggleButton.className = 'visibility-toggle';
+        toggleButton.innerHTML = '👁️';
+        
+        // Beállítjuk a konténert relatív pozícióra
+        salaryInput.parentElement.style.position = 'relative';
+        
+        // Stílusok hozzáadása a gombhoz
+        toggleButton.style.cssText = `
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            font-size: 20px;
+            z-index: 10;
+            transition: opacity 0.3s;
+        `;
+    
+        // Beszúrjuk a gombot a beviteli mező mellé
+        salaryInput.parentElement.appendChild(toggleButton);
+    
+        let isVisible = false;
+        let originalValue = '';
+        let hideTimeout;
+    
+        // Segédfüggvény az érték maszkolásához
+        const maskValue = value => '•'.repeat(value.length);
+    
+        // Kezdeti állapot beállítása
+        if (salaryInput.value) {
+            originalValue = salaryInput.value;
+            salaryInput.type = 'text';
+            salaryInput.value = maskValue(originalValue);
+        }
+    
+        // Input eseménykezelő
+        salaryInput.addEventListener('input', function(e) {
+            clearTimeout(hideTimeout);
+            originalValue = e.target.value;
+            
+            // Ha nem látható módban vagyunk, késleltetett maszkolás
+            if (!isVisible) {
+                hideTimeout = setTimeout(() => {
+                    this.type = 'text';
+                    this.value = maskValue(originalValue);
+                }, 1000);
+            }
+        });
+    
+        // Gomb eseménykezelő
+        toggleButton.addEventListener('click', function() {
+            isVisible = !isVisible;
+            clearTimeout(hideTimeout);
+            
+            if (isVisible) {
+                salaryInput.type = 'number';
+                salaryInput.value = originalValue;
+                this.innerHTML = '👁️';
+            } else {
+                salaryInput.type = 'text';
+                salaryInput.value = maskValue(originalValue);
+                this.innerHTML = '👁️‍🗨️';
+            }
+            
+            // Animáció a gombnak
+            this.style.opacity = '0.7';
+            setTimeout(() => this.style.opacity = '1', 100);
+        });
+    
+        // Focus eseménykezelők
+        salaryInput.addEventListener('focus', function() {
+            if (!isVisible) {
+                this.type = 'number';
+                this.value = originalValue;
+            }
+        });
+    
+        salaryInput.addEventListener('blur', function() {
+            if (!isVisible) {
+                originalValue = this.value;
+                this.type = 'text';
+                this.value = maskValue(originalValue);
+            }
+        });
+    
+        // Mobilbarát érintés kezelés
+        toggleButton.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        });
+    
+        return {
+            getValue: () => originalValue,
+            setValue: (value) => {
+                originalValue = value;
+                if (!isVisible) {
+                    salaryInput.type = 'text';
+                    salaryInput.value = maskValue(value);
+                } else {
+                    salaryInput.value = value;
+                }
+            }
+        };
+    }
+    
     const SHIFT_COLORS = {
         Nappal: ["#FFD700", "black"],
         Éjszaka: ["#4169E1", "white"],
