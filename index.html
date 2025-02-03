@@ -779,10 +779,10 @@
 </head>
 <body>
     <div id="navbar">
-    <button id="calendar-btn">Naptár</button>
-    <button id="payroll-btn">Bérszámfejtés</button>
-    <button id="settings-btn">Beállítások</button>
-    <button id="help-btn">Súgó</button>
+    <button id="calendar-btn">NAPTÁR</button>
+    <button id="payroll-btn">BÉRSZÁMFEJTÉS</button>
+    <button id="settings-btn">BEÁLLÍTÁSOK</button>
+    <button id="help-btn">SÚGÓ</button>
     </div>
 
     <div id="content">
@@ -1972,7 +1972,7 @@
                         return ledolgozott;
                     case "Szabadság kivét (óra)":
                         return szabadsagOra;
-                    case "Túlóra (100%)": {
+                    case "Túlóra": {
                         if ((monthIndex + 1) % 3 === 0) {
                             const tuloraKeret = this.calculateQuarterlyOvertime(year, monthIndex);
                             return tulora100 + tuloraKeret;
