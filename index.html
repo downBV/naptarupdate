@@ -545,8 +545,7 @@
 
     #payroll-section {
         position: relative;
-        height: 100%;
-        overflow-y: auto;
+        min-height: 100%;
     }
 
     #payroll-header {
@@ -555,19 +554,14 @@
         align-items: center;
         padding: 10px 0;
         background-color: #f4f4f4;
-        position: sticky;
-        top: 0;
+        position: fixed;
+        width: 100%;
+        top: 90px;
         z-index: 100;
     }
 
     #payroll-content {
-        padding: 10px 0;
-    }
-
-    #payroll-container {
-        height: calc(100vh - 90px);
-        display: flex;
-        flex-direction: column;
+        padding: 80px 0 10px 0;
     }
 
     #payroll-header button {
@@ -1675,7 +1669,6 @@
                     );
         
                     if (applicableChange) {
-                        console.log(`Évközi változás alkalmazva: ${applicableChange.salary} Ft (${year}.${month + 1})`);
                         return parseInt(applicableChange.salary);
                     }
                 }
@@ -1787,12 +1780,6 @@
         // 2. Kivonjuk belőle a havi 8 órás munkaidőt
         // 3. Kivonjuk a csúszó órákat
         const tuloraKeret = totalRequiredHours - totalHavi8 - totalCsuszoHours;
-        
-        console.log(`Túlóra keret számítás (${monthIndex + 1}. hónap):
-            - 3 havi ledolgozandó napok: ${totalWorkingDays} (${totalRequiredHours} óra)
-            - 3 havi havi8: ${totalHavi8} óra
-            - Levont csúszó órák: ${totalCsuszoHours} óra
-            - Túlóra keret: ${Math.max(0, tuloraKeret)} óra`);
 
         return Math.max(0, tuloraKeret);
     } catch (error) {
@@ -2225,8 +2212,6 @@
         }
 
         getMonthData(monthIndex, year) {
-        console.log("Current month:", this.currentMonth);
-        console.log("Current year:", this.currentYear);
         const yearData = this.app.yearData;
         const monthData = {
             workedDays: 0,
@@ -2652,15 +2637,11 @@
     }
 
     class BerszamfejtoApp {
-        constructor() {
-            console.log("App constructor started");
-            
+        constructor() {            
             try {
                 // Alapvető dátumok inicializálása
                 const currentDate = new Date();
                 const currentYear = currentDate.getFullYear();
-                
-                console.log("Current date initialized:", currentDate);
                 
                 this.currentYear = currentYear >= 2024 && currentYear <= 2028 ? currentYear : 2024;
                 this.currentMonth = currentDate.getMonth();
@@ -2669,35 +2650,20 @@
                 this.currentSettingsYear = this.currentYear;
                 this.calculator = new BerszamfejtoCalculator(this);
         
-                console.log("Years initialized:", {
-                    currentYear: this.currentYear,
-                    currentMonth: this.currentMonth
-                });
-        
                 // Adatstruktúrák inicializálása
-                this.initializeYearlyData();
-                console.log("YearlyData initialized");
-        
+                this.initializeYearlyData();        
                 // Betöltjük a mentett adatokat
-                this.loadYearlyData();
-                console.log("YearlyData loaded");
-        
+                this.loadYearlyData();        
                 // További inicializálások
                 document.getElementById('current-settings-year').textContent = this.currentSettingsYear;
                 this.loadColorSettings();
-                
-                console.log("Starting navigation initialization");
                 this.initNavigation();
                 this.initEventListeners();
                 this.initSettingsNavigation();
                 this.initTouchNavigation();
                 this.initSettings();
                 this.salaryVisibility = initSalaryVisibility();
-        
-                console.log("Starting calendar generation");
                 this.generateCalendar();
-                
-                console.log("Starting payroll initialization");
                 this.initPayrollNavigation();
                 this.generatePayrollTable();
         
@@ -2709,7 +2675,6 @@
         }
     
         initializeYearlyData() {
-            console.log("YearlyData inicializálása kezdődik");
             this.yearlyData = {};
             // Inicializáljuk az összes évet
             for (let year = 2024; year <= 2028; year++) {
@@ -2731,8 +2696,7 @@
                     bonusEntries: {},
                     restaurantEntries: {}
                 };
-    
-                console.log(`${year} év adatainak generálása...`);
+
                 // Inicializáljuk a hónapokat és generáljuk a műszakrendet
                 for (let month = 0; month < 12; month++) {
                     if (!this.yearlyData[year].calendar_data[month]) {
@@ -2765,15 +2729,10 @@
                     }
                 }
             }
-            console.log("YearlyData inicializálása befejezve");
         }       
     
         saveYearlyData() {
-            try {
-                // Debug: kiírjuk a mentés előtti adatokat
-                console.log('Mentés előtti adatok:', 
-                    JSON.stringify(this.yearlyData[this.currentYear].calendar_data[this.currentMonth]));
-                
+            try {                
                 // Mentés előtt kitisztítjuk az undefined értékeket
                 const yearData = JSON.parse(JSON.stringify(this.yearlyData));
                 Object.keys(yearData).forEach(year => {
@@ -2789,10 +2748,6 @@
                 });
                 
                 localStorage.setItem("berszamfejtoYearlyData", JSON.stringify(yearData));
-                
-                // Debug: kiírjuk a mentés utáni adatokat
-                console.log('Mentés utáni adatok:', 
-                    JSON.stringify(yearData[this.currentYear].calendar_data[this.currentMonth]));
             } catch (error) {
                 console.error("Hiba az adatok mentése során:", error);
             }
@@ -2800,14 +2755,12 @@
     
         loadYearlyData() {
             try {
-                console.log("Mentett adatok betöltése kezdődik");
                 const savedData = localStorage.getItem("berszamfejtoYearlyData");
                 if (savedData) {
                     const parsedData = JSON.parse(savedData);
                     
                     // Összes év végigiterálása
                     for (let year = 2024; year <= 2028; year++) {
-                        console.log(`${year} év adatainak betöltése...`);
                         if (parsedData[year]) {
                             // Settings másolása
                             this.yearlyData[year].settings = parsedData[year].settings || this.yearlyData[year].settings;
@@ -2858,9 +2811,6 @@
                     
                     // Mentjük az esetleges új generált adatokat
                     this.saveYearlyData();
-                    console.log("Adatok betöltése és mentése befejezve");
-                } else {
-                    console.log("Nincs mentett adat, az alapértelmezett értékek maradnak");
                 }
             } catch (error) {
                 console.error("Hiba a mentett adatok betöltése során:", error);
@@ -2925,11 +2875,9 @@
                 // Frissítjük a megjelenítést és mentjük az adatokat
                 this.displayMidyearChanges();
                 this.saveYearlyData();
-
                 // Frissítjük a bérszámfejtési táblázatot is
                 this.generatePayrollTable();
                 
-                console.log(`Évközi változás törölve: ${id}`);
             } catch (error) {
                 console.error("Hiba az évközi változás törlése során:", error);
                 alert("Hiba történt a változás törlése során!");
@@ -3114,25 +3062,14 @@
             0
         ).getDate();
 
-        console.log("Debug - Naptár adatok ellenőrzése:");
-        console.log(
-            `Év: ${this.currentYear}, Hónap: ${this.currentMonth + 1}`
-        );
-        console.log(`Napok száma ebben a hónapban: ${daysInMonth}`);
-
         if (this.yearData.calendar_data[this.currentMonth]) {
             Object.entries(this.yearData.calendar_data[this.currentMonth])
             .sort(([a], [b]) => parseInt(a) - parseInt(b))
             .forEach(([day, shift]) => {
                 const dayNum = parseInt(day);
                 if (dayNum <= daysInMonth) {
-                console.log(`Nap ${dayNum}: ${shift}`);
-                } else {
-                console.error(`Érvénytelen nap talált: ${dayNum}`);
                 }
             });
-        } else {
-            console.log("Nincs adat erre a hónapra.");
         }
         }
 
@@ -3337,9 +3274,6 @@
         }
 
         loadYearSettings(year) {
-            console.log(`loadYearSettings meghívva a következő évvel: ${year}`);
-            console.log(`Jelenlegi rendszeridő éve: ${new Date().getFullYear()}`);
-            
             // Frissítsük a kijelzett évet
             document.getElementById('current-settings-year').textContent = year;
             this.currentSettingsYear = year;
@@ -3403,8 +3337,6 @@
         
             // Évközi változások megjelenítése
             this.displayMidyearChanges();
-            
-            console.log(`Betöltött év: ${year}, műszakrend: ${yearData.settings.muszakrend}`); // Debug log
         }
 
         initSettings() {
@@ -3746,7 +3678,6 @@
         
                 // Ha nem találtunk színt, alapértelmezett színek
                 if (!found) {
-                    console.log(`Nem található szín: ${value}`); // Debug log
                     shiftDiv.style.backgroundColor = "white";
                     shiftDiv.style.color = "black";
                     dateSpan.style.backgroundColor = "#f0f0f0";
@@ -3865,7 +3796,6 @@
                         e.stopPropagation();
                         
                         const clickedDay = parseInt(dateSpan.textContent);
-                        console.log(`Kattintás a következő napra: ${clickedDay}`);
         
                         // Modal létrehozása
                         const overlay = document.createElement("div");
@@ -3938,18 +3868,11 @@
                                 this.applyShiftColors(newShift, shiftDiv, dateSpan);
                                 
                                 // Mindig mentsük el az értéket, még ha üres is
-                                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][clickedDay] = newShift;
-                                
-                                console.log(`Módosítás: ${this.currentYear}.${this.currentMonth+1}.${clickedDay} - Új érték: "${newShift}"`);
-                                console.log('Módosítás után a hónap adatai:', 
-                                    JSON.stringify(this.yearlyData[this.currentYear].calendar_data[this.currentMonth]));
-                                
-                                this.saveYearlyData();
-                                
+                                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][clickedDay] = newShift;                              
+                                this.saveYearlyData();                              
                                 this.currentPayrollMonth = this.currentMonth;
                                 this.currentPayrollYear = this.currentYear;
-                                this.generatePayrollTable();
-                                
+                                this.generatePayrollTable();                              
                                 document.body.removeChild(overlay);
                             });
                             
@@ -4952,7 +4875,6 @@
 
             if (savedData) {
             const parsedData = JSON.parse(savedData);
-            console.log("Betöltött adatok:", parsedData);
 
             // Az adatok visszatöltése a yearData objektumba
             this.yearData = {
@@ -5113,7 +5035,6 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        console.log("DOMContentLoaded started"); // Debug log
         window.app = new BerszamfejtoApp(); // Globális változóként tároljuk
     });
         // Service Worker regisztrálása
@@ -5123,7 +5044,6 @@
                 scope: '/naptar/'
             })
             .then(registration => {
-                console.log('ServiceWorker regisztrálva:', registration);
             })
             .catch(error => {
                 console.log('ServiceWorker regisztrálási hiba:', error);
