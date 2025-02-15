@@ -4567,31 +4567,44 @@
                     let draggedElement = null;
                     let touchTimeout;
                     let startX, startY;
+                    let isDragging = false; // Új változó a húzás állapotának követésére
 
                     shiftDiv.addEventListener('touchstart', (e) => {
-                        e.preventDefault();
+                        if (isDragging) return; // Ha már húzás van folyamatban, ne kezdjünk újat
+                        
                         startX = e.touches[0].clientX;
                         startY = e.touches[0].clientY;
                         
                         touchTimeout = setTimeout(() => {
                             const shiftValue = shiftDiv.textContent.trim();
-                            if (shiftValue !== "") {
+                            if (shiftValue !== "" && shiftValue !== " ") {
+                                isDragging = true;
                                 draggedElement = shiftDiv;
+                                
+                                // A húzott elem stílusainak beállítása
+                                const originalBgColor = window.getComputedStyle(shiftDiv).backgroundColor;
+                                const originalTextColor = window.getComputedStyle(shiftDiv).color;
+                                
                                 draggedElement.style.position = 'fixed';
                                 draggedElement.style.zIndex = '1000';
                                 draggedElement.style.width = shiftDiv.offsetWidth + 'px';
-                                draggedElement.style.height = '40px'; // Fix magasság
+                                draggedElement.style.height = '40px';
                                 draggedElement.style.left = (e.touches[0].clientX - shiftDiv.offsetWidth/2) + 'px';
-                                draggedElement.style.top = (e.touches[0].clientY - 20) + 'px'; // 20 = magasság/2
+                                draggedElement.style.top = (e.touches[0].clientY - 20) + 'px';
+                                draggedElement.style.backgroundColor = originalBgColor;
+                                draggedElement.style.color = originalTextColor;
                                 draggedElement.style.pointerEvents = 'none';
                                 draggedElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-                                draggedElement.style.background = window.getComputedStyle(shiftDiv).backgroundColor;
+                                draggedElement.style.display = 'flex';
+                                draggedElement.style.alignItems = 'center';
+                                draggedElement.style.justifyContent = 'center';
                                 
-                                // Üres szöveg az eredeti helyen
                                 this.currentDraggedElement = {
                                     element: draggedElement,
                                     originalValue: shiftValue,
-                                    date: currentDate
+                                    date: currentDate,
+                                    backgroundColor: originalBgColor,
+                                    textColor: originalTextColor
                                 };
                                 
                                 // Az eredeti helyen töröljük a műszakot
@@ -4602,7 +4615,7 @@
                     }, { passive: false });
 
                     shiftDiv.addEventListener('touchmove', (e) => {
-                        if (!draggedElement) return;
+                        if (!isDragging || !draggedElement) return;
                         
                         e.preventDefault();
                         const touch = e.touches[0];
@@ -4628,7 +4641,7 @@
                     shiftDiv.addEventListener('touchend', (e) => {
                         clearTimeout(touchTimeout);
                         
-                        if (draggedElement) {
+                        if (isDragging && draggedElement) {
                             e.preventDefault();
                             const touch = e.changedTouches[0];
                             const target = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -4636,16 +4649,6 @@
                             if (target && target.classList.contains('shift-select') && target !== draggedElement) {
                                 const targetDate = parseInt(target.closest('.date-container').querySelector('.date-number').textContent);
                                 const originalDate = this.currentDraggedElement.date;
-                                
-                                // Visszaállítjuk az elem eredeti stílusait
-                                draggedElement.style.position = '';
-                                draggedElement.style.zIndex = '';
-                                draggedElement.style.width = '';
-                                draggedElement.style.height = '';
-                                draggedElement.style.left = '';
-                                draggedElement.style.top = '';
-                                draggedElement.style.pointerEvents = '';
-                                draggedElement.style.boxShadow = '';
                                 
                                 // Műszakok cseréje
                                 const targetValue = target.textContent;
@@ -4658,10 +4661,10 @@
                                 
                                 this.saveYearlyData();
                                 this.generatePayrollTable();
-                            } else {
-                                // Ha nem érvényes célpont felett engedtük el, visszaállítjuk az eredeti helyre
-                                this.generateCalendar();
                             }
+                            
+                            // Mindenképp újrageneráljuk a naptárat a tiszta állapotért
+                            this.generateCalendar();
                             
                             // Tisztítás
                             document.querySelectorAll('.drag-over').forEach(el => {
@@ -4670,27 +4673,30 @@
                             
                             draggedElement = null;
                             this.currentDraggedElement = null;
+                            isDragging = false;
                         }
                     });
 
                     shiftDiv.addEventListener('touchcancel', () => {
                         clearTimeout(touchTimeout);
                         
-                        if (draggedElement) {
+                        if (isDragging) {
                             // Visszaállítjuk az eredeti állapotot
                             this.generateCalendar();
                             
                             draggedElement = null;
                             this.currentDraggedElement = null;
+                            isDragging = false;
+                            
+                            document.querySelectorAll('.drag-over').forEach(el => {
+                                el.classList.remove('drag-over');
+                            });
                         }
-                        
-                        document.querySelectorAll('.drag-over').forEach(el => {
-                            el.classList.remove('drag-over');
-                        });
                     });
-        
-                    // Eseménykezelő hozzáadása
+
+                    // Click eseménykezelő módosítása
                     shiftDiv.addEventListener("click", (e) => {
+                        if (isDragging) return;
                         e.preventDefault();
                         e.stopPropagation();
                         
