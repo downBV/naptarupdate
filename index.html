@@ -4566,105 +4566,84 @@
 
                     // A generateCalendar függvényben a shiftDiv touch eseménykezelői:
 
+                    let dragStartTime = 0;
                     let isDragging = false;
-                    let dragTimeout = null;
+                    let dragSource = null;
 
-                    // Touch start kezelése
                     shiftDiv.addEventListener('touchstart', (e) => {
                         // Ha már húzás van folyamatban, ne csináljunk semmit
                         if (isDragging) {
                             e.preventDefault();
                             return;
                         }
+                        
+                        dragStartTime = Date.now();
+                        dragSource = shiftDiv;
+                    });
 
-                        // Hosszú érintés időzítő
-                        dragTimeout = setTimeout(() => {
-                            const shiftValue = shiftDiv.textContent.trim();
+                    shiftDiv.addEventListener('touchmove', (e) => {
+                        // Csak akkor kezdjük a húzást, ha elég ideig tartottuk
+                        if (Date.now() - dragStartTime > 500 && !isDragging && dragSource) {
+                            const shiftValue = dragSource.textContent.trim();
                             if (shiftValue && shiftValue !== " ") {
                                 isDragging = true;
-                                
-                                // Eredeti pozíció mentése
-                                const originalDate = currentDate;
-                                const originalValue = shiftValue;
-
-                                // Az elem megjelölése húzás alatt
-                                shiftDiv.style.opacity = '0.5';
-                                shiftDiv.style.background = window.getComputedStyle(shiftDiv).backgroundColor;
-
-                                // Touch move kezelése
-                                const handleMove = (moveEvent) => {
-                                    moveEvent.preventDefault();
-                                    const touch = moveEvent.touches[0];
-                                    
-                                    // Célpont keresése
-                                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                                    
-                                    // Kiemelések törlése
-                                    document.querySelectorAll('.drag-over').forEach(el => {
-                                        el.classList.remove('drag-over');
-                                    });
-
-                                    // Új célpont kiemelése
-                                    if (target && target.classList.contains('shift-select') && target !== shiftDiv) {
-                                        target.classList.add('drag-over');
-                                    }
-                                };
-
-                                // Touch end kezelése
-                                const handleEnd = (endEvent) => {
-                                    endEvent.preventDefault();
-                                    
-                                    // Eredeti elem visszaállítása
-                                    shiftDiv.style.opacity = '1';
-                                    
-                                    const touch = endEvent.changedTouches[0];
-                                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-
-                                    if (target && target.classList.contains('shift-select') && target !== shiftDiv) {
-                                        const targetDate = parseInt(target.closest('.date-container').querySelector('.date-number').textContent);
-                                        
-                                        // Műszakok cseréje
-                                        this.yearlyData[this.currentYear].calendar_data[this.currentMonth][targetDate] = originalValue;
-                                        this.yearlyData[this.currentYear].calendar_data[this.currentMonth][originalDate] = " ";
-                                        
-                                        // Változások mentése és naptár frissítése
-                                        this.saveYearlyData();
-                                        this.generateCalendar();
-                                        this.generatePayrollTable();
-                                    } else {
-                                        // Ha nem érvényes célpontra húztuk, visszaállítjuk
-                                        this.generateCalendar();
-                                    }
-
-                                    // Tisztítás
-                                    document.querySelectorAll('.drag-over').forEach(el => {
-                                        el.classList.remove('drag-over');
-                                    });
-
-                                    // Eseménykezelők eltávolítása
-                                    document.removeEventListener('touchmove', handleMove);
-                                    document.removeEventListener('touchend', handleEnd);
-                                    document.removeEventListener('touchcancel', handleEnd);
-
-                                    isDragging = false;
-                                };
-
-                                // Eseménykezelők hozzáadása
-                                document.addEventListener('touchmove', handleMove, { passive: false });
-                                document.addEventListener('touchend', handleEnd, { passive: false });
-                                document.addEventListener('touchcancel', handleEnd, { passive: false });
+                                dragSource.style.opacity = '0.5';
+                                e.preventDefault();
                             }
-                        }, 500);
+                        }
+                        
+                        if (isDragging) {
+                            e.preventDefault();
+                            const touch = e.touches[0];
+                            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                            
+                            document.querySelectorAll('.drag-over').forEach(el => {
+                                el.classList.remove('drag-over');
+                            });
+                            
+                            if (target && target.classList.contains('shift-select') && target !== dragSource) {
+                                target.classList.add('drag-over');
+                            }
+                        }
                     });
 
-                    // Touch end törlése időzítőnél
-                    shiftDiv.addEventListener('touchend', () => {
-                        clearTimeout(dragTimeout);
+                    shiftDiv.addEventListener('touchend', (e) => {
+                        if (isDragging && dragSource) {
+                            e.preventDefault();
+                            const touch = e.changedTouches[0];
+                            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                            
+                            if (target && target.classList.contains('shift-select') && target !== dragSource) {
+                                const sourceDate = parseInt(dragSource.closest('.date-container').querySelector('.date-number').textContent);
+                                const targetDate = parseInt(target.closest('.date-container').querySelector('.date-number').textContent);
+                                
+                                // Műszakok cseréje
+                                const sourceValue = dragSource.textContent.trim();
+                                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][targetDate] = sourceValue;
+                                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][sourceDate] = " ";
+                                
+                                this.saveYearlyData();
+                            }
+                            
+                            // Tisztítás és naptár frissítése
+                            document.querySelectorAll('.drag-over').forEach(el => {
+                                el.classList.remove('drag-over');
+                            });
+                            
+                            this.generateCalendar();
+                            this.generatePayrollTable();
+                        }
+                        
+                        // Teljes állapot visszaállítása
+                        isDragging = false;
+                        dragSource = null;
+                        dragStartTime = 0;
                     });
 
-                    // Click eseménykezelő módosítása
-                    shiftDiv.addEventListener("click", (e) => {
-                        if (!isDragging) {
+                    // Normál kattintás kezelése - csak rövid érintésnél
+                    shiftDiv.addEventListener('click', (e) => {
+                        // Ha a click egy rövid érintésből jött (nem húzás)
+                        if (Date.now() - dragStartTime < 500) {
                         e.preventDefault();
                         e.stopPropagation();
                         
@@ -4777,6 +4756,16 @@
                             }
                         });
                     }
+                    // Ha megszakad az érintés, minden visszaáll
+                        shiftDiv.addEventListener('touchcancel', () => {
+                            isDragging = false;
+                            dragSource = null;
+                            dragStartTime = 0;
+                            document.querySelectorAll('.drag-over').forEach(el => {
+                                el.classList.remove('drag-over');
+                            });
+                            this.generateCalendar();
+                        });
                     });
         
                     // Műszak érték meghatározása
