@@ -4664,7 +4664,7 @@
 
                     // Click eseménykezelő módosítása
                     shiftDiv.addEventListener("click", (e) => {
-                        if (isDragging) return;
+                        if (!isDragging) {
                         e.preventDefault();
                         e.stopPropagation();
                         
@@ -4776,6 +4776,7 @@
                                 document.body.removeChild(overlay);
                             }
                         });
+                    }
                     });
         
                     // Műszak érték meghatározása
