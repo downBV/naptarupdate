@@ -932,6 +932,7 @@
         user-select: none;
         -webkit-user-select: none;
         -webkit-touch-callout: none;
+        transform: translate3d(0,0,0);
     }
 
     .shift-select.dragging {
@@ -943,6 +944,8 @@
     .shift-select.drag-over {
         border: 2px dashed #4a90e2;
         background-color: rgba(74, 144, 226, 0.1);
+        transform: scale(1.05);
+        transition: all 0.2s ease;
     }
 
     select.shift-select {
@@ -4562,8 +4565,10 @@
                     shiftDiv.className = "shift-select";
 
                                         // Touch eseménykezelők hozzáadása a húzáshoz
-                    let touchTimeout;
-                    let startX, startY;
+                    // A generateCalendar függvényben a shiftDiv touch eseménykezelőit cseréld le ezekre:
+
+                    let draggedElementClone = null;
+                    let originalElement = null;
 
                     shiftDiv.addEventListener('touchstart', (e) => {
                         e.preventDefault();
@@ -4573,21 +4578,42 @@
                         touchTimeout = setTimeout(() => {
                             const shiftValue = shiftDiv.textContent.trim();
                             if (shiftValue !== "") {
-                                shiftDiv.classList.add('dragging');
+                                // Eredeti elem halványítása
+                                shiftDiv.style.opacity = '0.4';
+                                
+                                // Klón létrehozása
+                                draggedElementClone = shiftDiv.cloneNode(true);
+                                draggedElementClone.style.position = 'fixed';
+                                draggedElementClone.style.zIndex = '1000';
+                                draggedElementClone.style.width = shiftDiv.offsetWidth + 'px';
+                                draggedElementClone.style.height = shiftDiv.offsetHeight + 'px';
+                                draggedElementClone.style.left = (e.touches[0].clientX - shiftDiv.offsetWidth/2) + 'px';
+                                draggedElementClone.style.top = (e.touches[0].clientY - shiftDiv.offsetHeight/2) + 'px';
+                                draggedElementClone.style.pointerEvents = 'none';
+                                draggedElementClone.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                                
+                                document.body.appendChild(draggedElementClone);
+                                originalElement = shiftDiv;
+                                
                                 this.currentDraggedElement = {
                                     element: shiftDiv,
+                                    clone: draggedElementClone,
                                     originalValue: shiftValue,
                                     date: currentDate
                                 };
                             }
-                        }, 500); // 500ms hosszú nyomás a húzás kezdéséhez
+                        }, 500);
                     }, { passive: false });
 
                     shiftDiv.addEventListener('touchmove', (e) => {
-                        if (!this.currentDraggedElement) return;
+                        if (!this.currentDraggedElement || !draggedElementClone) return;
                         
                         e.preventDefault();
                         const touch = e.touches[0];
+                        
+                        // Klón mozgatása az ujjal
+                        draggedElementClone.style.left = (touch.clientX - draggedElementClone.offsetWidth/2) + 'px';
+                        draggedElementClone.style.top = (touch.clientY - draggedElementClone.offsetHeight/2) + 'px';
                         
                         // Találjuk meg az elem alatt lévő célpontot
                         const target = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -4598,7 +4624,7 @@
                         });
                         
                         // Ha egy másik műszak felett vagyunk, kiemeljük
-                        if (target && target.classList.contains('shift-select') && target !== this.currentDraggedElement.element) {
+                        if (target && target.classList.contains('shift-select') && target !== originalElement) {
                             target.classList.add('drag-over');
                         }
                     }, { passive: false });
@@ -4611,7 +4637,17 @@
                             const touch = e.changedTouches[0];
                             const target = document.elementFromPoint(touch.clientX, touch.clientY);
                             
-                            if (target && target.classList.contains('shift-select') && target !== this.currentDraggedElement.element) {
+                            // Tisztítás
+                            if (draggedElementClone && draggedElementClone.parentNode) {
+                                draggedElementClone.parentNode.removeChild(draggedElementClone);
+                            }
+                            draggedElementClone = null;
+                            
+                            if (originalElement) {
+                                originalElement.style.opacity = '1';
+                            }
+                            
+                            if (target && target.classList.contains('shift-select') && target !== originalElement) {
                                 const targetDate = parseInt(target.closest('.date-container').querySelector('.date-number').textContent);
                                 const originalDate = this.currentDraggedElement.date;
                                 
@@ -4625,24 +4661,35 @@
                             }
                             
                             // Tisztítás
-                            this.currentDraggedElement.element.classList.remove('dragging');
                             document.querySelectorAll('.drag-over').forEach(el => {
                                 el.classList.remove('drag-over');
                             });
+                            
                             this.currentDraggedElement = null;
+                            originalElement = null;
                         }
                     });
 
                     shiftDiv.addEventListener('touchcancel', () => {
                         clearTimeout(touchTimeout);
-                        if (this.currentDraggedElement) {
-                            this.currentDraggedElement.element.classList.remove('dragging');
-                            document.querySelectorAll('.drag-over').forEach(el => {
-                                el.classList.remove('drag-over');
-                            });
-                            this.currentDraggedElement = null;
+                        
+                        // Tisztítás
+                        if (draggedElementClone && draggedElementClone.parentNode) {
+                            draggedElementClone.parentNode.removeChild(draggedElementClone);
                         }
-                    });                    
+                        draggedElementClone = null;
+                        
+                        if (originalElement) {
+                            originalElement.style.opacity = '1';
+                        }
+                        
+                        document.querySelectorAll('.drag-over').forEach(el => {
+                            el.classList.remove('drag-over');
+                        });
+                        
+                        this.currentDraggedElement = null;
+                        originalElement = null;
+                    });      
         
                     // Eseménykezelő hozzáadása
                     shiftDiv.addEventListener("click", (e) => {
