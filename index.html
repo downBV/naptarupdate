@@ -4569,6 +4569,8 @@
 
                     let draggedElementClone = null;
                     let originalElement = null;
+                    let touchTimeout;
+                    let startX, startY;
 
                     shiftDiv.addEventListener('touchstart', (e) => {
                         e.preventDefault();
