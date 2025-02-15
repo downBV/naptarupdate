@@ -4566,84 +4566,14 @@
 
                     // A generateCalendar függvényben a shiftDiv touch eseménykezelői:
 
-                    let dragStartTime = 0;
+                    let longPressTimer = null;
                     let isDragging = false;
-                    let dragSource = null;
-
-                    shiftDiv.addEventListener('touchstart', (e) => {
-                        // Ha már húzás van folyamatban, ne csináljunk semmit
-                        if (isDragging) {
-                            e.preventDefault();
-                            return;
-                        }
-                        
-                        dragStartTime = Date.now();
-                        dragSource = shiftDiv;
-                    });
-
-                    shiftDiv.addEventListener('touchmove', (e) => {
-                        // Csak akkor kezdjük a húzást, ha elég ideig tartottuk
-                        if (Date.now() - dragStartTime > 500 && !isDragging && dragSource) {
-                            const shiftValue = dragSource.textContent.trim();
-                            if (shiftValue && shiftValue !== " ") {
-                                isDragging = true;
-                                dragSource.style.opacity = '0.5';
-                                e.preventDefault();
-                            }
-                        }
-                        
-                        if (isDragging) {
-                            e.preventDefault();
-                            const touch = e.touches[0];
-                            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                            
-                            document.querySelectorAll('.drag-over').forEach(el => {
-                                el.classList.remove('drag-over');
-                            });
-                            
-                            if (target && target.classList.contains('shift-select') && target !== dragSource) {
-                                target.classList.add('drag-over');
-                            }
-                        }
-                    });
-
-                    shiftDiv.addEventListener('touchend', (e) => {
-                        if (isDragging && dragSource) {
-                            e.preventDefault();
-                            const touch = e.changedTouches[0];
-                            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                            
-                            if (target && target.classList.contains('shift-select') && target !== dragSource) {
-                                const sourceDate = parseInt(dragSource.closest('.date-container').querySelector('.date-number').textContent);
-                                const targetDate = parseInt(target.closest('.date-container').querySelector('.date-number').textContent);
-                                
-                                // Műszakok cseréje
-                                const sourceValue = dragSource.textContent.trim();
-                                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][targetDate] = sourceValue;
-                                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][sourceDate] = " ";
-                                
-                                this.saveYearlyData();
-                            }
-                            
-                            // Tisztítás és naptár frissítése
-                            document.querySelectorAll('.drag-over').forEach(el => {
-                                el.classList.remove('drag-over');
-                            });
-                            
-                            this.generateCalendar();
-                            this.generatePayrollTable();
-                        }
-                        
-                        // Teljes állapot visszaállítása
-                        isDragging = false;
-                        dragSource = null;
-                        dragStartTime = 0;
-                    });
+                    let dragStartX = 0;
+                    let dragStartY = 0;
 
                     // Normál kattintás kezelése - csak rövid érintésnél
                     shiftDiv.addEventListener('click', (e) => {
-                        // Ha a click egy rövid érintésből jött (nem húzás)
-                        if (Date.now() - dragStartTime < 500) {
+                        if (!isDragging) {
                         e.preventDefault();
                         e.stopPropagation();
                         
@@ -4755,15 +4685,105 @@
                                 document.body.removeChild(overlay);
                             }
                         });
-                    }
-                    // Ha megszakad az érintés, minden visszaáll
-                        shiftDiv.addEventListener('touchcancel', () => {
-                            isDragging = false;
-                            dragSource = null;
-                            dragStartTime = 0;
+                        }
+                    
+                    // Touch start - hosszú nyomás figyelése
+                        shiftDiv.addEventListener('touchstart', (e) => {
+                            if (isDragging) return;
+                            
+                            const touch = e.touches[0];
+                            dragStartX = touch.clientX;
+                            dragStartY = touch.clientY;
+                            
+                            // Hosszú nyomás időzítő indítása
+                            longPressTimer = setTimeout(() => {
+                                const shiftValue = shiftDiv.textContent.trim();
+                                if (shiftValue && shiftValue !== " ") {
+                                    isDragging = true;
+                                    shiftDiv.style.opacity = '0.5';
+                                }
+                            }, 500);
+                        });
+
+                        // Touch move - húzás kezelése
+                        shiftDiv.addEventListener('touchmove', (e) => {
+                            // Ha még nem kezdtük a húzást, de mozgást érzékelünk, töröljük az időzítőt
+                            if (!isDragging) {
+                                clearTimeout(longPressTimer);
+                                return;
+                            }
+                            
+                            e.preventDefault();
+                            const touch = e.touches[0];
+                            
+                            // Célpont keresése
+                            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                            
+                            // Kiemelések kezelése
                             document.querySelectorAll('.drag-over').forEach(el => {
                                 el.classList.remove('drag-over');
                             });
+                            
+                            if (target && target.classList.contains('shift-select') && target !== shiftDiv) {
+                                target.classList.add('drag-over');
+                            }
+                        });
+
+                        // Touch end - húzás befejezése
+                        shiftDiv.addEventListener('touchend', (e) => {
+                            clearTimeout(longPressTimer);
+                            
+                            if (isDragging) {
+                                e.preventDefault();
+                                
+                                const touch = e.changedTouches[0];
+                                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                                
+                                if (target && target.classList.contains('shift-select') && target !== shiftDiv) {
+                                    const sourceDate = parseInt(shiftDiv.closest('.date-container').querySelector('.date-number').textContent);
+                                    const targetDate = parseInt(target.closest('.date-container').querySelector('.date-number').textContent);
+                                    
+                                    // Műszakok cseréje
+                                    const sourceValue = shiftDiv.textContent.trim();
+                                    this.yearlyData[this.currentYear].calendar_data[this.currentMonth][targetDate] = sourceValue;
+                                    this.yearlyData[this.currentYear].calendar_data[this.currentMonth][sourceDate] = " ";
+                                    
+                                    this.saveYearlyData();
+                                }
+                                
+                                // Tisztítás
+                                document.querySelectorAll('.drag-over').forEach(el => {
+                                    el.classList.remove('drag-over');
+                                });
+                                
+                                // Naptár frissítése
+                                this.generateCalendar();
+                                this.generatePayrollTable();
+                            }
+                            
+                            // Állapot teljes visszaállítása
+                            isDragging = false;
+                            longPressTimer = null;
+                            dragStartX = 0;
+                            dragStartY = 0;
+                        });
+
+                        // Touch cancel - megszakítás esetén
+                        shiftDiv.addEventListener('touchcancel', () => {
+                            clearTimeout(longPressTimer);
+                            
+                            // Állapot teljes visszaállítása
+                            isDragging = false;
+                            longPressTimer = null;
+                            dragStartX = 0;
+                            dragStartY = 0;
+                            
+                            // Tisztítás
+                            document.querySelectorAll('.drag-over').forEach(el => {
+                                el.classList.remove('drag-over');
+                            });
+                            
+                            // Naptár frissítése
                             this.generateCalendar();
                         });
                     });
