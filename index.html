@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <!-- További favicon támogatás különböző eszközökhöz -->
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <meta charset="UTF-8" />
     <meta
     name="viewport"
@@ -15,6 +13,7 @@
     <meta http-equiv="Expires" content="0">
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
     <link rel="icon" type="image/png" href="./icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <title>Műszak Naptár</title>
     <style>
@@ -25,16 +24,26 @@
         margin: 0;
         padding: 0;
         touch-action: manipulation;
+        /* Webkit böngészők (Chrome, Safari) */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Firefox */
+        scrollbar-width: none;
+        
+        /* Internet Explorer és Edge */
+        -ms-overflow-style: none;
     }
 
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         sans-serif;
-        background-color: #f4f4f4;
+        background-color: #ffffff;
         height: 100vh;
         display: flex;
         flex-direction: column;
-        padding-top: 100px;
+        padding-top: 70px;
     }
 
     .nav-icon {
@@ -54,7 +63,7 @@
         color: white;
         display: flex;
         width: 100%;
-        height: 90px;
+        height: 70px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         position: fixed;
         top: 0;
@@ -70,8 +79,7 @@
         border-radius: 5px;
         color: white;
         width: 100%;
-        height: 90px;
-        font-size: 16px;
+        height: 70px;
         padding: 0 0px;
         white-space: nowrap;
         display: flex;
@@ -97,7 +105,7 @@
         }
         
         #navbar button:hover .nav-icon {
-            transform: scale(1.2);
+            transform: scale(1.1);
             filter: brightness(1) invert(0);
         }
     }
@@ -108,7 +116,7 @@
     }
     
     #navbar button:hover .nav-icon {
-        transform: scale(1.2);
+        transform: scale(1.1);
         filter: brightness(1) invert(0);
     }
 
@@ -256,7 +264,7 @@
     
     /* Gomb lenyomás effekt */
     #navbar button:active .nav-icon {
-        transform: scale(1.5);
+        transform: scale(1.2);
     }
 
     /* Különböző színű ikonok aktív állapotban */
@@ -315,7 +323,7 @@
     /* Egyedi animációk minden ikonhoz */
     @keyframes neonGlowCalendar {
         from {
-            transform: scale(1.2);
+            transform: scale(1.1);
             filter: 
                 brightness(0)
                 saturate(100%)
@@ -327,7 +335,7 @@
                 contrast(120%);
         }
         to {
-            transform: scale(1.5);
+            transform: scale(1.2);
             filter: 
                 brightness(0)
                 saturate(100%)
@@ -342,7 +350,7 @@
     
     @keyframes neonGlowPayroll {
         from {
-            transform: scale(1.2);
+            transform: scale(1.1);
             filter: 
                 brightness(0)
                 saturate(100%)
@@ -354,7 +362,7 @@
                 contrast(119%);
         }
         to {
-            transform: scale(1.5);
+            transform: scale(1.2);
             filter: 
                 brightness(0)
                 saturate(100%)
@@ -369,7 +377,7 @@
     
     @keyframes neonGlowSettings {
         from {
-            transform: scale(1.2);
+            transform: scale(1.1);
             filter: 
                 brightness(0)
                 saturate(100%)
@@ -381,7 +389,7 @@
                 contrast(105%);
         }
         to {
-            transform: scale(1.5);
+            transform: scale(1.2);
             filter: 
                 brightness(0)
                 saturate(100%)
@@ -396,7 +404,7 @@
     
     @keyframes neonGlowHelp {
         from {
-            transform: scale(1.2);
+            transform: scale(1.1);
             filter: 
                 brightness(0)
                 saturate(100%)
@@ -408,7 +416,7 @@
                 contrast(104%);
         }
         to {
-            transform: scale(1.5);
+            transform: scale(1.2);
             filter: 
                 brightness(0)
                 saturate(100%)
@@ -537,11 +545,18 @@
         display: block;
     }
 
+    body, #content {
+        -webkit-overflow-scrolling: touch;
+        overflow-y: scroll;
+        overflow-x: hidden;
+    }
+
     #content {
-    width: 100%;
-    box-sizing: border-box;
-    height: calc(100vh - 90px);
-    overflow-y: auto;
+        width: 100%;
+        box-sizing: border-box;
+        height: calc(100vh - 70px);
+        overflow-y: auto;
+        overscroll-behavior-y: none;
     }
 
     #calendar-header {
@@ -549,27 +564,37 @@
         flex-shrink: 0;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        height: 50px;
+        color: red;
+        text-shadow: 0 0.5px #000;
     }
 
     #calendar-header button {
-        background-color: #000;
+        background-color: transparent;
         color: white;
         border: none;
+        height: 40px;
+        width: 40px;
         margin: 5px;
-        padding: 10px 15px;
-        font-size: 30px;
+        font-size: 20px;
         border-radius: 5px;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;  
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        transform-style: preserve-3d;  /* 3D transzformációk megtartása */
+        backface-visibility: hidden;
     }
 
     #current-month {
-        font-size: 26px;
+        font-size: 30px;
         margin: 0;
     }
 
     #current-payroll-month {
-        font-size: 26px;
-        margin: 0;   
+        font-size: 30px;
+        margin: 0;
     }
 
     #calendarTable {
@@ -580,28 +605,34 @@
         border-collapse: collapse;
         table-layout: fixed;
         margin-bottom: 0;
-        box-shadow: 0 0 8px black;
+        will-change: transform, box-shadow;
     }
 
     #calendarTable th {
-        border: 3px solid #000;
-        border-radius: 10px;
-        padding: 1px;
+        border: 2px groove black;
+        padding: 0px;
+        margin: 0;
         text-align: center;
         vertical-align: center;
         height: 40px;
         width: 14.28571%;
-        box-shadow: 0 0 5px black;
+        box-shadow: inset 0 0 4px;
     }
+
     #calendarTable td {
-        border: 3px groove #ddd;
-        border-radius: 10px;
-        padding: 1px;
+        padding: 0px;
         text-align: center;
         vertical-align: top;
         height: 80px;
         width: 14.28571%;
-        box-shadow: 0 0 5px black;
+        transition: none !important;
+    }
+
+    .slide-in-right,
+    .slide-in-left,
+    .slide-out-right,
+    .slide-out-left {
+        box-shadow: 0 0 5px black !important; /* Kényszerített box-shadow */
     }
 
     .date-container {
@@ -614,23 +645,24 @@
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
-        box-shadow: 0 0 5px black;
+        box-shadow: inset 0 0px 3px black;
+        border: solid 1px black;
     }
 
     .date-number {
         font-weight: bold;
-        box-shadow: 0 0 4px rgb(103, 103, 103);
         margin: 3px 3px;
         font-size: 10px;
         color: #333;
-        width: 30px;
-        height: 40px;
-        background-color: #f0f0f0;
+        width: 20px;
+        height: 30px;
+        background-color: #ffffff;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         align-self: center;
+        border: 2px rgb(161, 161, 161) solid;
     }
 
     /* Színbeállítások stílusai */
@@ -750,12 +782,6 @@
         color: white;
     }
 
-    /* Hétvégék kiemelése */
-    #calendarTable tr td:nth-child(6),
-    #calendarTable tr td:nth-child(7) {
-        background-color: #f9f9f9;
-    }
-
     /* Ünnepnapok piros színnel */
     .holiday {
         background-color: #ff5353 !important; /* Halvány piros */
@@ -786,6 +812,7 @@
         border-radius: 5px;
         font-size: 16px;
         text-align: center;
+        box-shadow: inset 0 0 7px rgb(118, 118, 118);
         transition: all 0.3s ease;
     }
 
@@ -797,21 +824,23 @@
 
     /* Beállítások szekció stílusai */
     #settings-section {
-        padding: 20px;
         text-align: center;
         background-color: #f4f4f4; /* Világos háttér */
         border-radius: 10px; /* Lekerekített sarkok */
         width: 100%;
+        padding-bottom: 20px;
     }
     
     .setting-group {
         background-color: white;
-        border: 1px solid #e0e0e0;
+        border: 1px solid blue;
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 15px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
+        margin: 20px;
+        box-shadow: inset 0 0 10px #4a90e2;
     }
 
     .setting-group h3 {
@@ -828,22 +857,24 @@
 
     /* Új stílusok a settings szekcióhoz */
     .settings-content {
-        max-width: 800px;
+        max-width: 20%;
         margin: 0 auto;
         padding: 20px;
     }
 
     #save-settings {
-        background-color: #000000;
+        background-color: #ff0000a6;
         color: white;
         border: none;
-        padding: 12px 20px;
-        border-radius: 6px;
+        border-radius: 6px;   
+        width: 50%;
+        margin: auto;
         transition: background-color 0.3s ease;
     }
     
     #save-settings:hover {
-        background-color: #228f3da2;
+        background-color: #ffe600a2;
+        color: black;
     }
 
     .flex-row {
@@ -870,25 +901,42 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        width: 100%;
+        width: 30%;
       }
       
-      .midyear-change-container > * {
+    .midyear-change-container > * {
         flex: 1;
-      }
+        flex-grow: 1;
+        width: 30%;
+    }
 
     #settings-header {
+        display: flex;
+        flex-shrink: 0;
+        justify-content: space-between;
+        align-items: center;
+        height: 50px;
         font-size: 30px;
-        margin: 0;
+        margin-bottom: -10px;
+        color: red;
+        text-shadow: 0.5 0.5px #000;
     }
 
     #settings-header button {
-        background-color: #000;
+        background-color: transparent;
         color: white;
         border: none;
-        padding: 10px 15px;
-        font-size: 24px;
+        height: 40px;
+        width: 40px;
+        margin: 5px;
         border-radius: 5px;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;  
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        transform-style: preserve-3d;  /* 3D transzformációk megtartása */
+        backface-visibility: hidden;
     }
 
     .midyear-change-item {
@@ -907,7 +955,6 @@
         overflow-x: hidden; /* Vízszintes görgetés megakadályozása */
         padding: 15px;
         background-color: white;
-        border: 1px solid black;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
@@ -917,37 +964,20 @@
         width: 100%;
         font-size: 10px;
         padding: 0px;
+        margin: 0;
         margin-top: 3px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        border-radius: 3px;
+        border: 1px solid black;
+        box-shadow: inset 0 0 3px;
         height: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: wrap;
-        cursor: move; /* Kurzor mutatja hogy húzható */
+        cursor: pointer;
         text-align: center;
         word-break: break-all;
-        box-shadow: 0px 0px 4px black;
-        touch-action: none; /* Ez nagyon fontos! */
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-touch-callout: none;
-        transform: translate3d(0,0,0);
-    }
-
-    .shift-select.dragging {
-        opacity: 0.5;
-        background-color: rgba(74, 144, 226, 0.2);
-        border: 2px dashed #4a90e2;
     }
     
-    .shift-select.drag-over {
-        border: 2px dashed #4a90e2;
-        background-color: rgba(74, 144, 226, 0.1);
-        transform: scale(1.05);
-        transition: all 0.2s ease;
-    }
-
     select.shift-select {
         appearance: menulist;
         -webkit-appearance: menulist;
@@ -1025,6 +1055,8 @@
         border: 2px solid #000;
         border-collapse: separate;  /* Külön cellák */
         border-spacing: 0;  /* Nincs térköz */
+        font-size: 15px;
+        box-shadow: 5px 5px 5px 5px;
     }
     
     #payroll-table tr {
@@ -1035,7 +1067,8 @@
     #payroll-table td {
         border: 2px solid #000;
         border-width: 2px thin;  /* Explicit szegélyvastagság */
-        box-shadow: 0 0 8px rgb(0, 0, 0);
+        box-shadow: 0 0 5px rgb(0, 0, 0);
+        height: 20px;
         padding: 8px;
         text-align: left;
         font-weight: bold;
@@ -1055,26 +1088,39 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0;
         background-color: #f4f4f4;
         position: fixed;
         width: 100%;
-        top: 90px;
         z-index: 100;
+        flex-shrink: 0;
+        align-items: center;
+        margin: 0px;
+        height: 50px;
+        color: red;
+        text-shadow: 0 0.5px #000;
     }
 
     #payroll-content {
-        padding: 80px 0 10px 0;
+        height: 100%;
+        margin: 1px;
+        margin-top: 50px;
     }
 
     #payroll-header button {
-        background-color: #000;
+        background-color: transparent;
         color: white;
         border: none;
         margin: 5px;
-        padding: 10px 15px;
-        font-size: 30px;
-        border-radius: 5px;
+        height: 40px;
+        width: 40px;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;  
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        margin-bottom: 3px;  /* Extra margó az alsó vonalnak */
+        transform-style: preserve-3d;  /* 3D transzformációk megtartása */
+        backface-visibility: hidden;
     }
 
     .w-24 {
@@ -1090,11 +1136,6 @@
         padding-right: 0.5rem;
     }
 
-    .py-1 {
-        padding-top: 0.25rem;
-        padding-bottom: 0.25rem;
-    }
-
     .border {
         border: 1px solid #e2e8f0;
     }
@@ -1106,11 +1147,15 @@
     /* Input mező stílusok */
     #payroll-body input[type="number"] {
         border: 1px solid #e2e8f0;
-        padding: 4px 8px;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: bold;
         width: 100px;
         text-align: center;
+        height: 100%; /* Ez teszi a mezőt a cella teljes magasságúvá */
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        height: 100%;
     }
 
     #payroll-body input[type="number"]:focus {
@@ -1120,34 +1165,34 @@
     }
 
     salary-container {
-      position: relative;
-      display: flex;
-      align-items: center;
-      width: 100%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
     }
     
     .salary-input {
-      width: 100%;
-      transition: all 0.3s ease;
+        width: 100%;
+        transition: all 0.3s ease;
     }
     
     .visibility-toggle {
-      position: absolute;
-      right: 10px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      transition: transform 0.3s ease;
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        transition: transform 0.3s ease;
     }
     
     .visibility-toggle:active {
-      transform: scale(0.9);
+        transform: scale(0.9);
     }
 
     #calendar-section, #payroll-section {
@@ -1160,8 +1205,11 @@
         animation-fill-mode: both;
     }
 
-    #calendar-body td{
-        box-shadow: 0 0 5px black;
+    #calendar-body{
+        height: calc(100vh - 170px);
+        margin-bottom: 10px;
+        display: flex column;
+        flex-grow: 1;
     }
 
     #payroll-body {
@@ -1181,10 +1229,12 @@
         from {
             opacity: 0;
             transform: translate3d(100%, 0, 0);
+            box-shadow: 0 0 5px black;
         }
         to {
             opacity: 1;
             transform: translate3d(0, 0, 0);
+            box-shadow: 0 0 5px black;
         }
     }
     
@@ -1192,10 +1242,12 @@
         from {
             transform: translateX(-100%);
             opacity: 0;
+            box-shadow: 0 0 5px black;
         }
         to {
             transform: translateX(0);
             opacity: 1;
+            box-shadow: 0 0 5px black;
         }
     }
     
@@ -1203,10 +1255,12 @@
         from {
             transform: translateX(0);
             opacity: 1;
+            box-shadow: 0 0 5px black;
         }
         to {
             transform: translateX(100%);
             opacity: 0;
+            box-shadow: 0 0 5px black;
         }
     }
     
@@ -1214,28 +1268,33 @@
         from {
             transform: translateX(0);
             opacity: 1;
+            box-shadow: 0 0 5px black;
         }
         to {
             transform: translateX(-100%);
             opacity: 0;
+            box-shadow: 0 0 5px black;
         }
     }
     
-    
     .slide-in-right {
         animation-name: slideInRight;
+        box-shadow: 0 0 5px black;
     }
     
     .slide-in-left {
         animation-name: slideInLeft;
+        box-shadow: 0 0 5px black;
     }
     
     .slide-out-right {
         animation-name: slideOutRight;
+        box-shadow: 0 0 5px black;
     }
     
     .slide-out-left {
         animation-name: slideOutLeft;
+        box-shadow: 0 0 5px black;
     }
 
     @keyframes slideYearInRight {
@@ -1285,6 +1344,7 @@
     #settings-content {
         position: relative;
         overflow: hidden;
+        height: 100%;
     }
     
     .slide-year-in-right {
@@ -1339,9 +1399,13 @@
     <div id="content">
     <div id="calendar-section" class="section active">
         <div id="calendar-header">
-        <button id="prev-month-btn">←</button>
-        <h2 id="current-month">Január 2024</h2>
-        <button id="next-month-btn">→</button>
+            <button id="prev-month-btn">
+                <img src="left.png" alt="Előző hónap" style="width: 30px; height: 30px;"/>
+            </button>
+            <h2 id="current-month">Január 2024</h2>
+            <button id="next-month-btn">
+                <img src="right.png" alt="Következő hónap" style="width: 30px; height: 30px;"/>
+            </button>
         </div>
         <table id="calendarTable">
         <thead>
@@ -1363,9 +1427,13 @@
 
     <div id="payroll-section" class="section">
         <div id="payroll-header">
-        <button id="prev-payroll-month-btn">←</button>
-        <h2 id="current-payroll-month">Január 2024</h2>
-        <button id="next-payroll-month-btn">→</button>
+            <button id="prev-payroll-month-btn">
+                <img src="left.png" alt="Előző hónap" style="width: 30px; height: 30px;"/>
+            </button>
+            <h2 id="current-payroll-month">Január 2024</h2>
+            <button id="next-payroll-month-btn">
+                <img src="right.png" alt="Következő hónap" style="width: 30px; height: 30px;"/>
+            </button>
         </div>
         <div id="payroll-content">
         <table id="payroll-table">
@@ -1386,41 +1454,17 @@
         <!-- Fejléc az év váltáshoz -->
         <div
         id="settings-header"
-        style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        "
         >
         <button
             id="prev-settings-year-btn"
-            style="
-            background-color: #000;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 40px;
-            margin-left: -10px;
-            border-radius: 5px;
-            "
         >
-            ←
+            <img src="left.png" alt="Előző év" style="width: 30px; height: 30px;"/>
         </button>
         <h2 id="current-settings-year"></h2>
         <button
             id="next-settings-year-btn"
-            style="
-            background-color: #000;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 30px;
-            margin-right: -10px;
-            border-radius: 5px;
-            "
         >
-            →
+            <img src="right.png" alt="Következő év" style="width: 30px; height: 30px;"/>
         </button>
         </div>
 
@@ -1450,20 +1494,22 @@
                 style="padding-right: 45px;"
             />
         </div>
+        </div>
         <div class="setting-group">
             <h3>Éves szabadság</h3>
             <input type="number" id="vacation-days" class="mobile-button" placeholder="Éves szabadságnapok" step="0.5">
         </div>
 
         <!-- Évközi változás -->
+        <div class="setting-group">
         <div style="margin-top: 10px">
             <h3>Évközi bérváltozás beállítása</h3>
             <select
             id="midyear-month"
             class="mobile-button"
-            style="width: 65%; display: inline-block"
+            style="width: 49%; display: inline-block; color: grey"
             >
-            <option value="">Válassz hónapot...</option>
+            <option value="">Hónap...</option>
             <option value="0">Január</option>
             <option value="1">Február</option>
             <option value="2">Március</option>
@@ -1482,7 +1528,7 @@
             id="midyear-salary"
             class="mobile-button"
             placeholder="Új besorolási bér"
-            style="width: 65%; display: inline-block"
+            style="width: 49%; display: inline-block"
             />
         </div>
         <button id="add-midyear-change" class="mobile-button">
@@ -1681,7 +1727,9 @@
         </div>
 
         <!-- Mentés gomb --> 
+        <div class="save">
         <button id="save-settings" class="mobile-button">Mentés</button>
+        </div>
     </div>
 
     <div id="help-section" class="section">
@@ -1991,14 +2039,14 @@
         }
 
         isShiftType(shiftValue, type) {
-        // Normalizáljuk a stringeket
-        const normalizedShift = String(shiftValue || "")
-            .toLowerCase()
-            .trim();
-        const normalizedType = type.toLowerCase().trim();
+            // Normalizáljuk a stringeket
+            const normalizedShift = String(shiftValue || "")
+                .toLowerCase()
+                .trim();
+            const normalizedType = type.toLowerCase().trim();
 
-        // Rugalmas illeszkedés
-        return normalizedShift.includes(normalizedType);
+            // Rugalmas illeszkedés
+            return normalizedShift.includes(normalizedType);
         }
 
         calculateEaster(year) {
@@ -2083,26 +2131,26 @@
         }
 
         calculateHolidayValue(year, month) {
-        const holidays = this.getHolidays(year);
-        let holidayValue = 0;
-        let holidayCount = 0;
+            const holidays = this.getHolidays(year);
+            let holidayValue = 0;
+            let holidayCount = 0;
 
-        holidays.forEach((holiday) => {
-            if (holiday.month === month) {
-            const calendarData = this.yearData.calendar_data[month] || {};
-            const dayData = calendarData[holiday.day];
+            holidays.forEach((holiday) => {
+                if (holiday.month === month) {
+                const calendarData = this.yearData.calendar_data[month] || {};
+                const dayData = calendarData[holiday.day];
 
-            if (
-                dayData &&
-                (dayData.includes("Nappal") || dayData.includes("Éjszaka"))
-            ) {
-                holidayValue += 12;
-                holidayCount += 1;
-            }
-            }
-        });
+                if (
+                    dayData &&
+                    (dayData.includes("Nappal") || dayData.includes("Éjszaka"))
+                ) {
+                    holidayValue += 12;
+                    holidayCount += 1;
+                }
+                }
+            });
 
-        return { holidayValue, holidayCount };
+            return { holidayValue, holidayCount };
         }
 
         calculateChildTaxBenefit(childCount, date) {
@@ -2131,15 +2179,15 @@
         }
 
         getYearData(year) {
-        if (year < 2024 || year > 2028) {
-            throw new Error(`Érvénytelen év: ${year}`);
-        }
-        return this.app.yearlyData[year];
+            if (year < 2024 || year > 2028) {
+                throw new Error(`Érvénytelen év: ${year}`);
+            }
+            return this.app.yearlyData[year];
         }
 
         getMonthData(year, month) {
-        const yearData = this.getYearData(year);
-        return yearData.calendar_data[month] || {};
+            const yearData = this.getYearData(year);
+            return yearData.calendar_data[month] || {};
         }
 
         getEffectiveSalary(year, month) {
@@ -2222,72 +2270,72 @@
         }
 
         calculateQuarterlyOvertime(year, monthIndex) {
-    try {
-        const startMonth = Math.floor(monthIndex / 3) * 3;
-        const months = [startMonth, startMonth + 1, startMonth + 2];
-        
-        let totalWorkingDays = 0;
-        let totalHavi8 = 0;
-        let totalLedolgozottOrak = 0;
-        let totalCsuszoHours = 0;
-
-        months.forEach(month => {
-            const monthData = this.app.yearlyData[year]?.calendar_data[month] || {};
-            
-            let monthWorkingDays = 0;
-            Object.entries(monthData).forEach(([day, shiftValue]) => {
-                if (!shiftValue) return;
-
-                // Ledolgozott napok számolása
-                if (shiftValue?.includes("Nappal") || 
-                    shiftValue?.includes("Éjszaka") ||
-                    shiftValue?.includes("Szabadság") ||
-                    shiftValue?.includes("Csúszó") ||
-                    shiftValue?.includes("Táppénz")) {
-                    monthWorkingDays++;
-                }
-
-                // Ledolgozott órák számolása (csúszók nélkül)
-                if (shiftValue?.includes("Nappal") || shiftValue?.includes("Éjszaka")) {
-                    if (shiftValue.includes("12 óra")) {
-                        totalLedolgozottOrak += 12;
-                    } else if (shiftValue.includes("8 óra")) {
-                        totalLedolgozottOrak += 8;
-                    } else if (shiftValue.includes("4 óra")) {
-                        totalLedolgozottOrak += 4;
-                    }
-                }
+            try {
+                const startMonth = Math.floor(monthIndex / 3) * 3;
+                const months = [startMonth, startMonth + 1, startMonth + 2];
                 
-                // Csúszó órák számolása
-                if (shiftValue?.includes("Csúszó")) {
-                    if (shiftValue.includes("12 óra")) {
-                        totalCsuszoHours += 12;
-                    } else if (shiftValue.includes("8 óra")) {
-                        totalCsuszoHours += 8;
-                    } else if (shiftValue.includes("4 óra")) {
-                        totalCsuszoHours += 4;
-                    }
-                }
-            });
-            
-            totalWorkingDays += monthWorkingDays;
-            const havi8 = this.calculateWorkingDays(year, month) * 8;
-            totalHavi8 += havi8;
-        });
+                let totalWorkingDays = 0;
+                let totalHavi8 = 0;
+                let totalLedolgozottOrak = 0;
+                let totalCsuszoHours = 0;
 
-        // Túlóra keret számítása:
-        // 1. Először kiszámoljuk az összes ledolgozandó órát (12 órás műszakok)
-        const totalRequiredHours = totalWorkingDays * 12;
-        
-        // 2. Kivonjuk belőle a havi 8 órás munkaidőt
-        // 3. Kivonjuk a csúszó órákat
-        const tuloraKeret = totalRequiredHours - totalHavi8 - totalCsuszoHours;
+                months.forEach(month => {
+                    const monthData = this.app.yearlyData[year]?.calendar_data[month] || {};
+                    
+                    let monthWorkingDays = 0;
+                    Object.entries(monthData).forEach(([day, shiftValue]) => {
+                        if (!shiftValue) return;
 
-        return Math.max(0, tuloraKeret);
-    } catch (error) {
-        console.error("Hiba a negyedéves túlóra számításában:", error);
-        return 0;
-    }
+                        // Ledolgozott napok számolása
+                        if (shiftValue?.includes("Nappal") || 
+                            shiftValue?.includes("Éjszaka") ||
+                            shiftValue?.includes("Szabadság") ||
+                            shiftValue?.includes("Csúszó") ||
+                            shiftValue?.includes("Táppénz")) {
+                            monthWorkingDays++;
+                        }
+
+                        // Ledolgozott órák számolása (csúszók nélkül)
+                        if (shiftValue?.includes("Nappal") || shiftValue?.includes("Éjszaka")) {
+                            if (shiftValue.includes("12 óra")) {
+                                totalLedolgozottOrak += 12;
+                            } else if (shiftValue.includes("8 óra")) {
+                                totalLedolgozottOrak += 8;
+                            } else if (shiftValue.includes("4 óra")) {
+                                totalLedolgozottOrak += 4;
+                            }
+                        }
+                        
+                        // Csúszó órák számolása
+                        if (shiftValue?.includes("Csúszó")) {
+                            if (shiftValue.includes("12 óra")) {
+                                totalCsuszoHours += 12;
+                            } else if (shiftValue.includes("8 óra")) {
+                                totalCsuszoHours += 8;
+                            } else if (shiftValue.includes("4 óra")) {
+                                totalCsuszoHours += 4;
+                            }
+                        }
+                    });
+                    
+                    totalWorkingDays += monthWorkingDays;
+                    const havi8 = this.calculateWorkingDays(year, month) * 8;
+                    totalHavi8 += havi8;
+                });
+
+                // Túlóra keret számítása:
+                // 1. Először kiszámoljuk az összes ledolgozandó órát (12 órás műszakok)
+                const totalRequiredHours = totalWorkingDays * 12;
+                
+                // 2. Kivonjuk belőle a havi 8 órás munkaidőt
+                // 3. Kivonjuk a csúszó órákat
+                const tuloraKeret = totalRequiredHours - totalHavi8 - totalCsuszoHours;
+
+                return Math.max(0, tuloraKeret);
+            } catch (error) {
+                console.error("Hiba a negyedéves túlóra számításában:", error);
+                return 0;
+            }
         }
 
         calculateWorkingDays(year, month) {
@@ -2329,33 +2377,33 @@
         }
 
         calculateShiftValues(monthData, date) {
-        try {
-            const isWeekend = date.getDay() === 0;
-            const isHoliday = this.isHoliday(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate()
-            );
+            try {
+                const isWeekend = date.getDay() === 0;
+                const isHoliday = this.isHoliday(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate()
+                );
 
-            return {
-            isWeekend,
-            isHoliday,
-            shiftHours: this.getShiftHours(monthData),
-            nightShiftHours: this.getNightShiftHours(monthData),
-            weekendHours: isWeekend ? this.getWeekendHours(monthData) : 0,
-            holidayHours: isHoliday ? this.getHolidayHours(monthData) : 0,
-            };
-        } catch (error) {
-            console.error("Hiba a műszak értékek számításánál:", error);
-            return {
-            isWeekend: false,
-            isHoliday: false,
-            shiftHours: 0,
-            nightShiftHours: 0,
-            weekendHours: 0,
-            holidayHours: 0,
-            };
-        }
+                return {
+                isWeekend,
+                isHoliday,
+                shiftHours: this.getShiftHours(monthData),
+                nightShiftHours: this.getNightShiftHours(monthData),
+                weekendHours: isWeekend ? this.getWeekendHours(monthData) : 0,
+                holidayHours: isHoliday ? this.getHolidayHours(monthData) : 0,
+                };
+            } catch (error) {
+                console.error("Hiba a műszak értékek számításánál:", error);
+                return {
+                isWeekend: false,
+                isHoliday: false,
+                shiftHours: 0,
+                nightShiftHours: 0,
+                weekendHours: 0,
+                holidayHours: 0,
+                };
+            }
         }
 
         calculateMonthlyValue(label, monthIndex, year) {
@@ -2555,18 +2603,20 @@
 
                     case "Műszakpótlék 40%":
                         return muszakPotlek40;
+
                     case "Alapbér":
                         return ledolgozando > 0 ? (effectiveSalary / ledolgozando) * ledolgozott : 0;
+
                     case "Túlóra alap": {
                         const workingDays = this.calculateWorkingDays(year, monthIndex);
                         const havi8 = workingDays * 8;
                         const effectiveSalary = this.getEffectiveSalary(year, monthIndex);
                         const tuloraOrak = this.getTuloraOrak(monthIndex, year);
                         // Negyedéves túlóra keret számítása
-    let tuloraKeret = 0;
-    if ((monthIndex + 1) % 3 === 0) {
-        tuloraKeret = this.calculateQuarterlyOvertime(year, monthIndex);
-    }
+                        let tuloraKeret = 0;
+                        if ((monthIndex + 1) % 3 === 0) {
+                            tuloraKeret = this.calculateQuarterlyOvertime(year, monthIndex);
+                        }
                     
                         // A teljes túlóra óraszám figyelembe vétele
                         const osszTuloraOrak = tuloraOrak.normal + tuloraOrak.sunday + tuloraKeret;
@@ -2580,24 +2630,25 @@
                     }
                     case "Szabadságra jutó fizetés":
                         return ledolgozando > 0 ? (effectiveSalary / (ledolgozando * 12)) * szabadsagOra : 0;
+
                     case "Távolléti díj":
                         return this.calculateTavolletDij(monthIndex, year);
+
                     case "Fizetett ünnepnap":
                         return ledolgozando > 0 ? (effectiveSalary / ledolgozando) * holidayCount : 0;
+                    
                     case "Túlórapótlék": {
                         const effectiveSalary = this.getEffectiveSalary(year, monthIndex);
                         const workingDays = this.calculateWorkingDays(year, monthIndex);
                         const havi8 = workingDays * 8;
                         const tuloraOrak = this.getTuloraOrak(monthIndex, year);
                         const pattern = this.app.yearlyData[year]?.settings?.muszakrend || "1";
-
-                        
-    // Negyedéves túlóra keret számítása
-    let tuloraKeret = 0;
-    if ((monthIndex + 1) % 3 === 0) {
-        tuloraKeret = this.calculateQuarterlyOvertime(year, monthIndex);
-    }
-                    
+                       
+                        // Negyedéves túlóra keret számítása
+                        let tuloraKeret = 0;
+                        if ((monthIndex + 1) % 3 === 0) {
+                            tuloraKeret = this.calculateQuarterlyOvertime(year, monthIndex);
+                        }               
                         // Normál túlórapótlék (100%)
                         const normalTulorapotlek = (effectiveSalary / 174) * (tuloraOrak.normal + tuloraKeret);
                     
@@ -2618,6 +2669,7 @@
                         const effectiveSalary = this.getEffectiveSalary(year, monthIndex);
                         return Math.round((effectiveSalary / 174) * weekendHours * 0.5);
                     }
+
                     case "Műszakpótlék (40%)":
                         return (effectiveSalary / 174) * muszakPotlek40 * 0.4;
                         case "Teljesítmény prémium": {
@@ -2625,6 +2677,7 @@
                             const bonusValue = yearData.bonusEntries?.[monthIndex] || 0;
                             return effectiveSalary * 0.05 * bonusValue;
                         }
+
                     case "TB Járulék 18,5%": {
                         const bruttoBer = this.calculateMonthlyValue("Bruttó bér", monthIndex, year);
                         return Math.round(bruttoBer * 0.185);
@@ -2714,98 +2767,98 @@
         }
 
         getMonthData(monthIndex, year) {
-        const yearData = this.app.yearData;
-        const monthData = {
-            workedDays: 0,
-            totalWorkingDays: this.calculateWorkingDays(year, monthIndex),
-            vacationHours: 0,
-            overtimeHours: 0,
-            nightShiftHours: 0,
-            weekendHours: 0,
-            sickDays: 0,
-        };
+            const yearData = this.app.yearData;
+            const monthData = {
+                workedDays: 0,
+                totalWorkingDays: this.calculateWorkingDays(year, monthIndex),
+                vacationHours: 0,
+                overtimeHours: 0,
+                nightShiftHours: 0,
+                weekendHours: 0,
+                sickDays: 0,
+            };
 
-        const calendarData =
-            this.app.yearData.calendar_data[monthIndex] || {};
+            const calendarData =
+                this.app.yearData.calendar_data[monthIndex] || {};
 
-        // Ha üres a calendar_data, térjünk vissza az alapértelmezett adatokkal
-        if (Object.keys(calendarData).length === 0) {
-            return monthData;
-        }
-
-        Object.entries(calendarData).forEach(([day, shiftValue]) => {
-            const date = new Date(year, monthIndex, parseInt(day));
-            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-
-            switch (shiftValue) {
-            case "Nappal":
-                monthData.workedDays += 1;
-                if (isWeekend) monthData.weekendHours += 12;
-                break;
-
-            case "Éjszaka":
-                monthData.workedDays += 1;
-                monthData.nightShiftHours += 12;
-                if (isWeekend) monthData.weekendHours += 12;
-                break;
-
-            case "Szabadság 12 óra":
-                monthData.vacationHours += 12;
-                break;
-
-            case "Szabadság éj 12 óra":
-                monthData.vacationHours += 12;
-                monthData.nightShiftHours += 12;
-                break;
-
-            case "Szabadság 8 óra":
-                monthData.vacationHours += 8;
-                break;
-
-            case "Szabadság éj 8 óra":
-                monthData.vacationHours += 8;
-                monthData.nightShiftHours += 8;
-                break;
-
-            case "Szabadság 4 óra":
-                monthData.vacationHours += 4;
-                break;
-
-            case "Szabadság éj 4 óra":
-                monthData.vacationHours += 4;
-                monthData.nightShiftHours += 4;
-                break;
-
-            case "Túlóra 12 óra":
-                monthData.workedDays += 1;
-                monthData.overtimeHours += 12;
-                if (isWeekend) monthData.weekendHours += 12;
-                break;
-
-            case "Túlóra éj 12 óra":
-                monthData.workedDays += 1;
-                monthData.overtimeHours += 12;
-                monthData.nightShiftHours += 12;
-                if (isWeekend) monthData.weekendHours += 12;
-                break;
-
-            case "Túlóra 8 óra":
-                monthData.overtimeHours += 8;
-                if (isWeekend) monthData.weekendHours += 8;
-                break;
-
-            case "Túlóra éj 8 óra":
-                monthData.overtimeHours += 8;
-                monthData.nightShiftHours += 8;
-                if (isWeekend) monthData.weekendHours += 8;
-                break;
-
-            case "Táppénz":
-                monthData.sickDays += 1;
-                break;
+            // Ha üres a calendar_data, térjünk vissza az alapértelmezett adatokkal
+            if (Object.keys(calendarData).length === 0) {
+                return monthData;
             }
-        });
-        return monthData;
+
+            Object.entries(calendarData).forEach(([day, shiftValue]) => {
+                const date = new Date(year, monthIndex, parseInt(day));
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+                switch (shiftValue) {
+                case "Nappal":
+                    monthData.workedDays += 1;
+                    if (isWeekend) monthData.weekendHours += 12;
+                    break;
+
+                case "Éjszaka":
+                    monthData.workedDays += 1;
+                    monthData.nightShiftHours += 12;
+                    if (isWeekend) monthData.weekendHours += 12;
+                    break;
+
+                case "Szabadság 12 óra":
+                    monthData.vacationHours += 12;
+                    break;
+
+                case "Szabadság éj 12 óra":
+                    monthData.vacationHours += 12;
+                    monthData.nightShiftHours += 12;
+                    break;
+
+                case "Szabadság 8 óra":
+                    monthData.vacationHours += 8;
+                    break;
+
+                case "Szabadság éj 8 óra":
+                    monthData.vacationHours += 8;
+                    monthData.nightShiftHours += 8;
+                    break;
+
+                case "Szabadság 4 óra":
+                    monthData.vacationHours += 4;
+                    break;
+
+                case "Szabadság éj 4 óra":
+                    monthData.vacationHours += 4;
+                    monthData.nightShiftHours += 4;
+                    break;
+
+                case "Túlóra 12 óra":
+                    monthData.workedDays += 1;
+                    monthData.overtimeHours += 12;
+                    if (isWeekend) monthData.weekendHours += 12;
+                    break;
+
+                case "Túlóra éj 12 óra":
+                    monthData.workedDays += 1;
+                    monthData.overtimeHours += 12;
+                    monthData.nightShiftHours += 12;
+                    if (isWeekend) monthData.weekendHours += 12;
+                    break;
+
+                case "Túlóra 8 óra":
+                    monthData.overtimeHours += 8;
+                    if (isWeekend) monthData.weekendHours += 8;
+                    break;
+
+                case "Túlóra éj 8 óra":
+                    monthData.overtimeHours += 8;
+                    monthData.nightShiftHours += 8;
+                    if (isWeekend) monthData.weekendHours += 8;
+                    break;
+
+                case "Táppénz":
+                    monthData.sickDays += 1;
+                    break;
+                }
+            });
+            return monthData;
         }
 
         calculateTavolletDij(monthIndex, year) {
@@ -2938,163 +2991,156 @@
     class EventHandlers {
         constructor(app) {
         this.app = app;
-
         // Év váltás eseménykezelők
         this.initYearChangeHandlers();
-
         // Beállítások eseménykezelők
         this.initSettingsHandlers();
-
         // Színbeállítások eseménykezelők
         this.initColorHandlers();
         }
 
         initYearChangeHandlers() {
-        // Naptár év váltás
-        document
-            .getElementById("prev-month-btn")
-            ?.addEventListener("click", () => {
-            this.app.changeYear(-1, "calendar");
-            });
+            // Naptár év váltás
+            document
+                .getElementById("prev-month-btn")
+                ?.addEventListener("click", () => {
+                this.app.changeYear(-1, "calendar");
+                });
 
-        document
-            .getElementById("next-month-btn")
-            ?.addEventListener("click", () => {
-            this.app.changeYear(1, "calendar");
-            });
+            document
+                .getElementById("next-month-btn")
+                ?.addEventListener("click", () => {
+                this.app.changeYear(1, "calendar");
+                });
 
-        // Bérszámfejtés év váltás
-        document
-            .getElementById("prev-payroll-month-btn")
-            ?.addEventListener("click", () => {
-            this.app.changeYear(-1, "payroll");
-            });
+            // Bérszámfejtés év váltás
+            document
+                .getElementById("prev-payroll-month-btn")
+                ?.addEventListener("click", () => {
+                this.app.changeYear(-1, "payroll");
+                });
 
-        document
-            .getElementById("next-payroll-month-btn")
-            ?.addEventListener("click", () => {
-            this.app.changeYear(1, "payroll");
-            });
+            document
+                .getElementById("next-payroll-month-btn")
+                ?.addEventListener("click", () => {
+                this.app.changeYear(1, "payroll");
+                });
 
-        // Beállítások év váltás
-        document
-            .getElementById("prev-settings-year-btn")
-            ?.addEventListener("click", () => {
-            this.app.changeYear(-1, "settings");
-            });
+            // Beállítások év váltás
+            document
+                .getElementById("prev-settings-year-btn")
+                ?.addEventListener("click", () => {
+                this.app.changeYear(-1, "settings");
+                });
 
-        document
-            .getElementById("next-settings-year-btn")
-            ?.addEventListener("click", () => {
-            this.app.changeYear(1, "settings");
-            });
+            document
+                .getElementById("next-settings-year-btn")
+                ?.addEventListener("click", () => {
+                this.app.changeYear(1, "settings");
+                });
         }
 
         initSettingsHandlers() {
-        // Under 25 checkbox kezelése
-        const under25Checkbox = document.getElementById("under25-checkbox");
-        const birthDateContainer = document.getElementById(
-            "birth-date-container"
-        );
+            // Under 25 checkbox kezelése
+            const under25Checkbox = document.getElementById("under25-checkbox");
+            const birthDateContainer = document.getElementById(
+                "birth-date-container"
+            );
 
-        under25Checkbox?.addEventListener("change", (e) => {
-            if (birthDateContainer) {
-            birthDateContainer.style.display = e.target.checked
-                ? "block"
-                : "none";
-            this.app.yearlyData[
-                this.app.currentSettingsYear
-            ].settings.under25.enabled = e.target.checked;
-            }
-        });
-
-        // Évközi változás hozzáadása
-        document
-            .getElementById("add-midyear-change")
-            ?.addEventListener("click", () => {
-            const monthSelect = document.getElementById("midyear-month");
-            const salaryInput = document.getElementById("midyear-salary");
-
-            if (!monthSelect?.value || !salaryInput?.value) {
-                alert("Kérlek válassz hónapot és adj meg új besorolási bért!");
-                return;
-            }
-
-            this.app.addMidyearChange(monthSelect.value, salaryInput.value);
-
-            // Mezők törlése
-            monthSelect.value = "";
-            salaryInput.value = "";
+            under25Checkbox?.addEventListener("change", (e) => {
+                if (birthDateContainer) {
+                birthDateContainer.style.display = e.target.checked
+                    ? "block"
+                    : "none";
+                this.app.yearlyData[
+                    this.app.currentSettingsYear
+                ].settings.under25.enabled = e.target.checked;
+                }
             });
 
-        // Beállítások mentése
-        document
-            .getElementById("save-settings")
-            ?.addEventListener("click", () => {
-            try {
-                this.app.saveSettings();
-                alert("Beállítások sikeresen mentve!");
-            } catch (error) {
-                alert("Hiba történt a beállítások mentése során!");
-                console.error(error);
-            }
+            // Évközi változás hozzáadása
+            document
+                .getElementById("add-midyear-change")
+                ?.addEventListener("click", () => {
+                const monthSelect = document.getElementById("midyear-month");
+                const salaryInput = document.getElementById("midyear-salary");
+
+                if (!monthSelect?.value || !salaryInput?.value) {
+                    alert("Kérlek válassz hónapot és adj meg új besorolási bért!");
+                    return;
+                }
+
+                this.app.addMidyearChange(monthSelect.value, salaryInput.value);
+
+                // Mezők törlése
+                monthSelect.value = "";
+                salaryInput.value = "";
+                });
+
+            // Beállítások mentése
+            document
+                .getElementById("save-settings")
+                ?.addEventListener("click", () => {
+                try {
+                    this.app.saveSettings();
+                    alert("Beállítások sikeresen mentve!");
+                } catch (error) {
+                    alert("Hiba történt a beállítások mentése során!");
+                    console.error(error);
+                }
             });
         }
 
         initColorHandlers() {
-        const colorPickers = document.querySelectorAll(".color-picker");
-
-        colorPickers.forEach((button) => {
-            button.addEventListener("click", (e) => {
-            e.preventDefault();
-
-            const input = document.createElement("input");
-            input.type = "color";
-
-            const shiftType = button.getAttribute("data-shift-type");
-            const colorType = button.getAttribute("data-color-type");
-
-            if (shiftType && colorType) {
-                this.handleColorPicker(input, shiftType, colorType);
-            }
+            const colorPickers = document.querySelectorAll(".color-picker");
+            colorPickers.forEach((button) => {
+                button.addEventListener("click", (e) => {
+                e.preventDefault();
+                const input = document.createElement("input");
+                input.type = "color";
+                const shiftType = button.getAttribute("data-shift-type");
+                const colorType = button.getAttribute("data-color-type");
+                if (shiftType && colorType) {
+                    this.handleColorPicker(input, shiftType, colorType);
+                }
+                });
             });
-        });
         }
 
         handleColorPicker(input, shiftType, colorType) {
-        const key = this.findShiftColorKey(shiftType);
-        if (!key) return;
+            const key = this.findShiftColorKey(shiftType);
+            if (!key) return;
 
-        input.value =
-            colorType === "bg" ? SHIFT_COLORS[key][0] : SHIFT_COLORS[key][1];
+            input.value =
+                colorType === "bg" ? SHIFT_COLORS[key][0] : SHIFT_COLORS[key][1];
 
-        input.addEventListener("input", (event) => {
-            if (colorType === "bg") {
-            SHIFT_COLORS[key][0] = event.target.value;
-            } else {
-            SHIFT_COLORS[key][1] = event.target.value;
-            }
+            input.addEventListener("input", (event) => {
+                if (colorType === "bg") {
+                SHIFT_COLORS[key][0] = event.target.value;
+                } else {
+                SHIFT_COLORS[key][1] = event.target.value;
+                }
 
-            this.app.updateColorPreviews();
-            this.app.generateCalendar();
-            this.app.saveColorSettings();
-        });
+                this.app.updateColorPreviews();
+                this.app.generateCalendar();
+                this.app.saveColorSettings();
+            });
 
-        input.click();
+            input.click();
         }
 
         findShiftColorKey(shiftType) {
-        return Object.keys(SHIFT_COLORS).find(
-            (key) =>
-            key
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "") ===
-            shiftType
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-        );
+            return Object.keys(SHIFT_COLORS).find(
+                (key) =>
+                key
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "") ===
+                shiftType
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+            );
         }
     }
 
@@ -3125,18 +3171,20 @@
         }
 
         static validateInput(value, type) {
-        switch (type) {
-            case "salary":
-            return !isNaN(value) && value >= 0;
-            case "year":
-            return !isNaN(value) && value >= 2024 && value <= 2028;
-            case "month":
-            return !isNaN(value) && value >= 0 && value <= 11;
-            default:
-            return true;
-        }
+            switch (type) {
+                case "salary":
+                return !isNaN(value) && value >= 0;
+                case "year":
+                return !isNaN(value) && value >= 2024 && value <= 2028;
+                case "month":
+                return !isNaN(value) && value >= 0 && value <= 11;
+                default:
+                return true;
+            }
         }
     }
+
+    // ____________________________________APPLIKÁCIÓ__________________________________________________
 
     class BerszamfejtoApp {
         constructor() {            
@@ -3168,14 +3216,27 @@
                 this.generateCalendar();
                 this.initPayrollNavigation();
                 this.generatePayrollTable();
-                this.initTouchDragAndDrop();
                 document.addEventListener('contextmenu', function(e) {
                     if (e.target.closest('#navbar')) {
                         e.preventDefault();
                     }
                 }, false);
         
-                // Touch és Click események kombinált kezelése
+                document.addEventListener('contextmenu', function(e) {
+                    const navButtons = [
+                        document.getElementById('prev-month-btn'),
+                        document.getElementById('next-month-btn'),
+                        document.getElementById('prev-payroll-month-btn'),
+                        document.getElementById('next-payroll-month-btn'),
+                        document.getElementById('prev-settings-year-btn'),
+                        document.getElementById('next-settings-year-btn')
+                    ];
+                
+                    if (navButtons.some(button => button && button.contains(e.target))) {
+                        e.preventDefault();
+                    }
+                }, false);// Touch és Click események kombinált kezelése
+
                 const navButtons = document.querySelectorAll('#navbar button');
                 navButtons.forEach(button => {
                     const handleNavigation = () => {
@@ -3350,174 +3411,6 @@
             } catch (error) {
                 console.error("Hiba a mentett adatok betöltése során:", error);
                 console.error("Hiba részletei:", error.stack);
-            }
-        }
-
-        initTouchDragAndDrop() {
-            let draggedElement = null;
-            let originalShift = null;
-            let originalDate = null;
-            let dragStartX = 0;
-            let dragStartY = 0;
-    
-            // CSS stílusok hozzáadása
-            const style = document.createElement('style');
-            style.textContent = `
-                .shift-select {
-                    touch-action: none;
-                    user-select: none;
-                    -webkit-user-select: none;
-                    -webkit-touch-callout: none;
-                }
-    
-                .shift-select.drag-over {
-                    border: 2px dashed #4a90e2;
-                    background-color: rgba(74, 144, 226, 0.1);
-                }
-            `;
-            document.head.appendChild(style);
-    
-            // Touch események hozzáadása a naptár generálás után
-            const originalGenerateCalendar = this.generateCalendar;
-            this.generateCalendar = () => {
-                originalGenerateCalendar.call(this);
-                this.initTouchEvents();
-            };
-        }
-    
-        // Touch események inicializálása
-        initTouchEvents() {
-            const shiftDivs = document.querySelectorAll('.shift-select');
-            let draggedElement = null;
-            let originalShift = null;
-            let originalDate = null;
-            let dragStartX = 0;
-            let dragStartY = 0;
-    
-            shiftDivs.forEach(div => {
-                // Touch start esemény
-                div.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    
-                    dragStartX = e.touches[0].clientX;
-                    dragStartY = e.touches[0].clientY;
-                    
-                    setTimeout(() => {
-                        if (Math.abs(e.touches[0].clientX - dragStartX) < 5 && 
-                            Math.abs(e.touches[0].clientY - dragStartY) < 5) {
-                            draggedElement = div.cloneNode(true);
-                            originalShift = div.textContent;
-                            originalDate = div.closest('.date-container').querySelector('.date-number').textContent;
-                            
-                            draggedElement.style.position = 'fixed';
-                            draggedElement.style.zIndex = '1000';
-                            draggedElement.style.opacity = '0.8';
-                            draggedElement.style.width = div.offsetWidth + 'px';
-                            draggedElement.style.pointerEvents = 'none';
-                            
-                            document.body.appendChild(draggedElement);
-                            div.style.opacity = '0.4';
-                            
-                            this.updateDraggedPosition(draggedElement, e.touches[0].clientX, e.touches[0].clientY);
-                        }
-                    }, 200);
-                }, { passive: false });
-    
-                // Touch move esemény
-                div.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
-                    if (draggedElement) {
-                        this.updateDraggedPosition(draggedElement, e.touches[0].clientX, e.touches[0].clientY);
-                        
-                        const target = document.elementFromPoint(
-                            e.touches[0].clientX,
-                            e.touches[0].clientY
-                        );
-                        
-                        shiftDivs.forEach(d => d.classList.remove('drag-over'));
-                        
-                        if (target && target.classList.contains('shift-select')) {
-                            target.classList.add('drag-over');
-                        }
-                    }
-                }, { passive: false });
-    
-                // Touch end esemény
-                div.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    if (draggedElement) {
-                        const target = document.elementFromPoint(
-                            e.changedTouches[0].clientX,
-                            e.changedTouches[0].clientY
-                        );
-                        
-                        if (target && target.classList.contains('shift-select')) {
-                            const targetDate = target.closest('.date-container')
-                                .querySelector('.date-number').textContent;
-                            
-                            if (originalDate !== targetDate) {
-                                this.swapShifts(
-                                    parseInt(originalDate),
-                                    parseInt(targetDate),
-                                    originalShift,
-                                    target.textContent
-                                );
-                            }
-                        }
-                        
-                        document.body.removeChild(draggedElement);
-                        draggedElement = null;
-                        originalShift = null;
-                        originalDate = null;
-                        
-                        shiftDivs.forEach(d => {
-                            d.style.opacity = '1';
-                            d.classList.remove('drag-over');
-                        });
-                    }
-                }, { passive: false });
-    
-                // Touch cancel esemény
-                div.addEventListener('touchcancel', () => {
-                    if (draggedElement) {
-                        document.body.removeChild(draggedElement);
-                        draggedElement = null;
-                        originalShift = null;
-                        originalDate = null;
-                        
-                        shiftDivs.forEach(d => {
-                            d.style.opacity = '1';
-                            d.classList.remove('drag-over');
-                        });
-                    }
-                });
-            });
-        }
-    
-        // Segédfüggvény a húzott elem pozicionálásához
-        updateDraggedPosition(element, x, y) {
-            if (element) {
-                element.style.left = (x - element.offsetWidth / 2) + 'px';
-                element.style.top = (y - element.offsetHeight / 2) + 'px';
-            }
-        }
-    
-        // Műszakok cseréje
-        swapShifts(sourceDate, targetDate, sourceShift, targetShift) {
-            try {
-                if (!this.yearlyData[this.currentYear].calendar_data[this.currentMonth]) {
-                    this.yearlyData[this.currentYear].calendar_data[this.currentMonth] = {};
-                }
-    
-                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][sourceDate] = targetShift;
-                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][targetDate] = sourceShift;
-    
-                this.saveYearlyData();
-                this.generateCalendar();
-                this.generatePayrollTable();
-            } catch (error) {
-                console.error('Hiba a műszakok cseréje során:', error);
-                alert('Hiba történt a műszakok cseréje során!');
             }
         }
 
@@ -3758,65 +3651,65 @@
         }
 
         debugCalendarData() {
-        // Aktuális hónap napjainak száma
-        const daysInMonth = new Date(
-            this.currentYear,
-            this.currentMonth + 1,
-            0
-        ).getDate();
+            // Aktuális hónap napjainak száma
+            const daysInMonth = new Date(
+                this.currentYear,
+                this.currentMonth + 1,
+                0
+            ).getDate();
 
-        if (this.yearData.calendar_data[this.currentMonth]) {
-            Object.entries(this.yearData.calendar_data[this.currentMonth])
-            .sort(([a], [b]) => parseInt(a) - parseInt(b))
-            .forEach(([day, shift]) => {
-                const dayNum = parseInt(day);
-                if (dayNum <= daysInMonth) {
-                }
-            });
-        }
+            if (this.yearData.calendar_data[this.currentMonth]) {
+                Object.entries(this.yearData.calendar_data[this.currentMonth])
+                .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                .forEach(([day, shift]) => {
+                    const dayNum = parseInt(day);
+                    if (dayNum <= daysInMonth) {
+                    }
+                });
+            }
         }
 
         initTouchNavigation() {
-        const calendarSection = document.getElementById("calendar-section");
-        let startX = 0;
-        let endX = 0;
+            const calendarSection = document.getElementById("calendar-section");
+            let startX = 0;
+            let endX = 0;
 
-        calendarSection.addEventListener("touchstart", (e) => {
-            startX = e.touches[0].clientX;
-        });
+            calendarSection.addEventListener("touchstart", (e) => {
+                startX = e.touches[0].clientX;
+            });
 
-        calendarSection.addEventListener("touchend", (e) => {
-            endX = e.changedTouches[0].clientX;
-            this.handleSwipe(startX, endX);
-        });
+            calendarSection.addEventListener("touchend", (e) => {
+                endX = e.changedTouches[0].clientX;
+                this.handleSwipe(startX, endX);
+            });
         }
 
         handleSwipe(startX, endX) {
-        // Minimum elmozdulás érzékeléséhez
-        const minSwipeDistance = 100;
+            // Minimum elmozdulás érzékeléséhez
+            const minSwipeDistance = 100;
 
-        if (startX - endX > minSwipeDistance) {
-            // Balra húzás - következő hónap
-            this.changeMonth(1);
-        } else if (endX - startX > minSwipeDistance) {
-            // Jobbra húzás - előző hónap
-            this.changeMonth(-1);
-        }
+            if (startX - endX > minSwipeDistance) {
+                // Balra húzás - következő hónap
+                this.changeMonth(1);
+            } else if (endX - startX > minSwipeDistance) {
+                // Jobbra húzás - előző hónap
+                this.changeMonth(-1);
+            }
         }
 
         initNavigation() {
-        const navButtons = {
-            "calendar-btn": "calendar-section",
-            "payroll-btn": "payroll-section",
-            "settings-btn": "settings-section",
-            "help-btn": "help-section",
-        };
+            const navButtons = {
+                "calendar-btn": "calendar-section",
+                "payroll-btn": "payroll-section",
+                "settings-btn": "settings-section",
+                "help-btn": "help-section",
+            };
 
-        Object.entries(navButtons).forEach(([btnId, sectionId]) => {
-            document.getElementById(btnId).addEventListener("click", () => {
-            this.showSection(sectionId);
+            Object.entries(navButtons).forEach(([btnId, sectionId]) => {
+                document.getElementById(btnId).addEventListener("click", () => {
+                this.showSection(sectionId);
+                });
             });
-        });
         }
 
         showSection(sectionId) {
@@ -3839,135 +3732,132 @@
         }
 
         loadSettings() {
-        const savedSettings = localStorage.getItem("appSettings");
-        return savedSettings
-            ? JSON.parse(savedSettings)
-            : {
-                shiftPattern: "1",
-                baseSalary: 0,
-                vacationDays: 20,
-            };
+            const savedSettings = localStorage.getItem("appSettings");
+            return savedSettings
+                ? JSON.parse(savedSettings)
+                : {
+                    shiftPattern: "1",
+                    baseSalary: 0,
+                    vacationDays: 20,
+                };
         }
 
         initEventListeners() {
-        try {
-            // Hónap navigáció
-            const prevMonthBtn = document.getElementById("prev-month-btn");
-            const nextMonthBtn = document.getElementById("next-month-btn");
+            try {
+                // Hónap navigáció
+                const prevMonthBtn = document.getElementById("prev-month-btn");
+                const nextMonthBtn = document.getElementById("next-month-btn");
 
-            if (prevMonthBtn) {
-            prevMonthBtn.addEventListener("click", () =>
-                this.changeMonth(-1)
-            );
-            }
-            if (nextMonthBtn) {
-            nextMonthBtn.addEventListener("click", () => this.changeMonth(1));
-            }
-
-            // Műszakrend és egyéb beállítások inicializálása
-            const shiftPatternSelect = document.getElementById(
-            "shift-pattern-select"
-            );
-            const baseSalaryInput = document.getElementById("base-salary");
-            const vacationDaysInput = document.getElementById("vacation-days");
-
-            // Ellenőrizzük, hogy léteznek-e az elemek és van-e settings objektum
-            if (
-            shiftPatternSelect &&
-            this.yearlyData[this.currentYear].settings
-            ) {
-            shiftPatternSelect.value =
-                this.yearlyData[this.currentYear].settings.muszakrend || "1";
-            }
-            if (baseSalaryInput && this.yearlyData[this.currentYear].settings) {
-            baseSalaryInput.value =
-                this.yearlyData[this.currentYear].settings.besorolasi_ber ||
-                "300000";
-            }
-            if (
-            vacationDaysInput &&
-            this.yearlyData[this.currentYear].settings
-            ) {
-            vacationDaysInput.value =
-                this.yearlyData[this.currentYear].settings.szabadsag || "25";
-            }
-
-            // 25 év alatti checkbox kezelése
-            const under25Checkbox = document.getElementById("under25-checkbox");
-            if (under25Checkbox) {
-            under25Checkbox.addEventListener("change", (e) => {
-                const birthDateContainer = document.getElementById(
-                "birth-date-container"
+                if (prevMonthBtn) {
+                prevMonthBtn.addEventListener("click", () =>
+                    this.changeMonth(-1)
                 );
-                if (birthDateContainer) {
-                birthDateContainer.style.display = e.target.checked
-                    ? "block"
-                    : "none";
                 }
-            });
-            }
+                if (nextMonthBtn) {
+                nextMonthBtn.addEventListener("click", () => this.changeMonth(1));
+                }
 
-            // Évközi változás hozzáadása
-            const midyearAddButton =
-            document.getElementById("add-midyear-change");
-            if (midyearAddButton) {
-            midyearAddButton.addEventListener("click", () => {
-                const monthSelect = document.getElementById("midyear-month");
-                const salaryInput = document.getElementById("midyear-salary");
+                // Műszakrend és egyéb beállítások inicializálása
+                const shiftPatternSelect = document.getElementById(
+                "shift-pattern-select"
+                );
+                const baseSalaryInput = document.getElementById("base-salary");
+                const vacationDaysInput = document.getElementById("vacation-days");
 
+                // Ellenőrizzük, hogy léteznek-e az elemek és van-e settings objektum
                 if (
-                monthSelect &&
-                salaryInput &&
-                monthSelect.value &&
-                salaryInput.value
+                    shiftPatternSelect &&
+                    this.yearlyData[this.currentYear].settings
+                    ) {
+                    shiftPatternSelect.value =
+                        this.yearlyData[this.currentYear].settings.muszakrend || "1";
+                    }
+                if (baseSalaryInput && this.yearlyData[this.currentYear].settings) {
+                    baseSalaryInput.value =
+                        this.yearlyData[this.currentYear].settings.besorolasi_ber ||
+                        "300000";
+                    }
+                if (
+                    vacationDaysInput &&
+                    this.yearlyData[this.currentYear].settings
                 ) {
-                this.addMidyearChange(monthSelect.value, salaryInput.value);
+                    vacationDaysInput.value =
+                        this.yearlyData[this.currentYear].settings.szabadsag || "25";
                 }
-            });
+
+                // 25 év alatti checkbox kezelése
+                const under25Checkbox = document.getElementById("under25-checkbox");
+                if (under25Checkbox) {
+                    under25Checkbox.addEventListener("change", (e) => {
+                        const birthDateContainer = document.getElementById(
+                        "birth-date-container"
+                        );
+                        if (birthDateContainer) {
+                        birthDateContainer.style.display = e.target.checked
+                            ? "block"
+                            : "none";
+                        }
+                    });
+                }
+
+                // Évközi változás hozzáadása
+                const midyearAddButton =
+                    document.getElementById("add-midyear-change");
+                if (midyearAddButton) {
+                    midyearAddButton.addEventListener("click", () => {
+                        const monthSelect = document.getElementById("midyear-month");
+                        const salaryInput = document.getElementById("midyear-salary");
+
+                        if (
+                        monthSelect &&
+                        salaryInput &&
+                        monthSelect.value &&
+                        salaryInput.value
+                        ) {
+                        this.addMidyearChange(monthSelect.value, salaryInput.value);
+                        }
+                        });
+                    }
+                } catch (error) {
+                    console.error(
+                    "Hiba az eseménykezelők inicializálása során:",
+                    error
+                );
             }
-        } catch (error) {
-            console.error(
-            "Hiba az eseménykezelők inicializálása során:",
-            error
-            );
-        }
         }
 
         initSettingsNavigation() {
-        document
-            .getElementById("prev-settings-year-btn")
-            .addEventListener("click", () => {
-            this.changeSettingsYear(-1);
-            });
+            document
+                .getElementById("prev-settings-year-btn")
+                .addEventListener("click", () => {
+                this.changeSettingsYear(-1);
+                });
 
-        document
-            .getElementById("next-settings-year-btn")
-            .addEventListener("click", () => {
-            this.changeSettingsYear(1);
-            });
+            document
+                .getElementById("next-settings-year-btn")
+                .addEventListener("click", () => {
+                this.changeSettingsYear(1);
+                });
         }
 
         changeSettingsYear(direction) {
+            // Korlátozzuk az éveket 2024 és 2028 között
+            const newYear = this.currentSettingsYear + direction;
+            if (newYear < 2024 || newYear > 2028) {
+                return; // Nem megyünk tovább, ha elértük a korlátokat
+            }
+
             const settingsContent = document.getElementById("settings-section");
             
             // Add slide out animation
             settingsContent.className = `section ${direction > 0 ? 'slide-year-out-left' : 'slide-year-out-right'}`;
             
             setTimeout(() => {
-                this.currentSettingsYear += direction;
-        
-                // Korlátozzuk az éveket 2024 és 2028 között
-                if (this.currentSettingsYear < 2024) {
-                    this.currentSettingsYear = 2024;
-                    return;
-                } else if (this.currentSettingsYear > 2028) {
-                    this.currentSettingsYear = 2028;
-                    return;
-                }
-        
+                this.currentSettingsYear = newYear;
+
                 // Frissítsük az év kijelzést
                 document.getElementById("current-settings-year").textContent = this.currentSettingsYear;
-        
+
                 // Töltsük be az adott év beállításait
                 this.loadYearSettings(this.currentSettingsYear);
                 
@@ -3975,6 +3865,7 @@
                 settingsContent.className = `section active ${direction > 0 ? 'slide-year-in-right' : 'slide-year-in-left'}`;
             }, 200);
         }
+
 
         loadYearSettings(year) {
             // Frissítsük a kijelzett évet
@@ -4281,8 +4172,14 @@
         }
 
         changeMonth(direction) {
+            const newYear = this.currentYear + (this.currentMonth + direction < 0 ? -1 : this.currentMonth + direction > 11 ? 1 : 0);
+            
+            // Korlátozzuk az éveket 2024 és 2028 között
+            if (newYear < 2024 || newYear > 2028) {
+                return; // Nem megyünk tovább, ha elértük a korlátokat
+            }
+
             const calendarBody = document.getElementById("calendar-body");
-            const currentMonthElement = document.getElementById("current-month");
             
             // Add slide out animation
             calendarBody.className = direction > 0 ? 'slide-out-left' : 'slide-out-right';
@@ -4292,34 +4189,30 @@
                 this.currentMonth += direction;
                 
                 if (this.currentMonth < 0) {
-                    if (this.currentYear > 2024) {
-                        this.currentMonth = 11;
-                        this.currentYear--;
-                    } else {
-                        this.currentMonth = 0;
-                        return;
-                    }
+                    this.currentMonth = 11;
+                    this.currentYear--;
                 } else if (this.currentMonth > 11) {
-                    if (this.currentYear < 2028) {
-                        this.currentMonth = 0;
-                        this.currentYear++;
-                    } else {
-                        this.currentMonth = 11;
-                        return;
-                    }
+                    this.currentMonth = 0;
+                    this.currentYear++;
                 }
-        
+
                 // Generate new calendar
                 this.generateCalendar();
                 
                 // Add slide in animation
                 calendarBody.className = direction > 0 ? 'slide-in-right' : 'slide-in-left';
-            }, 300); // Match this with animation duration
-        }
-        
-        changePayrollMonth(direction) {
+            }, 300);
+                }
+                
+                changePayrollMonth(direction) {
+            const newYear = this.currentPayrollYear + (this.currentPayrollMonth + direction < 0 ? -1 : this.currentPayrollMonth + direction > 11 ? 1 : 0);
+            
+            // Korlátozzuk az éveket 2024 és 2028 között
+            if (newYear < 2024 || newYear > 2028) {
+                return; // Nem megyünk tovább, ha elértük a korlátokat
+            }
+
             const payrollBody = document.getElementById("payroll-body");
-            const currentPayrollMonthElement = document.getElementById("current-payroll-month");
             
             // Add slide out animation
             payrollBody.className = direction > 0 ? 'slide-out-left' : 'slide-out-right';
@@ -4329,30 +4222,21 @@
                 this.currentPayrollMonth += direction;
                 
                 if (this.currentPayrollMonth < 0) {
-                    if (this.currentPayrollYear > 2024) {
-                        this.currentPayrollMonth = 11;
-                        this.currentPayrollYear--;
-                    } else {
-                        this.currentPayrollMonth = 0;
-                        return;
-                    }
+                    this.currentPayrollMonth = 11;
+                    this.currentPayrollYear--;
                 } else if (this.currentPayrollMonth > 11) {
-                    if (this.currentPayrollYear < 2028) {
-                        this.currentPayrollMonth = 0;
-                        this.currentPayrollYear++;
-                    } else {
-                        this.currentPayrollMonth = 11;
-                        return;
-                    }
+                    this.currentPayrollMonth = 0;
+                    this.currentPayrollYear++;
                 }
-        
+
                 // Generate new payroll table
                 this.generatePayrollTable();
                 
                 // Add slide in animation
                 payrollBody.className = direction > 0 ? 'slide-in-right' : 'slide-in-left';
-            }, 200); // Match this with animation duration
+            }, 200);
         }
+           
 
         getHolidays(year) {
             // Fix ünnepnapok
@@ -4563,17 +4447,9 @@
                     // Műszak div létrehozása
                     const shiftDiv = document.createElement("div");
                     shiftDiv.className = "shift-select";
-
-                    // A generateCalendar függvényben a shiftDiv touch eseménykezelői:
-
-                    let longPressTimer = null;
-                    let isDragging = false;
-                    let dragStartX = 0;
-                    let dragStartY = 0;
-
-                    // Normál kattintás kezelése - csak rövid érintésnél
-                    shiftDiv.addEventListener('click', (e) => {
-                        if (!isDragging) {
+        
+                    // Eseménykezelő hozzáadása
+                    shiftDiv.addEventListener("click", (e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         
@@ -4685,107 +4561,6 @@
                                 document.body.removeChild(overlay);
                             }
                         });
-                        }
-                    
-                    // Touch start - hosszú nyomás figyelése
-                        shiftDiv.addEventListener('touchstart', (e) => {
-                            if (isDragging) return;
-                            
-                            const touch = e.touches[0];
-                            dragStartX = touch.clientX;
-                            dragStartY = touch.clientY;
-                            
-                            // Hosszú nyomás időzítő indítása
-                            longPressTimer = setTimeout(() => {
-                                const shiftValue = shiftDiv.textContent.trim();
-                                if (shiftValue && shiftValue !== " ") {
-                                    isDragging = true;
-                                    shiftDiv.style.opacity = '0.5';
-                                }
-                            }, 500);
-                        });
-
-                        // Touch move - húzás kezelése
-                        shiftDiv.addEventListener('touchmove', (e) => {
-                            // Ha még nem kezdtük a húzást, de mozgást érzékelünk, töröljük az időzítőt
-                            if (!isDragging) {
-                                clearTimeout(longPressTimer);
-                                return;
-                            }
-                            
-                            e.preventDefault();
-                            const touch = e.touches[0];
-                            
-                            // Célpont keresése
-                            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                            
-                            // Kiemelések kezelése
-                            document.querySelectorAll('.drag-over').forEach(el => {
-                                el.classList.remove('drag-over');
-                            });
-                            
-                            if (target && target.classList.contains('shift-select') && target !== shiftDiv) {
-                                target.classList.add('drag-over');
-                            }
-                        });
-
-                        // Touch end - húzás befejezése
-                        shiftDiv.addEventListener('touchend', (e) => {
-                            clearTimeout(longPressTimer);
-                            
-                            if (isDragging) {
-                                e.preventDefault();
-                                
-                                const touch = e.changedTouches[0];
-                                const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                                
-                                if (target && target.classList.contains('shift-select') && target !== shiftDiv) {
-                                    const sourceDate = parseInt(shiftDiv.closest('.date-container').querySelector('.date-number').textContent);
-                                    const targetDate = parseInt(target.closest('.date-container').querySelector('.date-number').textContent);
-                                    
-                                    // Műszakok cseréje
-                                    const sourceValue = shiftDiv.textContent.trim();
-                                    this.yearlyData[this.currentYear].calendar_data[this.currentMonth][targetDate] = sourceValue;
-                                    this.yearlyData[this.currentYear].calendar_data[this.currentMonth][sourceDate] = " ";
-                                    
-                                    this.saveYearlyData();
-                                }
-                                
-                                // Tisztítás
-                                document.querySelectorAll('.drag-over').forEach(el => {
-                                    el.classList.remove('drag-over');
-                                });
-                                
-                                // Naptár frissítése
-                                this.generateCalendar();
-                                this.generatePayrollTable();
-                            }
-                            
-                            // Állapot teljes visszaállítása
-                            isDragging = false;
-                            longPressTimer = null;
-                            dragStartX = 0;
-                            dragStartY = 0;
-                        });
-
-                        // Touch cancel - megszakítás esetén
-                        shiftDiv.addEventListener('touchcancel', () => {
-                            clearTimeout(longPressTimer);
-                            
-                            // Állapot teljes visszaállítása
-                            isDragging = false;
-                            longPressTimer = null;
-                            dragStartX = 0;
-                            dragStartY = 0;
-                            
-                            // Tisztítás
-                            document.querySelectorAll('.drag-over').forEach(el => {
-                                el.classList.remove('drag-over');
-                            });
-                            
-                            // Naptár frissítése
-                            this.generateCalendar();
-                        });
                     });
         
                     // Műszak érték meghatározása
@@ -4833,20 +4608,20 @@
 
         // Ünnepnapok ellenőrzése
         isHoliday(year, month, day) {
-        const holidays = [
-            { month: 0, day: 1 }, // Újév
-            { month: 2, day: 15 }, // Március 15.
-            { month: 3, day: 1 }, // Munka ünnepe
-            { month: 4, day: 19 }, // Pünkösd
-            { month: 7, day: 20 }, // Államalapítás ünnepe
-            { month: 9, day: 23 }, // Nemzeti ünnep
-            { month: 11, day: 25 }, // Karácsony
-            { month: 11, day: 26 }, // Karácsony másnapja
-        ];
+            const holidays = [
+                { month: 0, day: 1 }, // Újév
+                { month: 2, day: 15 }, // Március 15.
+                { month: 3, day: 1 }, // Munka ünnepe
+                { month: 4, day: 19 }, // Pünkösd
+                { month: 7, day: 20 }, // Államalapítás ünnepe
+                { month: 9, day: 23 }, // Nemzeti ünnep
+                { month: 11, day: 25 }, // Karácsony
+                { month: 11, day: 26 }, // Karácsony másnapja
+            ];
 
-        return holidays.some(
-            (holiday) => holiday.month === month && holiday.day === day
-        );
+            return holidays.some(
+                (holiday) => holiday.month === month && holiday.day === day
+            );
         }
 
         generateShiftPattern(day) {
@@ -5125,19 +4900,19 @@
         }
 
         initColorSettings() {
-        const colorSettingsContainer =
-            document.getElementById("color-settings");
-        if (!colorSettingsContainer) return;
+            const colorSettingsContainer =
+                document.getElementById("color-settings");
+            if (!colorSettingsContainer) return;
 
-        // Színbeállítások generálása
-        Object.entries(SHIFT_COLORS).forEach(
-            ([type, [bgColor, textColor]]) => {
-            const row = this.createColorSettingRow(type, bgColor, textColor);
-            colorSettingsContainer.appendChild(row);
-            }
-        );
+            // Színbeállítások generálása
+            Object.entries(SHIFT_COLORS).forEach(
+                ([type, [bgColor, textColor]]) => {
+                const row = this.createColorSettingRow(type, bgColor, textColor);
+                colorSettingsContainer.appendChild(row);
+                }
+            );
 
-        this.updateColorPreviews();
+            this.updateColorPreviews();
         }
 
         createColorSettingRow(type, bgColor, textColor) {
@@ -5184,20 +4959,20 @@
         }
 
         createColorButton(shiftType, colorType, label) {
-        const button = document.createElement("button");
-        button.className = "color-picker";
-        button.setAttribute("data-shift-type", shiftType.toLowerCase());
-        button.setAttribute("data-color-type", colorType);
-        button.textContent = label;
+            const button = document.createElement("button");
+            button.className = "color-picker";
+            button.setAttribute("data-shift-type", shiftType.toLowerCase());
+            button.setAttribute("data-color-type", colorType);
+            button.textContent = label;
 
-        button.addEventListener("click", (e) =>
-            this.handleColorPickerClick(e)
-        );
-        return button;
+            button.addEventListener("click", (e) =>
+                this.handleColorPickerClick(e)
+            );
+            return button;
         }
 
         normalizeClassName(text) {
-        return text
+            return text
             .toLowerCase()
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "");
@@ -5475,7 +5250,7 @@
             // Gombok
             const buttonContainer = document.createElement("div");
             buttonContainer.style.display = "flex";
-            buttonContainer.style.height = "60px";
+            buttonContainer.style.height = "70px";
             buttonContainer.style.gap = "8px";
             buttonContainer.style.width = canvasSize + "px";
             buttonContainer.style.marginTop = "5px";
@@ -5753,65 +5528,65 @@
         }
 
         loadData() {
-        try {
-            const savedData = localStorage.getItem("berszamfejtoData");
+            try {
+                const savedData = localStorage.getItem("berszamfejtoData");
 
-            if (savedData) {
-            const parsedData = JSON.parse(savedData);
+                if (savedData) {
+                const parsedData = JSON.parse(savedData);
 
-            // Az adatok visszatöltése a yearData objektumba
-            this.yearData = {
-                calendar_data: parsedData.calendar_data || {},
-                bonusEntries: parsedData.bonusEntries || {},
-                restaurantEntries: parsedData.restaurantEntries || {},
-                settings: {
-                besorolasi_ber:
-                    this.settings.baseSalary?.toString() || "300000",
-                szabadsag: this.settings.vacationDays?.toString() || "25",
-                muszakrend: this.settings.shiftPattern || "1",
-                },
-            };
+                // Az adatok visszatöltése a yearData objektumba
+                this.yearData = {
+                    calendar_data: parsedData.calendar_data || {},
+                    bonusEntries: parsedData.bonusEntries || {},
+                    restaurantEntries: parsedData.restaurantEntries || {},
+                    settings: {
+                    besorolasi_ber:
+                        this.settings.baseSalary?.toString() || "300000",
+                    szabadsag: this.settings.vacationDays?.toString() || "25",
+                    muszakrend: this.settings.shiftPattern || "1",
+                    },
+                };
+                }
+            } catch (error) {
+                console.error("Hiba az adatok betöltése során:", error);
             }
-        } catch (error) {
-            console.error("Hiba az adatok betöltése során:", error);
-        }
         }
 
         updateColorPreviews() {
-        Object.entries(SHIFT_COLORS).forEach(
-            ([type, [bgColor, textColor]]) => {
-            // Normalizáljuk a class nevet (ékezetek eltávolítása)
-            const previewClass =
-                type
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "") + "-preview";
+            Object.entries(SHIFT_COLORS).forEach(
+                ([type, [bgColor, textColor]]) => {
+                // Normalizáljuk a class nevet (ékezetek eltávolítása)
+                const previewClass =
+                    type
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "") + "-preview";
 
-            const preview = document.querySelector(`.${previewClass}`);
-            if (preview) {
-                preview.style.backgroundColor = bgColor;
-                preview.style.color = textColor;
-                preview.textContent = type;
-            }
-            }
-        );
+                const preview = document.querySelector(`.${previewClass}`);
+                if (preview) {
+                    preview.style.backgroundColor = bgColor;
+                    preview.style.color = textColor;
+                    preview.textContent = type;
+                    }
+                }
+            );
         }
 
         saveColorSettings() {
-        localStorage.setItem("shiftColors", JSON.stringify(SHIFT_COLORS));
+            localStorage.setItem("shiftColors", JSON.stringify(SHIFT_COLORS));
         }
 
         loadColorSettings() {
-        const savedColors = localStorage.getItem("shiftColors");
-        if (savedColors) {
-            const parsedColors = JSON.parse(savedColors);
-            Object.entries(parsedColors).forEach(([key, value]) => {
-            if (SHIFT_COLORS[key]) {
-                SHIFT_COLORS[key] = value;
+            const savedColors = localStorage.getItem("shiftColors");
+            if (savedColors) {
+                const parsedColors = JSON.parse(savedColors);
+                Object.entries(parsedColors).forEach(([key, value]) => {
+                if (SHIFT_COLORS[key]) {
+                    SHIFT_COLORS[key] = value;
+                }
+                });
+                this.updateColorPreviews();
             }
-            });
-            this.updateColorPreviews();
-        }
         }
 
         saveSettings() {
