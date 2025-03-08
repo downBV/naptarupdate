@@ -8,8 +8,38 @@
   "theme_color": "#000000",
   "icons": [
     {
+      "src": "calendar.png",
+      "sizes": "451x513",
+      "type": "image/png"
+    },
+    {
+      "src": "ber.png",
+      "sizes": "3686x3200",
+      "type": "image/png"
+    },
+    {
+      "src": "settings.png",
+      "sizes": "980x982",
+      "type": "image/png"
+    },
+    {
+      "src": "info.png",
+      "sizes": "1005x1005",
+      "type": "image/png"
+    },
+    {
+      "src": "left.png",
+      "sizes": "1280x1280",
+      "type": "image/png"
+    },
+    {
+      "src": "right.png",
+      "sizes": "1280x1280",
+      "type": "image/png"
+    },
+    {
       "src": "icon.png",
-      "sizes": "649x649",
+      "sizes": "2048x2048",
       "type": "image/png",
       "purpose": "any maskable"
     }
