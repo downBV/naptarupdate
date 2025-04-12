@@ -2701,18 +2701,23 @@
                         return Math.round(normalTulorapotlek + vasarnapiTulorapotlek);
                     }
                     case "Hétvégi pótlék (50%)": {
-                        const weekendHours = this.calculateMonthlyValue("Hétvégi pótlék 50%", monthIndex, year);
+                        // Először lekérjük az óraszámot a már javított Hétvégi pótlék 50% függvényből
+                        const hetvegipotlekHours = this.calculateMonthlyValue("Hétvégi pótlék 50%", monthIndex, year);
                         const effectiveSalary = this.getEffectiveSalary(year, monthIndex);
-                        return Math.round((effectiveSalary / 174) * weekendHours * 0.5);
+                        
+                        // Majd kiszámoljuk a pénzösszeget
+                        return Math.round((effectiveSalary / 174) * hetvegipotlekHours * 0.5);
                     }
-
-                    case "Műszakpótlék (40%)":
-                        return (effectiveSalary / 174) * muszakPotlek40 * 0.4;
-                        case "Teljesítmény prémium": {
-                            const yearData = this.app.yearlyData[year];
-                            const bonusValue = yearData.bonusEntries?.[monthIndex] || 0;
-                            return effectiveSalary * 0.05 * bonusValue;
-                        }
+                    
+                    // Műszakpótlék javítása
+                    case "Műszakpótlék (40%)": {
+                        // Először lekérjük az óraszámot a már javított Műszakpótlék 40% függvényből
+                        const muszakPotlekHours = this.calculateMonthlyValue("Műszakpótlék 40%", monthIndex, year);
+                        const effectiveSalary = this.getEffectiveSalary(year, monthIndex);
+                        
+                        // Majd kiszámoljuk a pénzösszeget
+                        return Math.round((effectiveSalary / 174) * muszakPotlekHours * 0.4);
+                    }
 
                     case "TB Járulék 18,5%": {
                         const bruttoBer = this.calculateMonthlyValue("Bruttó bér", monthIndex, year);
