@@ -2601,19 +2601,6 @@
                                         totalWeekendHours += 4;
                                     }
                                 }
-                            } else if (!isHoliday) {
-                                // Ha nem vasárnap és nem ünnepnap, és túlóra, akkor is számolunk
-                                if (["A", "B", "C"].includes(pattern) && shiftValue.includes("Túlóra")) {
-                                    if (date.getDay() === 6) { // Szombat
-                                        if (shiftValue.includes("12 óra")) {
-                                            totalWeekendHours += 12;
-                                        } else if (shiftValue.includes("8 óra")) {
-                                            totalWeekendHours += 8;
-                                        } else if (shiftValue.includes("4 óra")) {
-                                            totalWeekendHours += 4;
-                                        }
-                                    }
-                                }
                             }
                         });
                     
