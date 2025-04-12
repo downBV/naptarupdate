@@ -2575,8 +2575,8 @@
                             const isSunday = date.getDay() === 0;  // Csak vasárnapra ellenőrzünk
                             const isHoliday = this.isHoliday(year, monthIndex, parseInt(day));
                     
-                            // Ünnepnapon túlóra esetén ne számoljon hétvégi pótlékot
-                            if (isSunday && !isHoliday) {  // Csak ha nem ünnepnap
+                            // Csak vasárnapokra számolunk hétvégi pótlékot, és csak ha nem ünnepnap
+                            if (isSunday && !isHoliday) {
                                 if (shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka")) {
                                     totalWeekendHours += 12;
                                 } else if (shiftValue.includes("Szabadság 8 óra") || 
@@ -2602,11 +2602,13 @@
                                     }
                                 }
                             }
+                            // Eltávolítottuk a szombati napokra vonatkozó külön feltételt
                         });
                     
                         return totalWeekendHours;
                     }
-
+                    
+                    // Műszakpótlék 40% számításának módosítása
                     case "Műszakpótlék 40%":
                         let muszakPotlek40 = 0;
                         
