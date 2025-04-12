@@ -2573,8 +2573,10 @@
                             if (!shiftValue) return;
                             const date = new Date(year, monthIndex, parseInt(day));
                             const isSunday = date.getDay() === 0;  // Csak vasárnapra ellenőrzünk
+                            const isHoliday = this.isHoliday(year, monthIndex, parseInt(day));
                     
-                            if (isSunday) {  // Csak vasárnapi napokra számolunk
+                            // Ünnepnapon túlóra esetén ne számoljon hétvégi pótlékot
+                            if (isSunday && !isHoliday) {  // Csak ha nem ünnepnap
                                 if (shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka")) {
                                     totalWeekendHours += 12;
                                 } else if (shiftValue.includes("Szabadság 8 óra") || 
@@ -2599,6 +2601,19 @@
                                         totalWeekendHours += 4;
                                     }
                                 }
+                            } else if (!isHoliday) {
+                                // Ha nem vasárnap és nem ünnepnap, és túlóra, akkor is számolunk
+                                if (["A", "B", "C"].includes(pattern) && shiftValue.includes("Túlóra")) {
+                                    if (date.getDay() === 6) { // Szombat
+                                        if (shiftValue.includes("12 óra")) {
+                                            totalWeekendHours += 12;
+                                        } else if (shiftValue.includes("8 óra")) {
+                                            totalWeekendHours += 8;
+                                        } else if (shiftValue.includes("4 óra")) {
+                                            totalWeekendHours += 4;
+                                        }
+                                    }
+                                }
                             }
                         });
                     
@@ -2606,6 +2621,33 @@
                     }
 
                     case "Műszakpótlék 40%":
+                        let muszakPotlek40 = 0;
+                        
+                        // Napi értékek számítása
+                        Object.entries(monthData).forEach(([day, shiftValue]) => {
+                            if (!shiftValue) return;
+                            
+                            // Ellenőrizzük, hogy ünnepnap-e
+                            const isHoliday = this.isHoliday(year, monthIndex, parseInt(day));
+                            
+                            // Csak akkor számolunk műszakpótlékot, ha nem ünnepnap, vagy ha ünnepnap, de nem túlóra
+                            if (!isHoliday || (isHoliday && !shiftValue.includes("Túlóra"))) {
+                                if (shiftValue.includes("Éjszaka")) {
+                                    muszakPotlek40 += 12;
+                                } else if (shiftValue.includes("Túlóra éj 12 óra")) {
+                                    muszakPotlek40 += 12;
+                                } else if (shiftValue.includes("Túlóra éj 8 óra")) {
+                                    muszakPotlek40 += 8;
+                                } else if (shiftValue.includes("Szabadság éj 4 óra") ||
+                                          shiftValue.includes("Csúszó éj 4 óra")) {
+                                    muszakPotlek40 += 8;
+                                } else if (shiftValue.includes("Szabadság éj 8 óra") ||
+                                          shiftValue.includes("Csúszó éj 8 óra")) {
+                                    muszakPotlek40 += 4;
+                                }
+                            }
+                        });
+                        
                         return muszakPotlek40;
 
                     case "Alapbér":
