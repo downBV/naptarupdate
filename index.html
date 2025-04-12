@@ -2640,6 +2640,12 @@
                         return muszakPotlek40;
                     }
 
+                    case "Teljesítmény prémium": {
+                            const yearData = this.app.yearlyData[year];
+                            const bonusValue = yearData.bonusEntries?.[monthIndex] || 0;
+                            return effectiveSalary * 0.05 * bonusValue;
+                        }
+
                     case "Alapbér":
                         return ledolgozando > 0 ? (effectiveSalary / ledolgozando) * ledolgozott : 0;
 
