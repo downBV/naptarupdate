@@ -2521,17 +2521,21 @@
                     // Ünnepnap számítása
                     if (isHoliday) {
                         if (shiftValue.includes("Nappal") ||
-                            shiftValue.includes("Éjszaka")) {
+                            shiftValue.includes("Éjszaka") ||
+                            shiftValue.includes("Túlóra 12 ó") ||
+                            shiftValue.includes("Túlóra éj 12 ó")) {
                             holidayCount += 1;
                             holidayValue += 12;
                         } else if (shiftValue.includes("Szabadság éj 8 óra") ||
                                   shiftValue.includes("Szabadság 8 óra")) {
                             holidayCount += 1/3;
-                            holidayValue += 8;
-                        } else if (shiftValue.includes("Szabadság 4 óra") ||
-                                  shiftValue.includes("Szabadság éj 4 óra")) {
-                            holidayCount += 2/3;
                             holidayValue += 4;
+                        } else if (shiftValue.includes("Szabadság 4 óra") ||
+                                  shiftValue.includes("Szabadság éj 4 óra") ||
+                                  shiftValue.includes("Túlóra 8 ó") ||
+                                  shiftValue.includes("Túlóra éj 8 ó")) {
+                            holidayCount += 2/3;
+                            holidayValue += 8;
                         } else if (shiftValue.includes("Szabadság 12 óra") ||
                                   shiftValue.includes("Szabadság éj 12 óra")) {
                             holidayCount += 0;
@@ -2867,19 +2871,37 @@
                 const settings = yearData?.settings || {};
                 const monthData = yearData?.calendar_data[monthIndex] || {};
                 const besorolas = parseInt(settings.besorolasi_ber) || 300000;
-        
-                // Táppénz változók (ezek maradnak a régiek)
-                let tappenzTavollet = 0;
-                let tappenzKiegeszites = 0;
-                let tappenzCount = 0;
-                let betegszabadsagCount = settings.felhasznalt_betegszabadsag || 0;
-                let szabadsagPotlekDij = 0;
-        
+                
+                // --------------------------------------
+                // 1. RÉSZ: BETEGSZABADSÁG (TÁPPÉNZ) SZÁMÍTÁS
+                // --------------------------------------
+                
+                // Táppénzes napok száma
+                let tappenzNapokSzama = 0;
+                
+                // Táppénzes napok számolása
+                Object.entries(monthData).forEach(([day, shiftValue]) => {
+                    if (!shiftValue || shiftValue === " ") return;
+                    
+                    if (shiftValue.includes("Táppénz")) {
+                        tappenzNapokSzama++;
+                    }
+                });
+                const betegszabadsagAlapber = tappenzNapokSzama === 8 ? 221200 : Math.round(221200 * tappenzNapokSzama / 8);
+                const betegszabadsagPotlek = tappenzNapokSzama === 8 ? 56683 : Math.round(56683 * tappenzNapokSzama / 8);
+                
+                // Teljes betegszabadság díj
+                const betegszabadsagOsszesen = betegszabadsagAlapber + betegszabadsagPotlek;
+                
+                // --------------------------------------
+                // 2. RÉSZ: SZABADSÁG TÁVOLLÉTI DÍJ SZÁMÍTÁS
+                // --------------------------------------
+                
                 // Előző 6 hónap pótlékainak és munkaóráinak összegzése
                 let osszesEjszakaiPotlek = 0;
                 let osszesVasarnapiPotlek = 0;
                 let osszesLedolgozottOra = 0;
-        
+                
                 // Előző 6 hónap vizsgálata
                 for (let i = 1; i <= 6; i++) {
                     let vizsgaltHonap = monthIndex - i;
@@ -2890,10 +2912,14 @@
                         vizsgaltEv--;
                     }
                     
-                    const honapiAdat = yearData.calendar_data[vizsgaltHonap] || {};
+                    if (!this.app.yearlyData[vizsgaltEv] || !this.app.yearlyData[vizsgaltEv].calendar_data) {
+                        continue;
+                    }
+                    
+                    const honapiAdat = this.app.yearlyData[vizsgaltEv].calendar_data[vizsgaltHonap] || {};
                     
                     Object.entries(honapiAdat).forEach(([nap, shiftValue]) => {
-                        if (!shiftValue) return;
+                        if (!shiftValue || shiftValue === " ") return;
         
                         let orak = 12;
                         if (shiftValue.includes("8 óra")) orak = 8;
@@ -2917,47 +2943,35 @@
                     });
                 }
         
-                // Óránkénti átlagos pótlékok számítása
+                // Átlagos pótlékok számítása
                 const atlagEjszakaiPotlek = osszesLedolgozottOra > 0 ? osszesEjszakaiPotlek / osszesLedolgozottOra : 0;
                 const atlagVasarnapiPotlek = osszesLedolgozottOra > 0 ? osszesVasarnapiPotlek / osszesLedolgozottOra : 0;
-        
-                // Aktuális hónap szabadságainak és táppénzeinek feldolgozása
+                
+                // Szabadság távolléti díj számítása
+                let szabadsagTavolletiDij = 0;
+                let szabadsagNapok = 0;
+                
+                // Szabadságos napok feldolgozása
                 Object.entries(monthData).forEach(([day, shiftValue]) => {
-                    if (!shiftValue) return;
-        
-                    if (shiftValue.includes("Táppénz")) {
-                        const napiBer = Math.min(besorolas / 30, Math.round((this.MINIMUM_WAGE[year] || this.MINIMUM_WAGE[2024] * 2) / 30));
-                        
-                        if (betegszabadsagCount < 15) {
-                            tappenzTavollet += napiBer * 0.7;
-                            tappenzKiegeszites += napiBer * 0.5;
-                            betegszabadsagCount++;
-                            tappenzCount++;
-                        } else {
-                            if (tappenzCount < 15) {
-                                tappenzTavollet += napiBer * 0.6;
-                                tappenzKiegeszites += napiBer * 0.5;
-                                tappenzCount++;
-                            } else {
-                                tappenzTavollet += napiBer * 0.5;
-                                tappenzKiegeszites += napiBer * 0.5;
-                            }
-                        }
-                    } else if (shiftValue.includes("Szabadság")) {
+                    if (!shiftValue || shiftValue === " ") return;
+                    
+                    if (shiftValue.includes("Szabadság")) {
                         let orak = 12;
                         if (shiftValue.includes("8 óra")) orak = 8;
                         if (shiftValue.includes("4 óra")) orak = 4;
-                        szabadsagPotlekDij += (atlagEjszakaiPotlek + atlagVasarnapiPotlek) * orak;
+                        
+                        szabadsagNapok++;
+                        szabadsagTavolletiDij += (atlagEjszakaiPotlek + atlagVasarnapiPotlek) * orak;
                     }
                 });
-        
-                if (yearData.settings) {
-                    yearData.settings.felhasznalt_betegszabadsag = betegszabadsagCount;
-                }
-        
-                return Math.round(tappenzTavollet + tappenzKiegeszites + szabadsagPotlekDij);
+                
+                // A teljes távolléti díj a betegszabadság és a szabadság távolléti díj összege
+                const tavolletiDijOsszesen = betegszabadsagOsszesen + szabadsagTavolletiDij;
+                
+                return Math.round(tavolletiDijOsszesen);
             } catch (error) {
                 console.error("Hiba a távolléti díj számításában:", error);
+                console.error("Hiba részletei:", error.stack);
                 return 0;
             }
         }
