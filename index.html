@@ -1850,12 +1850,17 @@
 
     <div id="help-section" class="section">
     <div style="margin: 15px; text-align: left; padding: 15px; line-height: 1.6;">
-        <h3>A program használata:</h3>
-        
-        <h4>Év választó:</h4>
-        <p>Az aktuálisan kiválasztott év Naptár, Bérszámfejtés és Beállításai fognak megjelenni mindig. Ha egy másik évet szeretnél szerkeszteni, akkor az Év választóban csak válaszd ki az új évet.</p>
-        
-        <h4>Beállítások:</h4>
+        <div style="background-color: #fff3cd; color: #856404; padding: 15px; border: 1px solid #ffeeba; border-radius: 5px; margin-bottom: 20px;">
+            <h4 style="color: #856404; margin-top: 0;">Figyelmeztetés!</h4>
+            <p>Ez a program kizárólag tájékoztató jellegű számításokat végez. A programban szereplő számítások és eredmények nem tekinthetők hivatalos bérszámfejtésnek. A program használata saját felelősségre történik. Eltérés esetén először bizonyosodj meg hogy valóban hiba történt és nem a program nem jó használata miatt történt hiba. A program hibázhat, ezt mindig vedd figyelembe.</p>
+        </div>
+        <h3 style="font-size:30px">A program használata:</h3>
+        <div style="background-color: #999; padding: 30px; border-radius: 8px; margin: 10px 0;">
+        <p>A program a Naptárba és a Beállításokba bevitt adatok alapján dolgozik, kivével a Bónusz(0,1 vagy 2) és az Éttermi fogyasztást. Ezeket kézzel kell beírni minden hónapban(és évben). Mindig ellenőrizd hogy meg-e volt mindkét bónuszod, mivel ha már az egyik nem volt meg, akkor az már könnyen meglátszódik a nettó béren.</p>
+        </div>
+
+        <h4 style="font-size:20px">Beállítások:</h4>
+        <div style="background-color: lightblue; padding: 30px; border-radius: 8px; margin: 10px 0;">
         <ol>
             <li><strong>Besorolási bér:</strong> Ebből az adatból fogja kiszámolni a program mennyit keresel a hónapban.</li>
             <li><strong>Éves szabadság:</strong> Ide az éves szabadságodat kell beírni (pl. 25). A bérszámfejtésben nyomon tudod követni, mennyi szabadságod marad a hónap végén.</li>
@@ -1863,23 +1868,105 @@
             <li><strong>Egyéb jövedelmek:</strong> Ide írhatod az olyan jövedelmeket mint például a gyerekek után járó kedvezmény. Fontos hogy nettóban írd be az összeget. Ha csak a bruttót tudod, akkor azt az értéket például 50.000, szorozd meg 0,665-el és így megkapod a nettó értéket. Ha nem tudod mennyi a Bruttó és a Nettó sem, akkor érdemes az interneten kutatni.</li>
             <li><strong>25 év alatti kedvezmény:</strong> Ha bepipálod akkor meg kell adnod a születési éved és hónapod, a program eszerint fogja a kedvezményt megadni. Minden évben meg kell adni. A 2026-os évre előre nem lehet tudni mennyi lesz a kedvezmény, úgyhogy a 2025-ös évet használja a program.</li>
             <li><strong>Év közbeni besorolási bér változás:</strong> Ha év közben új besorolási bért kapsz, akkor azt ide kell beírnod és attól a hónaptól kezdve amit kiválasztasz, a program már az új béreddel fog számolni. Az eredeti besorolási bért NE változtasd meg, illetve figyelj oda hogy a megfelelő év van kiválasztva.</li>
-        </ol>
+        </ol></div>
 
-        <h4>Naptár:</h4>
+        <h4 style="font-size:20px">Naptár:</h4>
+            <div style="background-color: #ff0000; padding: 30px; border-radius: 8px; margin: 10px 0;">
         <ol>
-            <li>A Naptárt a műszakrend szerint a program elkészíti, amit utána bármikor módosíthatsz.</li>
+            <li>A Naptárt a műszakrend szerint a program elkészíti, amit a beállításokban bármikor módosíthatsz.</li>
             <li><strong>FONTOS</strong> hogy a megfelelő adat legyen kiválasztva, tehát ha Éjszakás vagy és szabadságra mész, akkor a Szabadság éjszaka opciók közül kell választanod és ugyanígy mindenhol ahol ilyen opció van.</li>
             <li>Ha rossz adatokat választasz ki, akkor a program nem fog pontosan számolni. (Szabadság, Túlóra, Csúszó)</li>
             <li>Nem mindegy hogyműszakot csúszol le, vagy pedig a túlóra keretedből veszel el. Ha csak műszakot csúszol vagy műszakot cserélsz, akkor az eredeti műszakodat töröld ki és az új dátum helyére add meg a műszakot.</li>
             <li>Ha a túlóra keretedből veszel el, akkor kell használni a "Csúszó" adatokat. Itt is odafigyelve hogy éjszaka vagy sima nappal. Ha kombinálod a Csúszót és a Szabadságot, akkor csak a Szabadságot kell kiválasztani. Példa: 8 óra szabadság + 4 óra Csúszó, akkor csak a Szabadság 8 óra adatot kell kiválasztani.</li>
-        </ol>
+        </ol></div>
+        <br>
+        <h3>📊 Részletes Számítási Módszertan:</h3>
+    
+    <h4>🏢 Alapadatok:</h4>
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>Ledolgozandó napok:</strong> Minden nap beleszámít, ahová alap esetben a műszakrended szerint bevagy osztva.</p>
+        <p><strong>Ledolgozott napok: Azok a napok, amikor valóban bent voltál dolgozni.</strong></p>
+        <ul>
+            <li>Nappal/Éjszaka/Csúszó = 1 nap</li>
+            <li>Szabadság 12 óra = 0 nap</li>
+            <li>Szabadság 8 óra = 1/3 nap (0,33)</li>
+            <li>Szabadság 4 óra = 2/3 nap (0,66)</li>
+            <li>Túlóra, táppénz nem adódik hozzá</li>
+        </ul>
+    </div>
 
-        <h4>Bérszámfejtési Számítások Magyarázata:</h4>
-        <p>A program a Naptárba és a Beállításokba bevitt adatok alapján dolgozik, kivével a Bónusz(0,1 vagy 2) és az Éttermi fogyasztást. Ezeket kézzel kell beírni minden hónapban(és évben). Mindig ellenőrizd hogy meg-e volt mindkét bónuszod, mivel ha már az egyik nem volt meg, akkor az már könnyen meglátszódik a nettó béren.</p>
-        <div style="background-color: #fff3cd; color: #856404; padding: 15px; border: 1px solid #ffeeba; border-radius: 5px; margin-bottom: 20px;">
-            <h4 style="color: #856404; margin-top: 0;">Figyelmeztetés!</h4>
-            <p>Ez a program kizárólag tájékoztató jellegű számításokat végez. A programban szereplő számítások és eredmények nem tekinthetők hivatalos bérszámfejtésnek. A program használata saját felelősségre történik. Eltérés esetén először bizonyosodj meg hogy valóban hiba történt és nem a program nem jó használata miatt történt hiba. A program hibázhat, ezt mindig vedd figyelembe.</p>
-        </div>
+    <h4>Alapbér számítása:</h4>
+    <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>Ez nem a besorolási béred. A két adat teljesen más!</strong></p>
+        <p><strong>Képlet:</strong> <code>Alapbér = (Besorolási bér ÷ Ledolgozandó napok) × Ledolgozott napok</code></p>
+        <p><strong>Példa:</strong> Besorolási béred, ami: 400.000 Ft ÷ 20 nap × 18 nap = 360.000 Ft</p>
+    </div>
+
+    <h4>Túlóra számítások:</h4>
+    <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>Túlóra alap:</strong> <code>(Besorolási bér ÷ irodista havi 8 óra [például 20 nap × 8 óra] ) × Túlóra órák száma</code></p>
+        <p><strong>Túlórapótlék:</strong> <code>(Besorolási bér ÷ 174) × Túlóra órák</code></p>
+        <p><strong>Negyedéves túlóra keret:</strong> 3 havonta automatikusan hozzáadódik a túlórához</p>
+    </div>
+
+    <h4>Ünnepnapok számítása</h4>
+    <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>Fizetett ünnepnap:</strong> Számítás: Besorolási bér ÷ Ledolgozandó napok × Ünnepnapok száma, amikor dolgozol</p>
+    </div>
+
+    <h4>Műszak- és Hétvégi pótlék számítása</h4>
+    <div style="background-color: #f3e5f5; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>Műszakpótlék (40%):</strong> <code>(Besorolási bér ÷ 174) × Éjszakai órák × 0,4</code></p>
+        <p><strong>Hétvégi pótlék (50%):</strong> <code>(Besorolási bér ÷ 174) × Vasárnapi órák × 0,5</code></p>
+        <p><strong>Fontos:</strong> Ünnepnapokon nem jár műszak- és hétvégi pótlék a túlórákhoz!</p>
+    </div>
+
+    <h4>Szabadság számítása</h4>
+    <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>Szabadságra jutó fizetés:</strong> <code>(Besorolási bér ÷ (Ledolgozandó napok × 12)) × Szabadság órák</code></p>
+    </div>
+
+    <h4>Teljesítmény prémium:</h4>
+    <div style="background-color: #fce4ec; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>Képlet:</strong> <code>Besorolási bér × 5% × Bónusz szorzó (0, 1 vagy 2)</code></p>
+        <p><strong>Példa:</strong> 400.000 Ft × 5% × 2 = 40.000 Ft</p>
+    </div>
+
+    <h4>Adók és járulékok:</h4>
+    <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>TB Járulék (18,5%):</strong> <code>Bruttó bér × 18,5%</code></p>
+        <p><strong>SZJA előleg (15%):</strong> <code>Max(0, (Bruttó bér × 15%) - 25 év alatti kedvezmény)</code></p>
+    </div>
+
+    <h4>Családi adókedvezmény:</h4>
+    <div style="background-color: #e1f5fe; padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <p><strong>2025 első fél év:</strong></p>
+        <ul>
+            <li>1 gyermek: 10.000 Ft/hó</li>
+            <li>2 gyermek: 20.000 Ft/hó/gyermek</li>
+            <li>3+ gyermek: 33.000 Ft/hó/gyermek</li>
+        </ul>
+        <p><strong>2025 második fél év:</strong></p>
+        <ul>
+            <li>1 gyermek: 15.000 Ft/hó</li>
+            <li>2 gyermek: 30.000 Ft/hó/gyermek</li>
+            <li>3+ gyermek: 49.500 Ft/hó/gyermek</li>
+        </ul>
+        <p><strong>2026 Januártól:</strong></p>
+        <ul>
+            <li>1 gyermek: 20.000 Ft/hó</li>
+            <li>2 gyermek: 40.000 Ft/hó/gyermek</li>
+            <li>3+ gyermek: 66.000 Ft/hó/gyermek</li>
+        </ul>
+    </div>
+
+    <h4>Nettó bér:</h4>
+    <div style="background-color: #f1f8e9; padding: 15px; border-radius: 8px; margin: 10px 0; border: 2px solid #4caf50;">
+        <p><strong>Képlet:</strong></p>
+        <code style="display: block; background: white; padding: 10px; border-radius: 4px; margin: 10px 0;">
+        Nettó = Bruttó bér - Adózás
+        </code>
+    </div>
     </div>
     </div>
     </div>
@@ -2141,7 +2228,7 @@
     class ChangelogManager {
         constructor() {
             // FONTOS: Ezt a verziószámot növeld minden új funkcióval!
-            this.currentVersion = "v2.0"; // <-- Itt változtasd a verziót
+            this.currentVersion = "v2.0.1"; // <-- Itt változtasd a verziót
             this.storageKey = "lastSeenChangelog";
         }
 
@@ -2149,14 +2236,15 @@
         getChangelog() {
             return [
                 {
-                    version: "2.0",
+                    version: "2.0.1",
                     date: "2025.05.24",
                     title: "Frissítés",
                     changes: [
                         "➕ Új: A napra kattintva mostmár lehet megjegyzést írni az adott naphoz.",
                         "🔧 Javítás: Pünkösd Vasárnap mostmár ünnepnapnak számít.",
                         "🔧 Javítás: A 25 év alatti adókedvezmény mostmár látható a bérszámfejtésben a SZJA levonásnál(Eddig is jól számolta csak vizuálisan nem mutatta jól).",
-                        "✨ Fejlesztés: A hónapok közötti váltás mostmár szinkronban, egyszerre változik a Naptár és a Bérszámfejtés menüben."
+                        "✨ Fejlesztés: A hónapok közötti váltás mostmár szinkronban, egyszerre változik a Naptár és a Bérszámfejtés menüben.",
+                        "✨ Fejlesztés: A súgó menü frissítése a program használatáról és részletes leírás képletekkel és magyarázatokkal, hogy a bérszámfejtés mi alapján történik"
                     ]
                 },
             ];
@@ -3544,6 +3632,11 @@
                 this.currentPayrollMonth = this.currentMonth;
                 this.currentSettingsYear = this.currentYear;
                 this.calculator = new BerszamfejtoCalculator(this);
+                this.changelog = new ChangelogManager();    
+                // Changelog megjelenítése, ha szükséges - ÚJ!
+                setTimeout(() => {
+                    this.changelog.showChangelog();
+                }, 100);
         
                 // Adatstruktúrák inicializálása
                 this.initializeYearlyData();        
@@ -3558,13 +3651,6 @@
                 this.initTouchNavigation();
                 this.initSettings();
                 this.salaryVisibility = initSalaryVisibility();
-                // Changelog kezelő inicializálása - ÚJ!
-                this.changelog = new ChangelogManager();
-                
-                // Changelog megjelenítése, ha szükséges - ÚJ!
-                setTimeout(() => {
-                    this.changelog.showChangelog();
-                }, 1000); // 1 másodperc késleltetés a teljes betöltés után
                 this.generateCalendar();
                 this.initPayrollNavigation();
                 this.generatePayrollTable();
