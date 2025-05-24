@@ -665,6 +665,30 @@
         border: 2px rgb(161, 161, 161) solid;
     }
 
+    .note-display {
+        position: absolute;
+        bottom: 2px;
+        left: 2px;
+        right: 2px;
+        font-size: 8px;
+        color: #666;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 2px 3px;
+        border-radius: 2px;
+        max-height: none;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+        word-wrap: break-word;
+        word-break: normal;
+        line-height: 1.1;
+        z-index: 5;
+        hyphens: none;
+        overflow-wrap: break-word;
+        pointer-events: none; /* ÚJ: A megjegyzés nem akadályozza a kattintást */
+        cursor: pointer; /* ÚJ: Kurzor jelzi, hogy kattintható */
+    }
+
     /* Színbeállítások stílusai */
     .color-row {
         display: flex;
@@ -3352,7 +3376,8 @@
                     },
                     calendar_data: {},
                     bonusEntries: {},
-                    restaurantEntries: {}
+                    restaurantEntries: {},
+                    notes: {}
                 };
 
                 // Inicializáljuk a hónapokat és generáljuk a műszakrendet
@@ -3464,6 +3489,10 @@
                             this.yearlyData[year].restaurantEntries = {
                                 ...parsedData[year].restaurantEntries
                             };
+                            // Megjegyzések másolása - ÚJ
+                            this.yearlyData[year].notes = {
+                                ...parsedData[year].notes
+                            } || {};
                         }
                     }
                     
@@ -4510,6 +4539,7 @@
                     // Dátum konténer létrehozása
                     const dateContainer = document.createElement("div");
                     dateContainer.className = "date-container";
+                    dateContainer.style.position = "relative";
         
                     // Dátum szám létrehozása
                     const dateSpan = document.createElement("span");
@@ -4520,121 +4550,199 @@
                     // Műszak div létrehozása
                     const shiftDiv = document.createElement("div");
                     shiftDiv.className = "shift-select";
+
+                    // MEGJEGYZÉS MEGJELENÍTÉSE - ÚJ RÉSZ
+                    const savedNote = this.yearlyData[this.currentYear].notes?.[this.currentMonth]?.[currentDate] || "";
+                    if (savedNote) {
+                        const noteDisplay = document.createElement("div");
+                        noteDisplay.className = "note-display";
+                        noteDisplay.textContent = savedNote;
+                        noteDisplay.title = savedNote; // Tooltip a teljes szöveghez
+                        dateContainer.appendChild(noteDisplay);
+                    }
         
-                    // Eseménykezelő hozzáadása
                     shiftDiv.addEventListener("click", (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const clickedDay = parseInt(dateSpan.textContent);
+
+                    // Modal létrehozása
+                    const overlay = document.createElement("div");
+                    overlay.className = "shift-select-overlay";
+                    
+                    const modal = document.createElement("div");
+                    modal.className = "shift-select-modal";
+                    
+                    // Modal címe
+                    const title = document.createElement("h2");
+                    title.textContent = `${this.currentYear}. ${this.currentMonth + 1}. ${clickedDay}.`;
+                    title.style.marginBottom = "15px";
+                    modal.appendChild(title);
+
+                    // Megjegyzés input mező
+                    const noteContainer = document.createElement("div");
+                    noteContainer.style.marginBottom = "15px";
+
+                    const noteLabel = document.createElement("label");
+                    noteLabel.textContent = "Megjegyzés:";
+                    noteLabel.style.display = "block";
+                    noteLabel.style.marginBottom = "5px";
+                    noteLabel.style.fontWeight = "bold";
+
+                    const noteInput = document.createElement("textarea");
+                    noteInput.style.width = "100%";
+                    noteInput.style.height = "60px";
+                    noteInput.style.padding = "8px";
+                    noteInput.style.border = "1px solid #ddd";
+                    noteInput.style.borderRadius = "4px";
+                    noteInput.style.fontSize = "14px";
+                    noteInput.style.resize = "vertical";
+                    noteInput.placeholder = "Írj ide bármilyen megjegyzést...";
+
+                    // Betöltjük a meglévő megjegyzést
+                    const existingNote = this.yearlyData[this.currentYear].notes?.[this.currentMonth]?.[clickedDay] || "";
+                    noteInput.value = existingNote;
+
+                    // ÚJ: Automatikus mentés funkció
+                    const saveNote = () => {
+                        const noteText = noteInput.value.trim();
                         
-                        const clickedDay = parseInt(dateSpan.textContent);
-        
-                        // Modal létrehozása
-                        const overlay = document.createElement("div");
-                        overlay.className = "shift-select-overlay";
+                        // Megjegyzés mentése
+                        if (!this.yearlyData[this.currentYear].notes) {
+                            this.yearlyData[this.currentYear].notes = {};
+                        }
+                        if (!this.yearlyData[this.currentYear].notes[this.currentMonth]) {
+                            this.yearlyData[this.currentYear].notes[this.currentMonth] = {};
+                        }
                         
-                        const modal = document.createElement("div");
-                        modal.className = "shift-select-modal";
+                        if (noteText) {
+                            this.yearlyData[this.currentYear].notes[this.currentMonth][clickedDay] = noteText;
+                        } else {
+                            // Ha üres a megjegyzés, töröljük
+                            delete this.yearlyData[this.currentYear].notes[this.currentMonth][clickedDay];
+                        }
                         
-                        // Modal címe
-                        const title = document.createElement("h2");
-                        title.textContent = `${this.currentYear}. ${this.currentMonth + 1}. ${clickedDay}.`;
-                        title.style.marginBottom = "15px";
-                        modal.appendChild(title);
-        
-                        // Műszak opciók
-                        const shifts = [
-                            "", // Szabadnap
-                            "Nappal",
-                            "Éjszaka",
-                            "Szabadság 12 óra",
-                            "Szabadság éj 12 óra",
-                            "Szabadság 8 óra",
-                            "Szabadság éj 8 óra",
-                            "Szabadság 4 óra",
-                            "Szabadság éj 4 óra",
-                            "Túlóra 12 óra",
-                            "Túlóra éj 12 óra",
-                            "Túlóra 8 óra",
-                            "Túlóra éj 8 óra",
-                            "Csúszó 12 óra",
-                            "Csúszó éj 12 óra",
-                            "Csúszó 8 óra",
-                            "Csúszó éj 8 óra",
-                            "Csúszó 4 óra",
-                            "Csúszó éj 4 óra",
-                            "Táppénz"
-                        ];
-        
-                        shifts.forEach(shiftName => {
-                            const button = document.createElement("button");
-                            button.textContent = shiftName === "" ? "Szabadnap" : shiftName;
-                            button.style.display = "block";
-                            button.style.width = "100%";
-                            button.style.padding = "10px";
-                            button.style.marginBottom = "20px";
-                            button.style.border = "none";
-                            button.style.borderRadius = "5px";
+                        this.saveYearlyData();
+                        this.generateCalendar(); // Naptár újragenerálása, hogy megjelenjen a megjegyzés
+                    };
+
+                    // ÚJ: Modal bezárása és automatikus mentés
+                    const closeModal = () => {
+                        saveNote(); // Automatikusan mentjük a megjegyzést
+                        document.body.removeChild(overlay);
+                    };
+
+                    noteContainer.appendChild(noteLabel);
+                    noteContainer.appendChild(noteInput);
+                    modal.appendChild(noteContainer);
+
+                    // Műszak opciók
+                    const shifts = [
+                        "", // Szabadnap
+                        "Nappal",
+                        "Éjszaka",
+                        "Szabadság 12 óra",
+                        "Szabadság éj 12 óra",
+                        "Szabadság 8 óra",
+                        "Szabadság éj 8 óra",
+                        "Szabadság 4 óra",
+                        "Szabadság éj 4 óra",
+                        "Túlóra 12 óra",
+                        "Túlóra éj 12 óra",
+                        "Túlóra 8 óra",
+                        "Túlóra éj 8 óra",
+                        "Csúszó 12 óra",
+                        "Csúszó éj 12 óra",
+                        "Csúszó 8 óra",
+                        "Csúszó éj 8 óra",
+                        "Csúszó 4 óra",
+                        "Csúszó éj 4 óra",
+                        "Táppénz"
+                    ];
+
+                    shifts.forEach(shiftName => {
+                        const button = document.createElement("button");
+                        button.textContent = shiftName === "" ? "Szabadnap" : shiftName;
+                        button.style.display = "block";
+                        button.style.width = "100%";
+                        button.style.padding = "10px";
+                        button.style.marginBottom = "20px";
+                        button.style.border = "none";
+                        button.style.borderRadius = "5px";
+                        
+                        const matchedKey = Object.keys(SHIFT_COLORS).find(
+                            key => shiftName.includes(key)
+                        );
+                        
+                        if (matchedKey) {
+                            const [bgColor, textColor] = SHIFT_COLORS[matchedKey];
+                            button.style.backgroundColor = bgColor;
+                            button.style.color = textColor;
+                        } else if (shiftName === "") {
+                            button.style.backgroundColor = "white";
+                            button.style.color = "black";
+                            button.style.border = "1px solid #ddd";
+                        } else {
+                            button.style.backgroundColor = "#4a90e2";
+                            button.style.color = "white";
+                        }
+
+                        button.addEventListener("click", () => {
+                            const newShift = shiftName === "" ? " " : shiftName;
                             
-                            const matchedKey = Object.keys(SHIFT_COLORS).find(
-                                key => shiftName.includes(key)
-                            );
+                            shiftDiv.textContent = newShift;
+                            this.applyShiftColors(newShift, shiftDiv, dateSpan);
                             
-                            if (matchedKey) {
-                                const [bgColor, textColor] = SHIFT_COLORS[matchedKey];
-                                button.style.backgroundColor = bgColor;
-                                button.style.color = textColor;
-                            } else if (shiftName === "") {
-                                button.style.backgroundColor = "white";
-                                button.style.color = "black";
-                                button.style.border = "1px solid #ddd";
-                            } else {
-                                button.style.backgroundColor = "#4a90e2";
-                                button.style.color = "white";
-                            }
-        
-                            button.addEventListener("click", () => {
-                                const newShift = shiftName === "" ? " " : shiftName;  // Üres string helyett szóköz
-                                
-                                shiftDiv.textContent = newShift;
-                                this.applyShiftColors(newShift, shiftDiv, dateSpan);
-                                
-                                // Mindig mentsük el az értéket, még ha üres is
-                                this.yearlyData[this.currentYear].calendar_data[this.currentMonth][clickedDay] = newShift;                              
-                                this.saveYearlyData();                              
-                                this.currentPayrollMonth = this.currentMonth;
-                                this.currentPayrollYear = this.currentYear;
-                                this.generatePayrollTable();                              
-                                document.body.removeChild(overlay);
-                            });
+                            // Műszak mentése
+                            this.yearlyData[this.currentYear].calendar_data[this.currentMonth][clickedDay] = newShift;
                             
-                            modal.appendChild(button);
-                        });
-        
-                        // Mégsem gomb
-                        const closeButton = document.createElement("button");
-                        closeButton.textContent = "Mégsem";
-                        closeButton.style.display = "block";
-                        closeButton.style.width = "100%";
-                        closeButton.style.padding = "10px";
-                        closeButton.style.backgroundColor = "#ff4d4d";
-                        closeButton.style.color = "white";
-                        closeButton.style.border = "none";
-                        closeButton.style.borderRadius = "5px";
-                        
-                        closeButton.addEventListener("click", () => {
+                            // Megjegyzés is mentése
+                            saveNote();
+                            
+                            this.currentPayrollMonth = this.currentMonth;
+                            this.currentPayrollYear = this.currentYear;
+                            this.generatePayrollTable();
+                            
                             document.body.removeChild(overlay);
                         });
                         
-                        modal.appendChild(closeButton);
-                        overlay.appendChild(modal);
-                        document.body.appendChild(overlay);
-        
-                        overlay.addEventListener("click", (event) => {
-                            if (event.target === overlay) {
-                                document.body.removeChild(overlay);
-                            }
-                        });
+                        modal.appendChild(button);
                     });
+
+                    // Mégsem gomb - MÓDOSÍTVA: most automatikusan menti a megjegyzést
+                    const closeButton = document.createElement("button");
+                    closeButton.textContent = "Bezárás";  // Szöveg módosítva
+                    closeButton.style.display = "block";
+                    closeButton.style.width = "100%";
+                    closeButton.style.padding = "10px";
+                    closeButton.style.backgroundColor = "#4a90e2";  // Szín módosítva zöldre
+                    closeButton.style.color = "white";
+                    closeButton.style.border = "none";
+                    closeButton.style.borderRadius = "5px";
+                    
+                    closeButton.addEventListener("click", closeModal);
+                    
+                    modal.appendChild(closeButton);
+                    overlay.appendChild(modal);
+                    document.body.appendChild(overlay);
+
+                    // ÚJ: Overlay kattintás is automatikusan menti a megjegyzést
+                    overlay.addEventListener("click", (event) => {
+                        if (event.target === overlay) {
+                            closeModal();
+                        }
+                    });
+
+                    // ÚJ: ESC billentyű lenyomására is bezárás és mentés
+                    const handleEscape = (event) => {
+                        if (event.key === 'Escape') {
+                            closeModal();
+                            document.removeEventListener('keydown', handleEscape);
+                        }
+                    };
+                    document.addEventListener('keydown', handleEscape);
+                });
         
                     // Műszak érték meghatározása
                     let shiftValue = this.yearlyData[this.currentYear].calendar_data[this.currentMonth][currentDate];
