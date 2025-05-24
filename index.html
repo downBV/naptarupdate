@@ -2095,6 +2095,10 @@
                 // Húsvéthétfő
                 const easterMonday = new Date(easter);
                 easterMonday.setDate(easter.getDate() + 1);
+
+                // Pünkösd vasárnap (Húsvét után 49 nappal)
+                const pentecostSunday = new Date(easter);
+                pentecostSunday.setDate(easter.getDate() + 49);
                 
                 // Pünkösdhétfő (Húsvét után 50 nappal)
                 const pentecostMonday = new Date(easter);
@@ -2105,6 +2109,7 @@
                     { month: goodFriday.getMonth(), day: goodFriday.getDate() },           // Nagypéntek
                     { month: easterSunday.getMonth(), day: easterSunday.getDate() },       // Húsvétvasárnap
                     { month: easterMonday.getMonth(), day: easterMonday.getDate() },       // Húsvéthétfő
+                    { month: pentecostSunday.getMonth(), day: pentecostSunday.getDate() }, // Pünkösd vasárnap
                     { month: pentecostMonday.getMonth(), day: pentecostMonday.getDate() }  // Pünkösdhétfő
                 ];
     
@@ -4253,15 +4258,20 @@
                     this.currentYear++;
                 }
 
-                // Generate new calendar
+                // SZINKRONIZÁLÁS: Bérszámfejtés frissítése is
+                this.currentPayrollMonth = this.currentMonth;
+                this.currentPayrollYear = this.currentYear;
+
+                // Generate new calendar and payroll
                 this.generateCalendar();
+                this.generatePayrollTable(); // Bérszámfejtés is frissül
                 
                 // Add slide in animation
                 calendarBody.className = direction > 0 ? 'slide-in-right' : 'slide-in-left';
             }, 300);
-                }
+        }
                 
-                changePayrollMonth(direction) {
+        changePayrollMonth(direction) {
             const newYear = this.currentPayrollYear + (this.currentPayrollMonth + direction < 0 ? -1 : this.currentPayrollMonth + direction > 11 ? 1 : 0);
             
             // Korlátozzuk az éveket 2024 és 2028 között
@@ -4286,8 +4296,13 @@
                     this.currentPayrollYear++;
                 }
 
-                // Generate new payroll table
+                // SZINKRONIZÁLÁS: Naptár frissítése is
+                this.currentMonth = this.currentPayrollMonth;
+                this.currentYear = this.currentPayrollYear;
+
+                // Generate new payroll and calendar
                 this.generatePayrollTable();
+                this.generateCalendar(); // Naptár is frissül
                 
                 // Add slide in animation
                 payrollBody.className = direction > 0 ? 'slide-in-right' : 'slide-in-left';
@@ -4331,6 +4346,7 @@
             const movingHolidays = [
                 { month: goodFriday.getMonth(), day: goodFriday.getDate() },           // Nagypéntek
                 { month: easterMonday.getMonth(), day: easterMonday.getDate() },       // Húsvéthétfő
+                { month: pentecostSunday.getMonth(), day: pentecostSunday.getDate() }, // Pünkösd vasárnap
                 { month: pentecostMonday.getMonth(), day: pentecostMonday.getDate() }  // Pünkösdhétfő
             ];
         
@@ -4895,52 +4911,25 @@
         initPayrollNavigation() {
             document.getElementById("prev-payroll-month-btn").addEventListener("click", () => {
                 this.changePayrollMonth(-1);
-                
-                // Évváltás kezelése a 2024-2028 közötti korlátokon belül
-                if (this.currentPayrollMonth < 0) {
-                    if (this.currentPayrollYear > 2024) {
-                        this.currentPayrollMonth = 11;
-                        this.currentPayrollYear--;
-                    } else {
-                        // Ha 2024 januárjánál korábbra próbálunk menni, nem csinálunk semmit
-                        this.currentPayrollMonth = 0;
-                        return;
-                    }
-                }
-        
-                this.generatePayrollTable();
             });
-        
+
             document.getElementById("next-payroll-month-btn").addEventListener("click", () => {
                 this.changePayrollMonth(1);
-                
-                // Évváltás kezelése a 2024-2028 közötti korlátokon belül
-                if (this.currentPayrollMonth > 11) {
-                    if (this.currentPayrollYear < 2028) {
-                        this.currentPayrollMonth = 0;
-                        this.currentPayrollYear++;
-                    } else {
-                        // Ha 2028 decemberénél későbbre próbálunk menni, nem csinálunk semmit
-                        this.currentPayrollMonth = 11;
-                        return;
-                    }
-                }
-        
-                this.generatePayrollTable();
             });
 
+            // Touch események a payroll szekcióhoz
             const payrollSection = document.getElementById("payroll-section");
-                let startX = 0;
-                let endX = 0;
+            let startX = 0;
+            let endX = 0;
 
-                payrollSection.addEventListener("touchstart", (e) => {
-                    startX = e.touches[0].clientX;
-                });
+            payrollSection.addEventListener("touchstart", (e) => {
+                startX = e.touches[0].clientX;
+            });
 
-                payrollSection.addEventListener("touchend", (e) => {
-                    endX = e.changedTouches[0].clientX;
-                    this.handlePayrollSwipe(startX, endX);
-                });
+            payrollSection.addEventListener("touchend", (e) => {
+                endX = e.changedTouches[0].clientX;
+                this.handlePayrollSwipe(startX, endX);
+            });
         }
 
         handlePayrollSwipe(startX, endX) {
