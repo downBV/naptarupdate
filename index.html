@@ -1386,6 +1386,98 @@
     .slide-year-out-left {
         animation: slideYearOutLeft 0.2s forwards;
     }
+
+    .changelog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+    .changelog-modal {
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 90%;
+        max-height: 90%;
+        width: 500px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        overflow-y: auto;
+        position: relative;
+        animation: slideIn 0.3s ease;
+    }
+
+    .changelog-header {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 2px solid #4a90e2;
+        padding-bottom: 10px;
+    }
+
+    .changelog-version {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4a90e2;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+    }
+
+    .changelog-version h4 {
+        color: #4a90e2;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .changelog-version ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    .changelog-version li {
+        margin-bottom: 8px;
+        line-height: 1.4;
+    }
+
+    .changelog-close-btn {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 20px;
+        transition: background-color 0.3s ease;
+    }
+
+    .changelog-close-btn:hover {
+        background-color: #357abd;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+        from { 
+            opacity: 0;
+            transform: translateY(-50px) scale(0.9);
+        }
+        to { 
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
         
     </style>
 </head>
@@ -2045,6 +2137,165 @@
             return false;
         }
     };
+
+    class ChangelogManager {
+        constructor() {
+            // FONTOS: Ezt a verziószámot növeld minden új funkcióval!
+            this.currentVersion = "v2.0"; // <-- Itt változtasd a verziót
+            this.storageKey = "lastSeenChangelog";
+        }
+
+        // Frissítési napló tartalma
+        getChangelog() {
+            return [
+                {
+                    version: "2.0",
+                    date: "2025.05.24",
+                    title: "Frissítés",
+                    changes: [
+                        "➕ Új: A napra kattintva mostmár lehet megjegyzést írni az adott naphoz.",
+                        "🔧 Javítás: Pünkösd Vasárnap mostmár ünnepnapnak számít.",
+                        "🔧 Javítás: A 25 év alatti adókedvezmény mostmár látható a bérszámfejtésben a SZJA levonásnál(Eddig is jól számolta csak vizuálisan nem mutatta jól).",
+                        "✨ Fejlesztés: A hónapok közötti váltás mostmár szinkronban, egyszerre változik a Naptár és a Bérszámfejtés menüben."
+                    ]
+                },
+            ];
+        }
+        //Ikonok a változásokhoz:
+        //➕ Új funkció
+        //🔧 Hibajavítás
+        //✨ Fejlesztés
+        //🎨 Dizájn változás
+        //⚡ Teljesítmény javítás
+
+        // 4. FEJLESZTŐI HASZNÁLAT:
+
+        // Konzolból tesztelheted:
+        // window.app.showChangelog()        // Kézi megjelenítés
+        // window.app.resetChangelog()       // Verzió reset (újratöltés után újra megjelenik)
+
+        /* 
+        HOGYAN HASZNÁLD ÚJ FRISSÍTÉSNÉL:
+
+        1. Növeld a verziószámot: this.currentVersion = "2.2.0"
+
+        2. Add hozzá az új verziót a changelog elejére:
+        {
+            version: "2.2.0",
+            date: "2025.05.25", 
+            title: "Új funkció neve",
+            changes: [
+                "➕ Új: Valami új funkció",
+                "🔧 Javítás: Valami javítás", 
+                "✨ Fejlesztés: Valami fejlesztés"
+            ]
+        }
+
+        3. A felhasználók automatikusan látni fogják az új changelog-ot!
+        */
+
+        // Ellenőrzi, hogy kell-e megjeleníteni a changelog-ot
+        shouldShowChangelog() {
+            const lastSeenVersion = localStorage.getItem(this.storageKey);
+            return lastSeenVersion !== this.currentVersion;
+        }
+
+        // Changelog megjelenítése
+        showChangelog() {
+            if (!this.shouldShowChangelog()) {
+                return; // Ne mutassuk, ha már látta
+            }
+
+            const overlay = this.createChangelogModal();
+            document.body.appendChild(overlay);
+        }
+
+        // Modal létrehozása
+        createChangelogModal() {
+            const overlay = document.createElement("div");
+            overlay.className = "changelog-overlay";
+
+            const modal = document.createElement("div");
+            modal.className = "changelog-modal";
+
+            // Fejléc
+            const header = document.createElement("div");
+            header.className = "changelog-header";
+            header.innerHTML = `
+                <h2>Frissítések</h2>
+            `;
+
+            modal.appendChild(header);
+
+            // Changelog tartalom
+            const changelog = this.getChangelog();
+            changelog.forEach(version => {
+                const versionDiv = document.createElement("div");
+                versionDiv.className = "changelog-version";
+
+                const versionHeader = document.createElement("h4");
+                versionHeader.textContent = `v${version.version} - ${version.date}`;
+                versionDiv.appendChild(versionHeader);
+
+                const versionTitle = document.createElement("p");
+                versionTitle.style.fontWeight = "bold";
+                versionTitle.style.marginBottom = "10px";
+                versionTitle.textContent = version.title;
+                versionDiv.appendChild(versionTitle);
+
+                const changesList = document.createElement("ul");
+                version.changes.forEach(change => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = change;
+                    changesList.appendChild(listItem);
+                });
+
+                versionDiv.appendChild(changesList);
+                modal.appendChild(versionDiv);
+            });
+
+            // Bezárás gomb
+            const closeButton = document.createElement("button");
+            closeButton.className = "changelog-close-btn";
+            closeButton.textContent = "Rendben, megértettem! 👍";
+            closeButton.addEventListener("click", () => {
+                this.markAsRead();
+                document.body.removeChild(overlay);
+            });
+
+            modal.appendChild(closeButton);
+            overlay.appendChild(modal);
+
+            // ESC billentyű kezelése
+            const handleEscape = (event) => {
+                if (event.key === 'Escape') {
+                    this.markAsRead();
+                    document.body.removeChild(overlay);
+                    document.removeEventListener('keydown', handleEscape);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
+
+            return overlay;
+        }
+
+        // Megjelöli elolvasottként
+        markAsRead() {
+            localStorage.setItem(this.storageKey, this.currentVersion);
+        }
+
+        // Kézi megjelenítés (fejlesztőknek)
+        forceShow() {
+            const overlay = this.createChangelogModal();
+            document.body.appendChild(overlay);
+        }
+
+        // Verzió reset (teszteléshez)
+        resetVersion() {
+            localStorage.removeItem(this.storageKey);
+            console.log("Changelog verzió resetelve. Újratöltés után megjelenik.");
+        }
+    }
 
     class BerszamfejtoCalculator {
         constructor(app) {
@@ -2761,7 +3012,15 @@
         
                     case "Rendszeres SZJA előleg": {
                         const bruttoBer = this.calculateMonthlyValue("Bruttó bér", monthIndex, year);
-                        return Math.round(bruttoBer * 0.15);
+                        const baseSSZJA = Math.round(bruttoBer * 0.15);
+                        
+                        // 25 év alatti kedvezmény levonása az SZJA-ból
+                        const under25Discount = this.app.calculateUnder25Discount(year, monthIndex, bruttoBer);
+                        
+                        // Az SZJA előleg nem lehet negatív
+                        const finalSZJA = Math.max(0, baseSSZJA - under25Discount);
+                        
+                        return finalSZJA;
                     }
 
                     case "Családi adókedvezmény": {
@@ -2776,14 +3035,14 @@
                         const bruttoBer = this.calculateMonthlyValue("Bruttó bér", monthIndex, year);
                         const otherIncome = parseFloat(yearData.settings.other_income || 0);
                         const restaurantEntry = yearData.restaurantEntries?.[monthIndex] || 0;
-                        const under25Discount = this.app.calculateUnder25Discount(year, monthIndex, bruttoBer);
                         const childBenefit = this.calculateMonthlyValue("Családi adókedvezmény", monthIndex, year);
                         
                         const tbJarulek = this.calculateMonthlyValue("TB Járulék 18,5%", monthIndex, year);
-                        const szja = this.calculateMonthlyValue("Rendszeres SZJA előleg", monthIndex, year);
+                        const szja = this.calculateMonthlyValue("Rendszeres SZJA előleg", monthIndex, year); // Ez már tartalmazza a levonást
                         
-                        return Math.round(bruttoBer + under25Discount + otherIncome + childBenefit - tbJarulek - szja - restaurantEntry);
-                    }                    
+                        // A 25 év alatti kedvezményt már nem adjuk hozzá külön, mert az SZJA-ban van kezelve
+                        return Math.round(bruttoBer + otherIncome + childBenefit - tbJarulek - szja - restaurantEntry);
+                    }                
         
                     case "Megmaradt szabadságok": {
                         const yearData = this.app.yearlyData[year];
@@ -3299,6 +3558,13 @@
                 this.initTouchNavigation();
                 this.initSettings();
                 this.salaryVisibility = initSalaryVisibility();
+                // Changelog kezelő inicializálása - ÚJ!
+                this.changelog = new ChangelogManager();
+                
+                // Changelog megjelenítése, ha szükséges - ÚJ!
+                setTimeout(() => {
+                    this.changelog.showChangelog();
+                }, 1000); // 1 másodperc késleltetés a teljes betöltés után
                 this.generateCalendar();
                 this.initPayrollNavigation();
                 this.generatePayrollTable();
@@ -3348,12 +3614,24 @@
         
                 // Alapértelmezett aktív állapot
                 navButtons[0].classList.add('active');
+                
         
             } catch (error) {
                 console.error("Hiba az alkalmazás inicializálása során:", error);
                 console.error("Hiba részletei:", error.message);
                 console.error("Hiba stack:", error.stack);
             }
+            
+        }
+
+        // Changelog kézi megjelenítése (fejlesztéshez)
+        showChangelog() {
+            this.changelog.forceShow();
+        }
+
+        // Verzió reset (teszteléshez)
+        resetChangelog() {
+            this.changelog.resetVersion();
         }
     
         initializeYearlyData() {
