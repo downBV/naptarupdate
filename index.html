@@ -635,6 +635,18 @@
         box-shadow: 0 0 5px black !important; /* Kényszerített box-shadow */
     }
 
+    .today::after {
+    content: '';
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background-color: #ff0000;
+    border-radius: 1px;
+    }
+
     .date-container {
         display: flex;
         flex-direction: column;
