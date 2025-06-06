@@ -635,16 +635,10 @@
         box-shadow: 0 0 5px black !important; /* Kényszerített box-shadow */
     }
 
-    .today .date-number::after {
-    content: '';
-    position: absolute;
-    top: 24px; /* A dátumszám alatt */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 2px;
-    background-color: #ff0000;
-    border-radius: 1px;
+    .today .date-number {
+    border: 2px solid #ff0000 !important;
+    background-color: #ff0000 !important;
+    color: white !important;
     }
 
     .date-container {
