@@ -665,6 +665,23 @@
         border: 2px rgb(161, 161, 161) solid;
     }
 
+    today {
+    background-color: rgba(74, 144, 226, 0.1) !important;
+    border: 1px solid rgba(74, 144, 226, 0.3) !important;
+}
+
+.today .date-number {
+    background-color: #4a90e2 !important;
+    color: white !important;
+    font-weight: bold;
+    animation: todayPulse 2s infinite;
+}
+
+@keyframes todayPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
     .note-display {
         position: absolute;
         bottom: 2px;
