@@ -6217,6 +6217,266 @@
         }
     }
 
+    // Service Worker regisztrálása és PWA telepítés kezelése
+    let deferredPrompt;
+    let installButton;
+
+    // PWA telepítés gomb létrehozása (kisebb, diszkrétebb)
+    function createInstallButton() {
+        installButton = document.createElement('button');
+        installButton.id = 'install-button';
+        installButton.textContent = '📱';
+        installButton.title = 'Telepítés alkalmazásként';
+        installButton.style.cssText = `
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+            display: none;
+        `;
+        
+        installButton.addEventListener('click', installApp);
+        document.body.appendChild(installButton);
+    }
+
+    // Központi telepítési modal létrehozása
+    function createInstallModal() {
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'install-modal-overlay';
+        modalOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        `;
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+        `;
+
+        modal.innerHTML = `
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 15px;">📱</div>
+                <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Alkalmazás telepítés</h2>
+                <p style="margin: 0; color: #666; font-size: 16px; line-height: 1.5;">
+                    Szeretnéd telepíteni az alkalmazást az eszközödre?
+                </p>
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="install-yes-btn" style="
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 12px 30px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                    flex: 1;
+                    max-width: 120px;
+                ">Igen</button>
+                <button id="install-no-btn" style="
+                    background: #f44336;
+                    color: white;
+                    border: none;
+                    padding: 12px 30px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                    flex: 1;
+                    max-width: 120px;
+                ">Nem</button>
+            </div>
+        `;
+
+        // Animációk hozzáadása
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            @keyframes slideIn {
+                from { 
+                    opacity: 0;
+                    transform: translateY(-50px) scale(0.9);
+                }
+                to { 
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+            #install-yes-btn:hover {
+                background: #45a049 !important;
+            }
+            #install-no-btn:hover {
+                background: #da190b !important;
+            }
+        `;
+        document.head.appendChild(style);
+
+        modalOverlay.appendChild(modal);
+        document.body.appendChild(modalOverlay);
+
+        // Eseménykezelők
+        document.getElementById('install-yes-btn').addEventListener('click', () => {
+            installApp();
+            closeInstallModal();
+            markInstallPromptShown();
+        });
+
+        document.getElementById('install-no-btn').addEventListener('click', () => {
+            closeInstallModal();
+            markInstallPromptShown();
+            showInstallButton(); // Megjelenítjük a kis gombot
+        });
+
+        return modalOverlay;
+    }
+
+    // Modal bezárása
+    function closeInstallModal() {
+        const modal = document.getElementById('install-modal-overlay');
+        if (modal) {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
+
+    // Telepítés funkció
+    async function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('Felhasználó elfogadta a telepítést');
+                hideInstallButton();
+            } else {
+                console.log('Felhasználó elutasította a telepítést');
+                showInstallButton(); // Megjelenítjük a kis gombot
+            }
+            deferredPrompt = null;
+        }
+    }
+
+    // Telepítés gomb elrejtése
+    function hideInstallButton() {
+        if (installButton) {
+            installButton.style.display = 'none';
+        }
+    }
+
+    // Telepítés gomb megjelenítése
+    function showInstallButton() {
+        if (installButton) {
+            installButton.style.display = 'block';
+        }
+    }
+
+    // Ellenőrzi, hogy már megjelent-e a telepítési prompt
+    function hasInstallPromptBeenShown() {
+        return localStorage.getItem('installPromptShown') === 'true';
+    }
+
+    // Megjelöli, hogy már megjelent a telepítési prompt
+    function markInstallPromptShown() {
+        localStorage.setItem('installPromptShown', 'true');
+    }
+
+    // Telepítési modal megjelenítése
+    function showInstallModal() {
+        // Csak akkor jelenítjük meg, ha még nem látta és nem telepítette
+        if (!hasInstallPromptBeenShown() && 
+            !window.matchMedia('(display-mode: standalone)').matches) {
+            
+            // Kis késleltetés hogy az oldal betöltődjön
+            setTimeout(() => {
+                createInstallModal();
+            }, 1000);
+        }
+    }
+
+    // Telepítési eseménykezelő
+    window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('PWA telepítési prompt elérhető');
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Modal megjelenítése
+        showInstallModal();
+    });
+
+    // Ellenőrizzük, hogy már telepítve van-e
+    window.addEventListener('appinstalled', () => {
+        console.log('PWA sikeresen telepítve');
+        hideInstallButton();
+        closeInstallModal();
+        deferredPrompt = null;
+    });
+
+    // Service Worker regisztrálása
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            // Telepítés gomb létrehozása
+            createInstallButton();
+            
+            navigator.serviceWorker.register('/naptarupdate/service-worker.js', {
+                scope: '/naptar/'
+            })
+            .then(registration => {
+                console.log('ServiceWorker regisztrálva');
+                
+                // Ha már telepítve van, rejtjük el a gombot
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    hideInstallButton();
+                    markInstallPromptShown();
+                }
+            })
+            .catch(error => {
+                console.log('ServiceWorker regisztrálási hiba:', error);
+            });
+        });
+    }
+
+    // Globális függvények
+    window.installApp = installApp;
+
     document.addEventListener("DOMContentLoaded", () => {
         window.app = new BerszamfejtoApp(); // Globális változóként tároljuk
     });
