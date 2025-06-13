@@ -6246,11 +6246,23 @@
             display: none;
         `;
         
-        installButton.addEventListener('click', installApp);
+        installButton.addEventListener('click', handleInstallButtonClick);
         document.body.appendChild(installButton);
     }
 
-    // Központi telepítési modal létrehozása
+    // Telepítés gomb kattintás kezelése
+    function handleInstallButtonClick() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        
+        if (isIOS && isSafari) {
+            showIOSInstallInstructions();
+        } else {
+            installApp();
+        }
+    }
+
+    // Központi telepítési modal létrehozása (Android Chrome, Desktop)
     function createInstallModal() {
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'install-modal-overlay';
@@ -6367,6 +6379,108 @@
         return modalOverlay;
     }
 
+    // iOS Safari telepítési útmutató
+    function showIOSInstallInstructions() {
+        const overlay = document.createElement('div');
+        overlay.id = 'ios-install-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        `;
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            width: 350px;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+        `;
+
+        modal.innerHTML = `
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 15px;">📱</div>
+                <h2 style="margin: 0 0 15px 0; color: #333; font-size: 20px;">Telepítsd az alkalmazást!</h2>
+                <p style="margin: 0 0 20px 0; color: #666; font-size: 14px; line-height: 1.5;">
+                    Kövesd ezeket a lépéseket:
+                </p>
+            </div>
+            
+            <div style="text-align: left; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <span style="background: #007AFF; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px;">1</span>
+                    <span style="font-size: 14px;">Nyomd meg a <strong>Megosztás</strong> gombot</span>
+                    <span style="font-size: 20px; margin-left: 10px;">□↗️</span>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <span style="background: #007AFF; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px;">2</span>
+                    <span style="font-size: 14px;">Válaszd ki: <strong>"Hozzáadás a kezdőképernyőhöz"</strong></span>
+                    <span style="font-size: 16px; margin-left: 10px;">📱➕</span>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <span style="background: #007AFF; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px;">3</span>
+                    <span style="font-size: 14px;">Nyomd meg a <strong>"Hozzáadás"</strong> gombot</span>
+                    <span style="font-size: 16px; margin-left: 10px;">✅</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="ios-install-later-btn" style="
+                    background: #6c757d;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    flex: 1;
+                ">Később</button>
+                <button id="ios-install-ok-btn" style="
+                    background: #007AFF;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    flex: 1;
+                ">Értettem</button>
+            </div>
+        `;
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Eseménykezelők
+        document.getElementById('ios-install-ok-btn').addEventListener('click', () => {
+            markInstallPromptShown();
+            document.body.removeChild(overlay);
+        });
+
+        document.getElementById('ios-install-later-btn').addEventListener('click', () => {
+            document.body.removeChild(overlay);
+        });
+
+        // Overlay kattintás
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                document.body.removeChild(overlay);
+            }
+        });
+    }
+
     // Modal bezárása
     function closeInstallModal() {
         const modal = document.getElementById('install-modal-overlay');
@@ -6389,7 +6503,7 @@
                 hideInstallButton();
             } else {
                 console.log('Felhasználó elutasította a telepítést');
-                showInstallButton(); // Megjelenítjük a kis gombot
+                showInstallButton();
             }
             deferredPrompt = null;
         }
@@ -6421,14 +6535,40 @@
 
     // Telepítési modal megjelenítése
     function showInstallModal() {
-        // Csak akkor jelenítjük meg, ha még nem látta és nem telepítette
-        if (!hasInstallPromptBeenShown() && 
-            !window.matchMedia('(display-mode: standalone)').matches) {
-            
-            // Kis késleltetés hogy az oldal betöltődjön
+        // Ellenőrizzük, hogy iOS Safari-ban vagyunk-e
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+        
+        if (isIOS && isSafari && !isInStandaloneMode) {
+            // iOS Safari esetén az útmutatót mutatjuk
+            if (!hasInstallPromptBeenShown()) {
+                setTimeout(() => {
+                    showIOSInstallInstructions();
+                }, 1000);
+            }
+        } else {
+            // Egyéb böngészők esetén az eredeti modal
+            if (!hasInstallPromptBeenShown() && 
+                !window.matchMedia('(display-mode: standalone)').matches) {
+                
+                setTimeout(() => {
+                    createInstallModal();
+                }, 1000);
+            }
+        }
+    }
+
+    // iOS PWA prompt ellenőrzése
+    function createIOSInstallPrompt() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+        
+        if (isIOS && isSafari && !isInStandaloneMode && !hasInstallPromptBeenShown()) {
             setTimeout(() => {
-                createInstallModal();
-            }, 1000);
+                showIOSInstallInstructions();
+            }, 2000);
         }
     }
 
@@ -6456,8 +6596,11 @@
             // Telepítés gomb létrehozása
             createInstallButton();
             
+            // iOS PWA prompt ellenőrzése
+            createIOSInstallPrompt();
+            
             navigator.serviceWorker.register('/naptarupdate/service-worker.js', {
-                scope: '/naptar/'
+                scope: '/naptarupdate/'
             })
             .then(registration => {
                 console.log('ServiceWorker regisztrálva');
@@ -6466,6 +6609,15 @@
                 if (window.matchMedia('(display-mode: standalone)').matches) {
                     hideInstallButton();
                     markInstallPromptShown();
+                }
+                
+                // iOS esetén mindig mutassuk a gombot
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+                
+                if (isIOS && isSafari && !isInStandaloneMode) {
+                    showInstallButton();
                 }
             })
             .catch(error => {
