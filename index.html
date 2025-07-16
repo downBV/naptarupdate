@@ -4,8 +4,17 @@
     <meta charset="UTF-8" />
     <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
+    <!-- Teljes képernyős mód támogatás -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- Chrome specifikus -->
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -51,6 +60,22 @@
         -ms-overflow-style: none;
     }
 
+    :root {
+        --vh: 1vh;
+    }
+
+    html, body {
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height - újabb mobil böngészőkben */
+        height: 100svh; /* Small viewport height - alternatíva */
+        height: calc(var(--vh, 1vh) * 100);
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+    }
+
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         sans-serif;
@@ -59,6 +84,10 @@
         display: flex;
         flex-direction: column;
         padding-top: 70px;
+        padding-top: max(70px, env(safe-area-inset-top, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding-left: env(safe-area-inset-left, 0px);
+        padding-right: env(safe-area-inset-right, 0px);
     }
 
     .nav-icon {
@@ -81,6 +110,9 @@
         height: 70px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         position: fixed;
+        top: env(safe-area-inset-top, 0px);
+        left: env(safe-area-inset-left, 0px);
+        right: env(safe-area-inset-right, 0px);
         top: 0;
         left: 0;
         z-index: 1000;
@@ -568,9 +600,20 @@
 
     #content {
         width: 100%;
-        height: calc(100vh - 70px);
+        height: calc(100vh - 70px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        height: calc(100dvh - 70px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        margin-top: 0;
         overflow-y: auto;
         overscroll-behavior-y: none;
+        -webkit-overflow-scrolling: touch;
+        height: calc(var(--vh, 1vh) * 100 - 70px);
+    }
+
+    @supports (-webkit-touch-callout: none) {
+        /* iOS Safari specifikus */
+        body {
+            height: -webkit-fill-available;
+        }
     }
 
     #calendar-header {
@@ -1993,6 +2036,26 @@
 
     <script>
     let app;
+
+    function requestFullscreen() {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+            document.documentElement.msRequestFullscreen();
+        }
+    }
+
+    function setViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+
+    window.addEventListener('resize', setViewportHeight);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(setViewportHeight, 100);
+    });
 
     function initSalaryVisibility() {
         const salaryInput = document.getElementById('base-salary');
@@ -6583,7 +6646,14 @@
     window.installApp = installApp;
 
     document.addEventListener("DOMContentLoaded", () => {
-        window.app = new BerszamfejtoApp(); // Globális változóként tároljuk
+        setViewportHeight();
+        
+        // Ha PWA módban fut, teljes képernyős mód
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            setTimeout(requestFullscreen, 1000);
+        }
+        
+        window.app = new BerszamfejtoApp();
     });
         // Service Worker regisztrálása
     if ('serviceWorker' in navigator) {
