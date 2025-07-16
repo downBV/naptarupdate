@@ -12,6 +12,21 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+    <link rel="icon" type="image/png" sizes="1024x1024" href="./icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./icon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./icon.png">
+    <link rel="shortcut icon" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="1024x1024" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="./icon.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="./icon.png">
+    <link rel="apple-touch-icon" href="./icon.png">
     <link rel="icon" type="image/png" href="./icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -36,6 +51,10 @@
         -ms-overflow-style: none;
     }
 
+    html {
+        overscroll-behavior-y: contain;
+    }
+
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         sans-serif;
@@ -44,9 +63,8 @@
         display: flex;
         flex-direction: column;
         padding-top: 70px;
-        overscroll-behavior-y: none;
+        overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
-        overflow-x: hidden;
     }
 
     .nav-icon {
@@ -558,7 +576,8 @@
         width: 100%;
         box-sizing: border-box;
         height: calc(100vh - 70px);
-        overscroll-behavior-y: none;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
     }
 
@@ -609,6 +628,7 @@
         table-layout: fixed;
         margin-bottom: 0;
         will-change: transform, box-shadow;
+        overscroll-behavior: none;
     }
 
     #calendarTable th {
@@ -638,12 +658,6 @@
         box-shadow: 0 0 5px black !important; /* Kényszerített box-shadow */
     }
 
-    .today .date-number {
-    border: 2px solid #ff0000 !important;
-    background-color: #ff0000 !important;
-    color: white !important;
-    }
-
     .date-container {
         display: flex;
         flex-direction: column;
@@ -656,6 +670,12 @@
         -ms-user-select: none;
         box-shadow: inset 0 0px 3px black;
         border: solid 1px black;
+    }
+
+    .today .date-number {
+    border: 2px solid #ff0000 !important;
+    background-color: #ff0000 !important;
+    color: white !important;
     }
 
     .date-number {
@@ -679,7 +699,7 @@
         bottom: 2px;
         left: 2px;
         right: 2px;
-        font-size: 8px;
+        font-size: 9px;
         color: #666;
         background-color: rgba(255, 255, 255, 0.9);
         padding: 2px 3px;
@@ -827,12 +847,13 @@
     }
 
     #calendar-section {
-        overscroll-behavior-y: none;
-        touch-action: pan-y pinch-zoom;
+        touch-action: pan-y;
         flex-grow: 1;
         height: 100%;
         display: flex;
         flex-direction: column;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
     }
 
     .mobile-button {
@@ -1443,7 +1464,7 @@
     .changelog-version h4 {
         color: #4a90e2;
         margin-bottom: 10px;
-        font-size: 16px;
+        font-size: 20px;
     }
 
     .changelog-version ul {
@@ -1472,6 +1493,27 @@
     .changelog-close-btn:hover {
         background-color: #357abd;
     }
+
+        @media only screen and (max-width: 768px) {
+    #content {
+        height: calc(100vh - 70px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
+
+    #calendar-section {
+        height: 100%;
+        overscroll-behavior: none;
+    }
+
+    #calendar-body {
+        height: calc(100vh - 170px);
+        min-height: calc(100vh - 170px);
+        max-height: calc(100vh - 170px);
+    }
+}
 
     @keyframes fadeIn {
         from { opacity: 0; }
@@ -2238,7 +2280,7 @@
     class ChangelogManager {
         constructor() {
             // FONTOS: Ezt a verziószámot növeld minden új funkcióval!
-            this.currentVersion = "v2.0.1"; // <-- Itt változtasd a verziót
+            this.currentVersion = "v2.1.0"; // <-- Itt változtasd a verziót
             this.storageKey = "lastSeenChangelog";
         }
 
@@ -2246,16 +2288,14 @@
         getChangelog() {
             return [
                 {
-                    version: "2.0.1",
-                    date: "2025.05.24",
+                    version: "2.1.0",
+                    date: "2025.07.16",
                     title: "Frissítés",
                     changes: [
-                        "➕ Új: A napra kattintva mostmár lehet megjegyzést írni az adott naphoz.",
-                        "🔧 Javítás: Pünkösd Vasárnap mostmár ünnepnapnak számít.",
-                        "🔧 Javítás: A 25 év alatti adókedvezmény mostmár látható a bérszámfejtésben a SZJA levonásnál(Eddig is jól számolta csak vizuálisan nem mutatta jól).",
-                        "✨ Fejlesztés: A hónapok közötti váltás mostmár szinkronban, egyszerre változik a Naptár és a Bérszámfejtés menüben.",
-                        "✨ Fejlesztés: A súgó menü frissítése a program használatáról és részletes leírás képletekkel és magyarázatokkal, hogy a bérszámfejtés mi alapján történik"
-                    ]
+                        "🔧 Ünnepnapon végzett túlórára járó pótlékok számításának javítása",
+                        "🔧 BUG-ok, grafikai hibák kijavítása",
+                        "🔧 A megmaradt szabadságokat már mínuszban is mutatja, nem áll meg 0-nál"
+                        ]
                 },
             ];
         }
@@ -2451,6 +2491,7 @@
                     { month: 7, day: 20 },   // Államalapítás ünnepe
                     { month: 9, day: 23 },   // Október 23.
                     { month: 10, day: 1 },   // Mindenszentek
+                    { month: 11, day: 24 },  // Szenteste
                     { month: 11, day: 25 },  // Karácsony
                     { month: 11, day: 26 }   // Karácsony másnapja
                 ];
@@ -2931,10 +2972,13 @@
                 switch (label) {
                     case "Ledolgozandó napok":
                         return ledolgozando;
+
                     case "Ledolgozott napok":
                         return ledolgozott;
+
                     case "Szabadság kivét (óra)":
                         return szabadsagOra;
+
                     case "Túlóra (100%)": {
                         if ((monthIndex + 1) % 3 === 0) {
                             const tuloraKeret = this.calculateQuarterlyOvertime(year, monthIndex);
@@ -2942,35 +2986,46 @@
                         }
                         return tulora100;
                     }
+
                     case "Hétvégi pótlék 50%": {
                         const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
                         let totalWeekendHours = 0;
                         const pattern = this.app.yearlyData[year]?.settings?.muszakrend;
-                    
+
                         Object.entries(monthData).forEach(([day, shiftValue]) => {
                             if (!shiftValue) return;
                             const date = new Date(year, monthIndex, parseInt(day));
                             const isSunday = date.getDay() === 0;  // Csak vasárnapra ellenőrzünk
                             const isHoliday = this.isHoliday(year, monthIndex, parseInt(day));
-                    
-                            // Csak vasárnapokra számolunk hétvégi pótlékot, és csak ha nem ünnepnap
-                            if (isSunday && !isHoliday) {
+
+                            // JAVÍTÁS: Vasárnapokon számolunk hétvégi pótlékot, ünnepnapon is!
+                            if (isSunday) { // Eltávolítottuk a "&& !isHoliday" feltételt
                                 if (shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka")) {
                                     totalWeekendHours += 12;
                                 } else if (shiftValue.includes("Szabadság 8 óra") || 
-                                          shiftValue.includes("Csúszó 8 óra") ||
-                                          shiftValue.includes("Szabadság éj 8 óra") || 
-                                          shiftValue.includes("Csúszó éj 8 óra")) {
+                                        shiftValue.includes("Csúszó 8 óra") ||
+                                        shiftValue.includes("Szabadság éj 8 óra") || 
+                                        shiftValue.includes("Csúszó éj 8 óra")) {
                                     totalWeekendHours += 4;
                                 } else if (shiftValue.includes("Szabadság 4 óra") || 
-                                          shiftValue.includes("Csúszó 4 óra") ||
-                                          shiftValue.includes("Szabadság éj 4 óra") || 
-                                          shiftValue.includes("Csúszó éj 4 óra")) {
+                                        shiftValue.includes("Csúszó 4 óra") ||
+                                        shiftValue.includes("Szabadság éj 4 óra") || 
+                                        shiftValue.includes("Csúszó éj 4 óra")) {
                                     totalWeekendHours += 8;
                                 }
-                    
-                                // A-B-C műszakrendek esetén a vasárnapi túlórák hozzáadása
+
+                                // A-B-C műszakrendek esetén a vasárnapi túlórák hozzáadása ÜNNEPNAPON IS
                                 if (["A", "B", "C"].includes(pattern) && shiftValue.includes("Túlóra")) {
+                                    if (shiftValue.includes("12 óra")) {
+                                        totalWeekendHours += 12;
+                                    } else if (shiftValue.includes("8 óra")) {
+                                        totalWeekendHours += 8;
+                                    } else if (shiftValue.includes("4 óra")) {
+                                        totalWeekendHours += 4;
+                                    }
+                                }
+                                // JAVÍTÁS: 1-4 műszakrendek esetén is adjuk meg a túlóra hétvégi pótlékot vasárnapi ünnepnapokon
+                                else if (!["A", "B", "C"].includes(pattern) && shiftValue.includes("Túlóra")) {
                                     if (shiftValue.includes("12 óra")) {
                                         totalWeekendHours += 12;
                                     } else if (shiftValue.includes("8 óra")) {
@@ -2982,7 +3037,7 @@
                             }
                             // Eltávolítottuk a szombati napokra vonatkozó külön feltételt
                         });
-                    
+
                         return totalWeekendHours;
                     }
                     
@@ -2997,21 +3052,19 @@
                             // Ellenőrizzük, hogy ünnepnap-e
                             const isHoliday = this.isHoliday(year, monthIndex, parseInt(day));
                             
-                            // Csak akkor számolunk műszakpótlékot, ha nem ünnepnap, vagy ha ünnepnap, de nem túlóra
-                            if (!isHoliday || (isHoliday && !shiftValue.includes("Túlóra"))) {
-                                if (shiftValue.includes("Éjszaka")) {
-                                    muszakPotlek40 += 12;
-                                } else if (shiftValue.includes("Túlóra éj 12 óra")) {
-                                    muszakPotlek40 += 12;
-                                } else if (shiftValue.includes("Túlóra éj 8 óra")) {
-                                    muszakPotlek40 += 8;
-                                } else if (shiftValue.includes("Szabadság éj 4 óra") ||
-                                          shiftValue.includes("Csúszó éj 4 óra")) {
-                                    muszakPotlek40 += 8;
-                                } else if (shiftValue.includes("Szabadság éj 8 óra") ||
-                                          shiftValue.includes("Csúszó éj 8 óra")) {
-                                    muszakPotlek40 += 4;
-                                }
+                            // JAVÍTÁS: Ünnepnapokon is adjuk meg a műszakpótlékot túlórázáskor
+                            if (shiftValue.includes("Éjszaka")) {
+                                muszakPotlek40 += 12;
+                            } else if (shiftValue.includes("Túlóra éj 12 óra")) {
+                                muszakPotlek40 += 12; // Ünnepnapon is jár
+                            } else if (shiftValue.includes("Túlóra éj 8 óra")) {
+                                muszakPotlek40 += 8; // Ünnepnapon is jár
+                            } else if (shiftValue.includes("Szabadság éj 4 óra") ||
+                                    shiftValue.includes("Csúszó éj 4 óra")) {
+                                muszakPotlek40 += 8;
+                            } else if (shiftValue.includes("Szabadság éj 8 óra") ||
+                                    shiftValue.includes("Csúszó éj 8 óra")) {
+                                muszakPotlek40 += 4;
                             }
                         });
                         
@@ -3156,7 +3209,7 @@
                         const totalUsedVacationDays = totalUsedVacationHours / 8;
                         
                         // Megmaradt szabadságnapok
-                        const remainingVacationDays = Math.max(0, totalVacationDays - totalUsedVacationDays);
+                        const remainingVacationDays = totalVacationDays - totalUsedVacationDays;
                         
                         return Math.round(remainingVacationDays * 10) / 10; // Kerekítés 1 tizedesjegyre
                     }
@@ -4345,6 +4398,7 @@
                         szabadsag: "25",
                         muszakrend: "1", // Alapértelmezett érték visszaállítása
                         other_income: "0",
+                        children_count: "0",
                         under25: {
                             enabled: false,
                             birthYear: "",
@@ -4380,6 +4434,11 @@
             const vacationDaysInput = document.getElementById('vacation-days');
             if (vacationDaysInput) {
                 vacationDaysInput.value = yearData.settings.szabadsag || "25";
+            }
+
+            const childrenCountInput = document.getElementById('children-count');
+            if (childrenCountInput) {
+                childrenCountInput.value = yearData.settings.children_count || "0";
             }
             
             // 25 év alatti beállítások
@@ -4455,6 +4514,19 @@
                 const baseSalaryInput = document.getElementById("base-salary");
                 const vacationDaysInput = document.getElementById("vacation-days");
                 const otherIncomeInput = document.getElementById("other-income");
+                const childrenCountInput = document.getElementById("children-count");
+                if (childrenCountInput && this.yearlyData[this.currentYear]?.settings) {
+                    childrenCountInput.value = this.yearlyData[this.currentYear].settings.children_count || "0";
+                    
+                    // Event listener hozzáadása az automatikus mentéshez
+                    childrenCountInput.addEventListener('input', () => {
+                        if (this.yearlyData[this.currentSettingsYear]?.settings) {
+                            this.yearlyData[this.currentSettingsYear].settings.children_count = childrenCountInput.value || "0";
+                            this.saveYearlyData();
+                            this.generatePayrollTable(); // Bérszámfejtés frissítése
+                        }
+                    });
+                }
         
                 // Ellenőrizzük, hogy léteznek-e az elemek és van-e settings objektum
                 if (shiftPatternSelect && this.yearlyData[this.currentYear]?.settings) {
@@ -4722,6 +4794,7 @@
                 { month: 7, day: 20 },   // Államalapítás ünnepe
                 { month: 9, day: 23 },   // Október 23.
                 { month: 10, day: 1 },   // Mindenszentek
+                { month: 11, day: 24 },  // Szenteste
                 { month: 11, day: 25 },  // Karácsony
                 { month: 11, day: 26 }   // Karácsony másnapja
             ];
@@ -6223,48 +6296,6 @@
 
     // Service Worker regisztrálása és PWA telepítés kezelése
     let deferredPrompt;
-    let installButton;
-
-    // PWA telepítés gomb létrehozása (kisebb, diszkrétebb)
-    function createInstallButton() {
-        installButton = document.createElement('button');
-        installButton.id = 'install-button';
-        installButton.textContent = '📱';
-        installButton.title = 'Telepítés alkalmazásként';
-        installButton.style.cssText = `
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            z-index: 9999;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
-            transition: all 0.3s ease;
-            display: none;
-        `;
-        
-        installButton.addEventListener('click', handleInstallButtonClick);
-        document.body.appendChild(installButton);
-    }
-
-    // Telepítés gomb kattintás kezelése
-    function handleInstallButtonClick() {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        
-        if (isIOS && isSafari) {
-            showIOSInstallInstructions();
-        } else {
-            installApp();
-        }
-    }
 
     // Központi telepítési modal létrehozása (Android Chrome, Desktop)
     function createInstallModal() {
@@ -6376,8 +6407,7 @@
 
         document.getElementById('install-no-btn').addEventListener('click', () => {
             closeInstallModal();
-            markInstallPromptShown();
-            showInstallButton(); // Megjelenítjük a kis gombot
+            markInstallPromptShown(); // Megjelöljük, hogy látta és elutasította
         });
 
         return modalOverlay;
@@ -6418,7 +6448,7 @@
                 <div style="font-size: 48px; margin-bottom: 15px;">📱</div>
                 <h2 style="margin: 0 0 15px 0; color: #333; font-size: 20px;">Telepítsd az alkalmazást!</h2>
                 <p style="margin: 0 0 20px 0; color: #666; font-size: 14px; line-height: 1.5;">
-                    Kövesd ezeket a lépéseket:
+                    Kövesd ezeket a lépéseket a kezdőképernyőre telepítéshez:
                 </p>
             </div>
             
@@ -6441,25 +6471,15 @@
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="ios-install-later-btn" style="
-                    background: #6c757d;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    cursor: pointer;
-                    flex: 1;
-                ">Később</button>
                 <button id="ios-install-ok-btn" style="
                     background: #007AFF;
                     color: white;
                     border: none;
-                    padding: 10px 20px;
+                    padding: 12px 25px;
                     border-radius: 8px;
                     font-size: 14px;
                     cursor: pointer;
-                    flex: 1;
+                    width: 100%;
                 ">Értettem</button>
             </div>
         `;
@@ -6467,19 +6487,16 @@
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
 
-        // Eseménykezelők
+        // Eseménykezelő - mindegy mit nyom, megjelöljük hogy látta
         document.getElementById('ios-install-ok-btn').addEventListener('click', () => {
             markInstallPromptShown();
             document.body.removeChild(overlay);
         });
 
-        document.getElementById('ios-install-later-btn').addEventListener('click', () => {
-            document.body.removeChild(overlay);
-        });
-
-        // Overlay kattintás
+        // Overlay kattintás - szintén megjelöljük
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) {
+                markInstallPromptShown();
                 document.body.removeChild(overlay);
             }
         });
@@ -6504,26 +6521,10 @@
             
             if (outcome === 'accepted') {
                 console.log('Felhasználó elfogadta a telepítést');
-                hideInstallButton();
             } else {
                 console.log('Felhasználó elutasította a telepítést');
-                showInstallButton();
             }
             deferredPrompt = null;
-        }
-    }
-
-    // Telepítés gomb elrejtése
-    function hideInstallButton() {
-        if (installButton) {
-            installButton.style.display = 'none';
-        }
-    }
-
-    // Telepítés gomb megjelenítése
-    function showInstallButton() {
-        if (installButton) {
-            installButton.style.display = 'block';
         }
     }
 
@@ -6563,19 +6564,6 @@
         }
     }
 
-    // iOS PWA prompt ellenőrzése
-    function createIOSInstallPrompt() {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
-        
-        if (isIOS && isSafari && !isInStandaloneMode && !hasInstallPromptBeenShown()) {
-            setTimeout(() => {
-                showIOSInstallInstructions();
-            }, 2000);
-        }
-    }
-
     // Telepítési eseménykezelő
     window.addEventListener('beforeinstallprompt', (e) => {
         console.log('PWA telepítési prompt elérhető');
@@ -6589,7 +6577,6 @@
     // Ellenőrizzük, hogy már telepítve van-e
     window.addEventListener('appinstalled', () => {
         console.log('PWA sikeresen telepítve');
-        hideInstallButton();
         closeInstallModal();
         deferredPrompt = null;
     });
@@ -6597,31 +6584,26 @@
     // Service Worker regisztrálása
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            // Telepítés gomb létrehozása
-            createInstallButton();
-            
-            // iOS PWA prompt ellenőrzése
-            createIOSInstallPrompt();
-            
-            navigator.serviceWorker.register('/naptarupdate/service-worker.js', {
-                scope: '/naptarupdate/'
+            navigator.serviceWorker.register('/naptar/service-worker.js', {
+                scope: '/naptar/'
             })
             .then(registration => {
                 console.log('ServiceWorker regisztrálva');
                 
-                // Ha már telepítve van, rejtjük el a gombot
-                if (window.matchMedia('(display-mode: standalone)').matches) {
-                    hideInstallButton();
-                    markInstallPromptShown();
-                }
-                
-                // iOS esetén mindig mutassuk a gombot
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-                const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
-                
-                if (isIOS && isSafari && !isInStandaloneMode) {
-                    showInstallButton();
+                // Csak akkor jelenítjük meg a modal-t, ha még nem látta
+                if (!hasInstallPromptBeenShown() && 
+                    !window.matchMedia('(display-mode: standalone)').matches) {
+                    
+                    // iOS esetén külön kezelés
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+                    
+                    if (isIOS && isSafari && !isInStandaloneMode) {
+                        setTimeout(() => {
+                            showIOSInstallInstructions();
+                        }, 2000);
+                    }
                 }
             })
             .catch(error => {
