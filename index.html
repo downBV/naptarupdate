@@ -568,7 +568,6 @@
 
     #content {
         width: 100%;
-        box-sizing: border-box;
         height: calc(100vh - 70px);
         overflow-y: auto;
         overscroll-behavior-y: none;
@@ -662,6 +661,7 @@
         -ms-user-select: none;
         box-shadow: inset 0 0px 3px black;
         border: solid 1px black;
+        position: sticky;
     }
 
     .today .date-number {
@@ -4954,7 +4954,6 @@
                     // Dátum konténer létrehozása
                     const dateContainer = document.createElement("div");
                     dateContainer.className = "date-container";
-                    dateContainer.style.position = "relative";
         
                     // Dátum szám létrehozása
                     const dateSpan = document.createElement("span");
