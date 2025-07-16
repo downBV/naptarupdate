@@ -557,10 +557,8 @@
     }
 
     .section.active {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-}
+        display: block;
+    }
 
     body, #content {
         -webkit-overflow-scrolling: touch;
@@ -616,6 +614,8 @@
 
     #calendarTable {
         flex-grow: 1;
+        min-height: 80%;
+        height: 85%;
         width: 100%;
         border-collapse: collapse;
         table-layout: fixed;
@@ -1241,7 +1241,6 @@
     }
 
     #calendar-section, #payroll-section {
-        position: relative;
         overflow: hidden;
     }
     
@@ -1499,7 +1498,7 @@
             transform: translateY(0) scale(1);
         }
     }
-        
+
     </style>
 </head>
 <body>
