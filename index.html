@@ -44,6 +44,9 @@
         display: flex;
         flex-direction: column;
         padding-top: 70px;
+        overscroll-behavior-y: none;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
     }
 
     .nav-icon {
@@ -555,8 +558,8 @@
         width: 100%;
         box-sizing: border-box;
         height: calc(100vh - 70px);
-        overflow-y: auto;
         overscroll-behavior-y: none;
+        -webkit-overflow-scrolling: touch;
     }
 
     #calendar-header {
@@ -824,7 +827,8 @@
     }
 
     #calendar-section {
-        touch-action: pan-y;
+        overscroll-behavior-y: none;
+        touch-action: pan-y pinch-zoom;
         flex-grow: 1;
         height: 100%;
         display: flex;
