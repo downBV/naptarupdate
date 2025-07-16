@@ -614,8 +614,6 @@
 
     #calendarTable {
         flex-grow: 1;
-        min-height: 80%;
-        height: 85%;
         width: 100%;
         border-collapse: collapse;
         table-layout: fixed;
@@ -5040,21 +5038,6 @@
                         }
                         
                         this.saveYearlyData();
-                        setTimeout(() => {
-                            const calendarTable = document.getElementById("calendarTable");
-                            const calendarBody = document.getElementById("calendar-body");
-                            
-                            if (calendarTable && calendarBody) {
-                                // Rögzítsük a táblázat magasságát
-                                calendarTable.style.height = "100%";
-                                calendarBody.style.height = "calc(100vh - 170px)";
-                                
-                                // Biztosítsuk, hogy ne növekedjen
-                                calendarTable.style.maxHeight = "calc(100vh - 170px)";
-                                calendarBody.style.maxHeight = "calc(100vh - 170px)";
-                                calendarBody.style.overflow = "hidden";
-                            }
-                        }, 0);
                         this.generateCalendar(); // Naptár újragenerálása, hogy megjelenjen a megjegyzés
                     };
 
