@@ -3,7 +3,8 @@
   "short_name": "Műszak Naptár",
   "description": "Műszak beosztás és bérszámfejtés kalkulátor",
   "start_url": "/naptarupdate/",
-  "display": "fullscreen",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#f4f4f4",
   "theme_color": "#000000",
   "icons": [
