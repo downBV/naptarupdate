@@ -1,4 +1,4 @@
-const CACHE_NAME = 'muszakrend-cache-v3';
+const CACHE_NAME = 'muszakrend-cache-v4';
 const urlsToCache = [
   '/naptarupdate/',
   '/naptarupdate/index.html',
@@ -65,5 +65,6 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
 
 
