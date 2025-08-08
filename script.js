@@ -4196,22 +4196,17 @@ this.displayMidyearShiftChanges();
 
   generateShiftPattern(day) {
     try {
-      // Ellenőrizzük az évközi műszakváltásokat
-const effectivePattern = this.getEffectiveShiftPattern(
-  this.currentYear, 
-  this.currentMonth, 
-  day
-);
-
-// Ha eltér az alap műszakrendtől, átmenetileg átállítjuk
-const originalPattern = this.yearlyData[this.currentYear]?.settings?.muszakrend;
-if (effectivePattern !== originalPattern) {
-  this.yearlyData[this.currentYear].settings.muszakrend = effectivePattern;
-}
       const currentDate = new Date(this.currentYear, this.currentMonth, day);
-      const currentPattern =
-        this.yearlyData[this.currentYear]?.settings?.muszakrend || "-";
-      let shiftValue;
+      // ÚJ: Ellenőrizzük az évközi műszakváltásokat
+    const effectivePattern = this.getEffectiveShiftPattern(
+      this.currentYear, 
+      this.currentMonth, 
+      day
+    );
+    
+    // ÚJ: Az érvényes műszakrendet használjuk az alapértelmezett helyett
+    const currentPattern = effectivePattern;
+    let shiftValue;
 
       switch (currentPattern) {
         case "-":
@@ -5383,6 +5378,21 @@ if (effectivePattern !== originalPattern) {
         }
       }
 
+      // Évközi műszakváltások kezelése - ha változott a fő műszakrend
+      if (shiftPatternChanged) {
+        // Töröljük a műszakváltásokat, mert új alapműszakrend van
+        if (this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes?.length > 0) {
+          if (confirm('⚠️ Figyelem!\n\nAz alapműszakrend megváltoztatása törli az összes évközi műszakváltást.\n\nFolytatod?')) {
+            this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes = [];
+          } else {
+            // Ha a felhasználó mégsem akarja, visszaállítjuk a régi műszakrendet
+            shiftPatternSelect.value = oldShiftPattern;
+            this.yearlyData[this.currentSettingsYear].settings.muszakrend = oldShiftPattern;
+            return; // Kilépünk a mentésből
+          }
+        }
+      }
+
       // Adatok mentése
       this.saveYearlyData();
 
@@ -5852,5 +5862,6 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
+
 
 
