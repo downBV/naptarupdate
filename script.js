@@ -1947,6 +1947,7 @@ class BerszamfejtoApp {
             birthMonth: "",
           },
           midyear_changes: [],
+          midyear_shift_changes: [],
         },
         calendar_data: {},
         bonusEntries: {},
@@ -2082,6 +2083,306 @@ class BerszamfejtoApp {
       console.error("Hiba részletei:", error.stack);
     }
   }
+
+  // Évközi műszakváltás hozzáadása
+addMidyearShiftChange(month, day, newShiftPattern) {
+  try {
+    // Ellenőrizzük, hogy van-e már ilyen dátumra változás
+    if (!this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes) {
+      this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes = [];
+    }
+
+    // Dátum validálás
+    const selectedDate = new Date(this.currentSettingsYear, parseInt(month), parseInt(day));
+    const daysInMonth = new Date(this.currentSettingsYear, parseInt(month) + 1, 0).getDate();
+    
+    if (parseInt(day) < 1 || parseInt(day) > daysInMonth) {
+      alert(`❌ Érvénytelen nap! A(z) ${parseInt(month) + 1}. hónapban csak 1-${daysInMonth} napok léteznek.`);
+      return;
+    }
+
+    // Ellenőrizzük, hogy van-e már változás erre a dátumra
+    const existingChangeIndex = this.yearlyData[
+      this.currentSettingsYear
+    ].settings.midyear_shift_changes.findIndex(
+      (change) => change.month === parseInt(month) && change.day === parseInt(day)
+    );
+
+    const change = {
+      month: parseInt(month),
+      day: parseInt(day),
+      shiftPattern: newShiftPattern,
+      id: Date.now(),
+      dateString: selectedDate.toLocaleDateString('hu-HU')
+    };
+
+    if (existingChangeIndex !== -1) {
+      // Ha már van változás erre a dátumra, frissítjük
+      this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes[
+        existingChangeIndex
+      ] = change;
+      alert('✅ Műszakváltás frissítve!');
+    } else {
+      // Ha nincs még változás erre a dátumra, hozzáadjuk
+      this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes.push(
+        change
+      );
+      alert('✅ Műszakváltás hozzáadva!');
+    }
+
+    // Rendezzük dátum szerint növekvő sorrendbe
+    this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes.sort(
+      (a, b) => {
+        if (a.month !== b.month) return a.month - b.month;
+        return a.day - b.day;
+      }
+    );
+
+    this.displayMidyearShiftChanges();
+    this.regenerateCalendarFromDate(parseInt(month), parseInt(day));
+    this.saveYearlyData();
+
+    // Frissítjük a bérszámfejtési táblázatot is
+    this.generatePayrollTable();
+  } catch (error) {
+    console.error("Hiba az évközi műszakváltás hozzáadása során:", error);
+    alert("Hiba történt az évközi műszakváltás hozzáadása során!");
+  }
+}
+
+// Évközi műszakváltás törlése
+removeMidyearShiftChange(id) {
+  try {
+    if (
+      !this.yearlyData[this.currentSettingsYear] ||
+      !this.yearlyData[this.currentSettingsYear].settings ||
+      !this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes
+    ) {
+      console.error("Hiányzó adatstruktúra az évközi műszakváltások kezeléséhez");
+      return;
+    }
+
+    // Keressük meg a törlendő változást a dátum meghatározásához
+    const changeToRemove = this.yearlyData[
+      this.currentSettingsYear
+    ].settings.midyear_shift_changes.find(change => change.id === id);
+
+    // Töröljük a változást a tömbből
+    this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes =
+      this.yearlyData[
+        this.currentSettingsYear
+      ].settings.midyear_shift_changes.filter((change) => change.id !== id);
+
+    // Ha volt változás, újrageneráljuk a naptárat a törlés dátumától
+    if (changeToRemove) {
+      this.regenerateCalendarFromDate(changeToRemove.month, changeToRemove.day);
+    }
+
+    // Frissítjük a megjelenítést és mentjük az adatokat
+    this.displayMidyearShiftChanges();
+    this.saveYearlyData();
+    this.generatePayrollTable();
+    
+    alert('✅ Műszakváltás törölve!');
+  } catch (error) {
+    console.error("Hiba az évközi műszakváltás törlése során:", error);
+    alert("Hiba történt a műszakváltás törlése során!");
+  }
+}
+
+// Évközi műszakváltások megjelenítése
+displayMidyearShiftChanges() {
+  try {
+    const container = document.getElementById("midyear-shift-changes-list");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    if (!this.yearlyData[this.currentSettingsYear]) {
+      return;
+    }
+
+    const changes =
+      this.yearlyData[this.currentSettingsYear].settings.midyear_shift_changes || [];
+    
+    const shiftPatternNames = {
+      "-": "Üres naptár",
+      "1": "1. Műszakrend",
+      "2": "2. Műszakrend", 
+      "3": "3. Műszakrend",
+      "4": "4. Műszakrend",
+      "A": "A Műszakrend",
+      "B": "B Műszakrend",
+      "C": "C Műszakrend"
+    };
+
+    changes.forEach((change) => {
+      const div = document.createElement("div");
+      div.className = "midyear-change-item";
+
+      div.innerHTML = `
+        <span>${change.dateString}: ${shiftPatternNames[change.shiftPattern] || change.shiftPattern}</span>
+        <button 
+          data-change-id="${change.id}"
+          class="remove-midyear-shift-change"
+          style="background: none; border: none; color: red; cursor: pointer; font-size: 14px; padding: 5px;"
+        >
+          🗑️ Törlés
+        </button>
+      `;
+      container.appendChild(div);
+    });
+
+    // Eseménykezelő hozzáadása a dinamikusan létrehozott gombokhoz
+    container.addEventListener("click", (event) => {
+      const removeButton = event.target.closest(".remove-midyear-shift-change");
+      if (removeButton) {
+        const changeId = parseInt(
+          removeButton.getAttribute("data-change-id")
+        );
+
+        if (confirm('⚠️ Biztosan törölni szeretnéd ezt a műszakváltást?\n\nEttől a dátumtól újragenerálódik a naptár.')) {
+          if (window.app && typeof window.app.removeMidyearShiftChange === "function") {
+            window.app.removeMidyearShiftChange(changeId);
+          } else {
+            console.error("Az app objektum nem elérhető a törlésnél");
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Hiba az évközi műszakváltások megjelenítése során:", error);
+  }
+}
+
+// Naptár újragenerálása egy adott dátumtól
+regenerateCalendarFromDate(fromMonth, fromDay) {
+  try {
+    const year = this.currentSettingsYear;
+    
+    // Végigmegyünk az évben a megadott dátumtól kezdve
+    for (let month = fromMonth; month < 12; month++) {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      // Az első hónapban csak a megadott naptól kezdjük
+      const startDay = (month === fromMonth) ? fromDay : 1;
+      
+      if (!this.yearlyData[year].calendar_data[month]) {
+        this.yearlyData[year].calendar_data[month] = {};
+      }
+      
+      for (let day = startDay; day <= daysInMonth; day++) {
+        // Meghatározzuk az érvényes műszakrendet erre a dátumra
+        const effectiveShiftPattern = this.getEffectiveShiftPattern(year, month, day);
+        
+        // Csak akkor generálunk új műszakot, ha nincs manuálisan beállított érték
+        // VAGY ha ez egy műszakváltás napja (akkor felülírjuk)
+        const isShiftChangeDay = this.isShiftChangeDay(year, month, day);
+        const hasManualEntry = this.yearlyData[year].calendar_data[month][day] !== undefined;
+        
+        if (!hasManualEntry || isShiftChangeDay) {
+          const previousYear = this.currentYear;
+          const previousMonth = this.currentMonth;
+          
+          // Beállítjuk ideiglenesen a generáláshoz szükséges értékeket
+          this.currentYear = year;
+          this.currentMonth = month;
+          
+          // Átmenetileg beállítjuk a műszakrendet
+          const originalPattern = this.yearlyData[year].settings.muszakrend;
+          this.yearlyData[year].settings.muszakrend = effectiveShiftPattern;
+          
+          const shiftValue = this.generateShiftPattern(day);
+          
+          // Visszaállítjuk az eredeti értékeket
+          this.yearlyData[year].settings.muszakrend = originalPattern;
+          this.currentYear = previousYear;
+          this.currentMonth = previousMonth;
+          
+          if (shiftValue !== " ") {
+            this.yearlyData[year].calendar_data[month][day] = shiftValue;
+          } else {
+            // Ha üres nap, akkor töröljük az esetleges korábbi bejegyzést
+            delete this.yearlyData[year].calendar_data[month][day];
+          }
+        }
+      }
+    }
+    
+    // Ha az aktuálisan megjelenített naptár érintett, frissítjük
+    if (this.currentYear === year) {
+      this.generateCalendar();
+    }
+    
+  } catch (error) {
+    console.error("Hiba a naptár újragenerálása során:", error);
+  }
+}
+
+// Ellenőrzi, hogy az adott nap műszakváltás napja-e
+isShiftChangeDay(year, month, day) {
+  const changes = this.yearlyData[year]?.settings?.midyear_shift_changes || [];
+  return changes.some(change => change.month === month && change.day === day);
+}
+
+// Meghatározza az érvényes műszakrendet egy adott dátumra
+getEffectiveShiftPattern(year, month, day) {
+  try {
+    const yearData = this.yearlyData[year];
+    if (!yearData) return "-";
+
+    // Alapértelmezett műszakrend
+    let effectivePattern = yearData.settings?.muszakrend || "-";
+    
+    // Évközi műszakváltások ellenőrzése
+    if (yearData.settings?.midyear_shift_changes?.length > 0) {
+      // Rendezzük a változásokat dátum szerint csökkenő sorrendbe
+      const sortedChanges = [...yearData.settings.midyear_shift_changes].sort((a, b) => {
+        if (b.month !== a.month) return b.month - a.month;
+        return b.day - a.day;
+      });
+
+      // Keressük meg az első változást, ami a jelenlegi dátum előtt vagy azon történt
+      const applicableChange = sortedChanges.find(change => {
+        if (change.month < month) return true;
+        if (change.month === month && change.day <= day) return true;
+        return false;
+      });
+
+      if (applicableChange) {
+        effectivePattern = applicableChange.shiftPattern;
+      }
+    }
+
+    return effectivePattern;
+  } catch (error) {
+    console.error("Hiba az érvényes műszakrend meghatározása során:", error);
+    return "-";
+  }
+}
+
+// Módosított generateShiftPattern függvény, ami figyelembe veszi az évközi váltásokat
+generateShiftPatternWithChanges(day, month, year) {
+  try {
+    // Meghatározzuk az érvényes műszakrendet
+    const effectivePattern = this.getEffectiveShiftPattern(year, month, day);
+    
+    // Átmenetileg beállítjuk a műszakrendet a generáláshoz
+    const originalPattern = this.yearlyData[year].settings.muszakrend;
+    this.yearlyData[year].settings.muszakrend = effectivePattern;
+    
+    // Generáljuk a műszakot
+    const shiftValue = this.generateShiftPattern(day);
+    
+    // Visszaállítjuk az eredeti műszakrendet
+    this.yearlyData[year].settings.muszakrend = originalPattern;
+    
+    return shiftValue;
+  } catch (error) {
+    console.error("Hiba a műszakrend generálásánál:", error);
+    return " ";
+  }
+}
 
   addMidyearChange(month, salary) {
     try {
@@ -2910,6 +3211,7 @@ class BerszamfejtoApp {
 
     // Évközi változások megjelenítése
     this.displayMidyearChanges();
+    this.displayMidyearShiftChanges();
   }
 
   initSettings() {
@@ -2933,6 +3235,37 @@ class BerszamfejtoApp {
             : "none";
         });
       }
+
+      // Évközi műszakváltás hozzáadása gomb kezelése
+const addMidyearShiftChangeBtn = document.getElementById("add-midyear-shift-change");
+if (addMidyearShiftChangeBtn) {
+  addMidyearShiftChangeBtn.addEventListener("click", () => {
+    const monthSelect = document.getElementById("midyear-shift-month");
+    const dayInput = document.getElementById("midyear-shift-day");
+    const patternSelect = document.getElementById("midyear-shift-pattern");
+
+    if (
+      monthSelect &&
+      dayInput &&
+      patternSelect &&
+      monthSelect.value &&
+      dayInput.value &&
+      patternSelect.value
+    ) {
+      this.addMidyearShiftChange(monthSelect.value, dayInput.value, patternSelect.value);
+      
+      // Mezők törlése sikeres hozzáadás után
+      monthSelect.value = "";
+      dayInput.value = "";
+      patternSelect.value = "";
+    } else {
+      alert("❌ Kérlek tölts ki minden mezőt!\n\n• Válassz hónapot\n• Add meg a napot (1-31)\n• Válassz új műszakrendet");
+    }
+  });
+}
+
+// Évközi műszakváltások megjelenítése (betöltéskor)
+this.displayMidyearShiftChanges();
 
       // Évközi változás hozzáadása gomb kezelése
       const addMidyearChangeBtn = document.getElementById("add-midyear-change");
@@ -3863,6 +4196,18 @@ class BerszamfejtoApp {
 
   generateShiftPattern(day) {
     try {
+      // Ellenőrizzük az évközi műszakváltásokat
+const effectivePattern = this.getEffectiveShiftPattern(
+  this.currentYear, 
+  this.currentMonth, 
+  day
+);
+
+// Ha eltér az alap műszakrendtől, átmenetileg átállítjuk
+const originalPattern = this.yearlyData[this.currentYear]?.settings?.muszakrend;
+if (effectivePattern !== originalPattern) {
+  this.yearlyData[this.currentYear].settings.muszakrend = effectivePattern;
+}
       const currentDate = new Date(this.currentYear, this.currentMonth, day);
       const currentPattern =
         this.yearlyData[this.currentYear]?.settings?.muszakrend || "-";
@@ -3931,6 +4276,11 @@ class BerszamfejtoApp {
       console.error("Hiba a műszakrend generálásánál:", error);
       return " ";
     }
+    
+// A függvény végén visszaállítjuk az eredeti műszakrendet
+if (effectivePattern !== originalPattern) {
+  this.yearlyData[this.currentYear].settings.muszakrend = originalPattern;
+}
   }
 
   generateAShiftPattern(year, month, day) {
@@ -5502,4 +5852,5 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
+
 
