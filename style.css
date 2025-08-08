@@ -1,0 +1,2023 @@
+* {
+    font-family: 'Roboto', Arial, Helvetica, sans-serif;
+    font-weight: 700; /* Alapértelmezett vastagság */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    touch-action: manipulation;
+    /* Webkit böngészők (Chrome, Safari) */
+    ::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* Firefox */
+    scrollbar-width: none;
+    
+    /* Internet Explorer és Edge */
+    -ms-overflow-style: none;
+}
+
+:root {
+    /* Meglévő változók... */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f4f4;
+    --bg-tertiary: #ffffff;        /* ÚJ */
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --border-color: #000000;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --setting-group-bg: #ffffff;
+    --setting-group-border: rgb(255, 102, 0);
+    --button-bg: #ff0000a6;
+    --button-hover-bg: #ffe600a2;
+    --button-hover-text: #000000;
+    --payroll-table-bg: #f2f2f2;
+    --navbar-bg: #000000;
+    --calendar-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+    /* Meglévő sötét változók... */
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #333333;        /* ÚJ */
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --border-color: #c5c5c5;
+    --shadow-color: rgba(255, 255, 255, 0.1);
+    --setting-group-bg: #2d2d2d;
+    --setting-group-border: #380bff;
+    --button-bg: #ff4444;
+    --button-hover-bg: #ffdd44;
+    --button-hover-text: #000000;
+    --payroll-table-bg: #3d3d3d;   /* Ez javítja a páros sorokat */
+    --navbar-bg: #000000;
+    --calendar-bg: #2d2d2d;
+}
+
+.theme-toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 15px;
+    margin: 15px auto;
+    width: fit-content;
+    background: var(--setting-group-bg);
+    padding: 15px 20px;
+    border-radius: 25px;
+    border: 2px solid var(--setting-group-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+        /* UI Switch stílusok */
+        .ui-switch {
+            --switch-bg: rgb(135, 150, 165);
+            --switch-width: 48px;
+            --switch-height: 20px;
+            --circle-diameter: 32px;
+            --circle-bg: rgb(232, 89, 15);
+            --circle-inset: calc((var(--circle-diameter) - var(--switch-height)) / 2);
+        }
+
+        .ui-switch input {
+            display: none;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: var(--switch-width);
+            height: var(--switch-height);
+            background: var(--switch-bg);
+            border-radius: 999px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slider:hover {
+            transform: scale(1.05);
+        }
+
+        .slider .circle {
+            top: calc(var(--circle-inset) * -1);
+            left: 0;
+            width: var(--circle-diameter);
+            height: var(--circle-diameter);
+            position: absolute;
+            background: var(--circle-bg);
+            border-radius: inherit;
+            background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjAiIHdpZHRoPSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj4KICAgIDxwYXRoIGZpbGw9IiNmZmYiCiAgICAgICAgZD0iTTkuMzA1IDEuNjY3VjMuNzVoMS4zODlWMS42NjdoLTEuMzl6bS00LjcwNyAxLjk1bC0uOTgyLjk4Mkw1LjA5IDYuMDcybC45ODItLjk4Mi0xLjQ3My0xLjQ3M3ptMTAuODAyIDBMMTMuOTI3IDUuMDlsLjk4Mi45ODIgMS40NzMtMS40NzMtLjk4Mi0uOTgyek0xMCA1LjEzOWE0Ljg3MiA0Ljg3MiAwIDAwLTQuODYyIDQuODZBNC44NzIgNC44NzIgMCAwMDEwIDE0Ljg2MiA0Ljg3MiA0Ljg3MiAwIDAwMTQuODYgMTAgNC44NzIgNC44NzIgMCAwMDEwIDUuMTM5em0wIDEuMzg5QTMuNDYyIDMuNDYyIDAgMDExMy40NzEgMTBhMy40NjIgMy40NjIgMCAwMS0zLjQ3MyAzLjQ3MkEzLjQ2MiAzLjQ2MiAwIDAxNi41MjcgMTAgMy40NjIgMy40NjIgMCAwMTEwIDYuNTI4ek0xLjY2NSA5LjMwNXYxLjM5aDIuMDgzdi0xLjM5SDEuNjY2em0xNC41ODMgMHYxLjM5aDIuMDg0di0xLjM5aC0yLjA4NHpNNS4wOSAxMy45MjhMMy42MTYgMTUuNGwuOTgyLjk4MiAxLjQ3My0xLjQ3My0uOTgyLS45ODJ6bTkuODIgMGwtLjk4Mi45ODIgMS40NzMgMS40NzMuOTgyLS45ODItMS40NzMtMS40NzN6TTkuMzA1IDE2LjI1djIuMDgzaDEuMzg5VjE2LjI1aC0xLjM5eiIgLz4KPC9zdmc+");
+            background-repeat: no-repeat;
+            background-position: center center;
+            transition: left 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, transform 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
+        }
+
+        .slider .circle::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.75);
+            border-radius: inherit;
+            transition: all 500ms;
+            opacity: 0;
+        }
+
+        /* Sötét téma aktiválva */
+        .ui-switch input:checked + .slider .circle {
+            left: calc(100% - var(--circle-diameter));
+            background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjAiIHdpZHRoPSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj4KICAgIDxwYXRoIGZpbGw9IiNmZmYiCiAgICAgICAgZD0iTTQuMiAyLjVsLS43IDEuOC0xLjguNyAxLjguNy43IDEuOC42LTEuOEw2LjcgNWwtMS45LS43LS42LTEuOHptMTUgOC4zYTYuNyA2LjcgMCAxMS02LjYtNi42IDUuOCA1LjggMCAwMDYuNiA2LjZ6IiAvPgo8L3N2Zz4=");
+            background-color: rgb(0, 56, 146);
+        }
+
+        .ui-switch input:active + .slider .circle::before {
+            transition: 0s;
+            opacity: 1;
+            width: 0;
+            height: 0;
+        }
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.theme-icon {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover .theme-icon {
+    transform: rotate(180deg);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+    background-color: #ffffff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-top: 70px;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+.demo-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.demo-settings-section {
+    position: relative;
+    background-color: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 20px;
+    padding-top: 60px;
+}
+
+.demo-setting-group {
+    background-color: var(--setting-group-bg);
+    border: 1px solid var(--setting-group-border);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: inset 0 0 10px var(--setting-group-border);
+}
+
+.demo-setting-group h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.demo-mobile-button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: var(--setting-group-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 16px;
+    text-align: center;
+    box-shadow: inset 0 0 7px var(--shadow-color);
+}
+
+.demo-table {
+    width: 100%;
+    border: 2px solid var(--border-color);
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.demo-table th,
+.demo-table td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    text-align: left;
+    background: var(--setting-group-bg);
+    color: var(--text-primary);
+}
+
+.demo-table tr:nth-child(even) {
+    background-color: var(--payroll-table-bg);
+}
+
+.demo-calendar {
+    background: var(--calendar-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.demo-navbar {
+    background: var(--navbar-bg);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.info-box {
+    background: var(--setting-group-bg);
+    border: 2px solid var(--setting-group-border);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+    color: var(--text-primary);
+}
+
+.code-block {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.nav-icon {
+    width: 40px;
+    height: 40px;
+    margin: auto;
+    filter: brightness(0) invert(1);
+    transition: transform 0.2s ease;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+#navbar {
+    background-color: #000;
+    color: white;
+    display: flex;
+    width: 100%;
+    height: 70px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    justify-content: space-evenly;
+    padding: 0 0px;
+    gap: 0px;
+}
+
+#navbar button {
+    background-color: #000;
+    border-radius: 5px;
+    color: white;
+    width: 100%;
+    height: 70px;
+    padding: 0 0px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 1 auto;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;  
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    margin-bottom: 3px;  /* Extra margó az alsó vonalnak */
+    transform-style: preserve-3d;  /* 3D transzformációk megtartása */
+    backface-visibility: hidden;
+}
+
+@media (hover: hover) {
+    #navbar button:hover {
+        background-color: rgb(255, 255, 255);
+    }
+    
+    #navbar button:hover .nav-icon {
+        transform: scale(1.1);
+        filter: brightness(1) invert(0);
+    }
+}
+
+/* Gomb hover effekt */
+#navbar button:hover {
+    background-color: rgb(255, 255, 255);
+}
+
+#navbar button:hover .nav-icon {
+    transform: scale(1.1);
+    filter: brightness(1) invert(0);
+}
+
+#navbar button.active {
+    background-color: rgba(255, 255, 255, 0.173);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Vízszintes vonalak */
+#navbar button.active::before,
+#navbar button.active::after {
+    content: '';
+    position: absolute;
+    height: 3px;
+    bottom: 0;
+    width: 50%;
+    opacity: 1;
+    z-index: 1;
+}
+
+#navbar button.active::before {
+    left: 0;
+    transform-origin: right;
+    animation: slideLeftBorder 0.5s forwards;
+}
+
+#navbar button.active::after {
+    right: 0;
+    transform-origin: left;
+    animation: slideRightBorder 0.5s forwards;
+}
+
+#navbar button.active > span::before,
+#navbar button.active > span::after {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 0;
+    bottom: 0;
+}
+
+#navbar button.active > span::before {
+    left: 0;
+    animation: slideUpLeft 0.5s 0.5s forwards;
+}
+
+#navbar button.active > span::after {
+    right: 0;
+    animation: slideUpRight 0.5s 0.5s forwards;
+}
+
+/* Felső vonalak */
+#navbar button.active > span > i,
+#navbar button.active > span > em {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 3px;
+    width: 0;
+}
+
+#navbar button.active > span > i {
+    left: 0;
+    animation: slideTopLeft 0.5s 1s forwards;
+}
+
+#navbar button.active > span > em {
+    right: 0;
+    animation: slideTopRight 0.5s 1s forwards;
+}
+
+#calendar-btn.active::before,
+#calendar-btn.active::after,
+#calendar-btn.active > span::before,
+#calendar-btn.active > span::after,
+#calendar-btn.active > span > i,
+#calendar-btn.active > span > em {
+    content: '';
+    position: absolute;
+    background-color: #ff1f1f;
+    opacity: 1;
+    box-shadow: 
+        0 0 10px #ff1f1f;
+}
+
+#payroll-btn.active::before,
+#payroll-btn.active::after,
+#payroll-btn.active > span::before,
+#payroll-btn.active > span::after,
+#payroll-btn.active > span > i,
+#payroll-btn.active > span > em {
+    content: '';
+    position: absolute;
+    background-color: #00F500;
+    opacity: 1;
+    box-shadow: 
+        0 0 10px #00F500;
+}
+
+#settings-btn.active::before,
+#settings-btn.active::after,
+#settings-btn.active > span::before,
+#settings-btn.active > span::after,
+#settings-btn.active > span > i,
+#settings-btn.active > span > em {
+    content: '';
+    position: absolute;
+    background-color: #3582ff;
+    opacity: 1;
+    box-shadow: 
+        0 0 10px #3582ff;
+}
+
+#help-btn.active::before,
+#help-btn.active::after,
+#help-btn.active > span::before,
+#help-btn.active > span::after,
+#help-btn.active > span > i,
+#help-btn.active > span > em {
+    content: '';
+    position: absolute;
+    background-color: #ffc106;
+    opacity: 1;
+    box-shadow: 
+        0 0 10px #ffc106;
+}
+
+@keyframes neonFlicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% {
+        text-shadow: 
+            0 0 4px #fff,
+            0 0 11px #fff,
+            0 0 19px #fff,
+            0 0 40px,
+            0 0 80px,
+            0 0 90px,
+            0 0 100px,
+            0 0 150px;
+    }
+    20%, 24%, 55% {
+        text-shadow: none;
+    }
+}
+
+/* Gomb lenyomás effekt */
+#navbar button:active .nav-icon {
+    transform: scale(1.2);
+}
+
+/* Különböző színű ikonok aktív állapotban */
+#calendar-btn.active .nav-icon {
+    filter: 
+        brightness(0) /* Először feketévé tesszük */
+        saturate(100%) /* Teljes szaturáció */
+        invert(21%) /* Piros szín beállítása */
+        sepia(95%) 
+        saturate(6932%) 
+        hue-rotate(359deg) 
+        brightness(101%) 
+        contrast(120%);
+    animation: neonGlowCalendar 5s infinite alternate;
+}
+
+#payroll-btn.active .nav-icon {
+    filter: 
+        brightness(0)
+        saturate(100%)
+        invert(56%) /* Zöld szín beállítása */
+        sepia(96%) 
+        saturate(1742%) 
+        hue-rotate(87deg) 
+        brightness(128%) 
+        contrast(119%);
+    animation: neonGlowPayroll 5s infinite alternate;
+}
+
+#settings-btn.active .nav-icon {
+    filter: 
+        brightness(0)
+        saturate(100%)
+        invert(45%) /* Kék szín beállítása */
+        sepia(98%) 
+        saturate(1840%) 
+        hue-rotate(203deg) 
+        brightness(103%) 
+        contrast(105%);
+    animation: neonGlowSettings 5s infinite alternate;
+}
+
+#help-btn.active .nav-icon {
+    filter: 
+        brightness(0)
+        saturate(100%)
+        invert(83%) /* Sárga szín beállítása */
+        sepia(32%) 
+        saturate(5139%) 
+        hue-rotate(359deg) 
+        brightness(103%) 
+        contrast(104%);
+    animation: neonGlowHelp 5s infinite alternate;
+}
+
+/* Egyedi animációk minden ikonhoz */
+@keyframes neonGlowCalendar {
+    from {
+        transform: scale(1.1);
+        filter: 
+            brightness(0)
+            saturate(100%)
+            invert(21%)
+            sepia(95%) 
+            saturate(6932%) 
+            hue-rotate(359deg) 
+            brightness(101%) 
+            contrast(120%);
+    }
+    to {
+        transform: scale(1.2);
+        filter: 
+            brightness(0)
+            saturate(100%)
+            invert(21%)
+            sepia(95%) 
+            saturate(7932%) 
+            hue-rotate(359deg) 
+            brightness(110%) 
+            contrast(130%);
+    }
+}
+
+@keyframes neonGlowPayroll {
+    from {
+        transform: scale(1.1);
+        filter: 
+            brightness(0)
+            saturate(100%)
+            invert(56%)
+            sepia(96%) 
+            saturate(1742%) 
+            hue-rotate(87deg) 
+            brightness(128%) 
+            contrast(119%);
+    }
+    to {
+        transform: scale(1.2);
+        filter: 
+            brightness(0)
+            saturate(100%)
+            invert(56%)
+            sepia(96%) 
+            saturate(1842%) 
+            hue-rotate(87deg) 
+            brightness(138%) 
+            contrast(129%);
+    }
+}
+
+@keyframes neonGlowSettings {
+    from {
+        transform: scale(1.1);
+        filter: 
+            brightness(0)
+            saturate(100%)
+            invert(45%)
+            sepia(98%) 
+            saturate(1840%) 
+            hue-rotate(203deg) 
+            brightness(103%) 
+            contrast(105%);
+    }
+    to {
+        transform: scale(1.2);
+        filter: 
+            brightness(0)
+            saturate(100%)
+            invert(45%)
+            sepia(98%) 
+            saturate(1940%) 
+            hue-rotate(203deg) 
+            brightness(113%) 
+            contrast(115%);
+    }
+}
+
+@keyframes neonGlowHelp {
+    from {
+        transform: scale(1.1);
+        filter: 
+            brightness(0)
+            saturate(100%)
+            invert(83%)
+            sepia(32%) 
+            saturate(5139%) 
+            hue-rotate(359deg) 
+            brightness(103%) 
+            contrast(104%);
+    }
+    to {
+        transform: scale(1.2);
+        filter: 
+            brightness(0)
+            saturate(100%)
+            invert(83%)
+            sepia(32%) 
+            saturate(5239%) 
+            hue-rotate(359deg) 
+            brightness(113%) 
+            contrast(114%);
+    }
+}
+
+#calendar-btn button.active::after{
+    background-color: white;
+}
+
+/* Animációk */
+@keyframes slideUpLeft {
+    0% {
+        height: 0;
+    }
+    100% {
+        height: 100%;
+    }
+}
+
+@keyframes slideUpRight {
+    0% {
+        height: 0;
+    }
+    100% {
+        height: 100%;
+    }
+}
+
+@keyframes slideTopLeft {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: 50%;
+    }
+}
+
+@keyframes slideTopRight {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: 50%;
+    }
+}
+
+@keyframes slideLeftBorder {
+    0% {
+        transform: scaleX(0);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes slideRightBorder {
+    0% {
+        transform: scaleX(0);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes borderSlideInHorizontal {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
+@keyframes borderSlideInVertical {
+    from {
+        height: 0;
+        opacity: 0;
+    }
+    to {
+        height: 100%;
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        left: 50%;
+        right: 50%;
+        width: 0;
+    }
+    to {
+        left: 0;
+        right: 0;
+        width: 100%;
+    }
+}
+
+/* Pulzáló effekt az aktív gombnak */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+body, #content {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#content {
+    width: 100%;
+    box-sizing: border-box;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    overscroll-behavior-y: none;
+}
+
+#calendar-header {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: space-between;
+    align-items: center;
+    height: 50px;
+    color: red;
+    text-shadow: 0 0.5px #000;
+}
+
+#calendar-header button {
+    background-color: transparent;
+    color: white;
+    border: none;
+    height: 40px;
+    width: 40px;
+    margin: 5px;
+    font-size: 20px;
+    border-radius: 5px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;  
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    transform-style: preserve-3d;  /* 3D transzformációk megtartása */
+    backface-visibility: hidden;
+}
+
+#current-month {
+    font-size: 30px;
+    margin: 0;
+}
+
+#current-payroll-month {
+    font-size: 30px;
+    margin: 0;
+}
+
+#calendarTable {
+    flex-grow: 1;
+    min-height: 80%;
+    height: 85%;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-bottom: 0;
+    will-change: transform, box-shadow;
+}
+
+#calendarTable th {
+    border: 2px groove black;
+    padding: 0px;
+    margin: 0;
+    text-align: center;
+    vertical-align: center;
+    height: 40px;
+    width: 14.28571%;
+    box-shadow: inset 0 0 4px;
+}
+
+#calendarTable td {
+    padding: 0px;
+    text-align: center;
+    vertical-align: top;
+    height: 80px;
+    width: 14.28571%;
+    transition: none !important;
+}
+
+.slide-in-right,
+.slide-in-left,
+.slide-out-right,
+.slide-out-left {
+    box-shadow: 0 0 5px black !important; /* Kényszerített box-shadow */
+}
+
+.date-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    box-shadow: inset 0 0px 3px black;
+    border: solid 1px black;
+}
+
+.today .date-number {
+border: 2px solid #8c8c8c !important;
+background-color: #c82d9782 !important;
+color: rgb(255, 255, 255);
+}
+
+.date-number {
+    font-weight: bold;
+    margin: 3px 3px;
+    font-size: 10px;
+    color: #333;
+    width: 20px;
+    height: 30px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    border: 2px rgb(161, 161, 161) solid;
+}
+
+.note-display {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    right: 2px;
+    font-size: 9px;
+    color: #666;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 2px 3px;
+    border-radius: 2px;
+    max-height: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: normal;
+    line-height: 1.1;
+    z-index: 5;
+    hyphens: none;
+    overflow-wrap: break-word;
+    pointer-events: none; /* ÚJ: A megjegyzés nem akadályozza a kattintást */
+    cursor: pointer; /* ÚJ: Kurzor jelzi, hogy kattintható */
+}
+
+/* Színbeállítások stílusai */
+.color-row {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    min-width: 0; /* Flexbox túlcsordulás megakadályozása */
+    flex-wrap: wrap; /* Mobilon tördelés engedélyezése */
+    gap: 10px; /* Elemek közötti távolság */
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.3s ease;
+}
+
+.color-row span {
+    width: 33.3%;
+    margin-right: 10px;
+}
+
+.color-buttons {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+    min-width: 0; /* Flexbox túlcsordulás megakadályozása */
+}
+
+.color-picker {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    min-width: 0; /* Flexbox túlcsordulás megakadályozása */
+    white-space: nowrap; /* Szöveg egy sorban tartása */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.color-picker:hover {
+    background: #f0f0f0;
+}
+
+.color-preview {
+    width: 100%;
+    max-width: 120px; /* Maximum szélesség megadása */
+    min-width: 80px; /* Minimum szélesség megadása */
+    height: 50px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 0; /* Megakadályozza a zsugorodást */
+}
+
+@media (max-width: 480px) {
+    .color-row {
+        padding: 8px;
+    }
+
+    .color-preview {
+        width: 100%;
+        max-width: none;
+        margin-bottom: 5px;
+    }
+
+    .color-buttons {
+        width: 100%;
+        flex-direction: row;
+    }
+
+    .color-picker {
+        padding: 6px 8px;
+        font-size: 14px;
+    }
+}
+
+/* Alapértelmezett színek a preview-khoz */
+.nappal-preview {
+    background-color: #ffd700;
+    color: black;
+}
+
+.ejszaka-preview {
+    background-color: #4169e1;
+    color: white;
+}
+
+.szabadsag-preview {
+    background-color: #09fd00;
+    color: black;
+}
+
+.tulora-preview {
+    background-color: #ff0000;
+    color: white;
+}
+
+.csuszo-preview {
+    background-color: #dda0dd;
+    color: black;
+}
+
+.tappenz-preview {
+    background-color: #000000;
+    color: white;
+}
+
+/* Ünnepnapok piros színnel */
+.holiday {
+    background-color: #ff0000 !important; /* Halvány piros */
+    border-radius: 0 !important;
+}
+
+.holiday .date-number {
+    background-color: red !important;
+    color: #FFF !important; /* Sötétpiros szöveg */
+    font-weight: bold;
+}
+
+#calendar-section {
+    touch-action: pan-y;
+    flex-grow: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: #fff;
+    color: black;
+    border: black 1px solid;
+    border-radius: 5px;
+    font-size: 16px;
+    text-align: center;
+    box-shadow: inset 0 0 7px rgb(118, 118, 118);
+    transition: all 0.3s ease;
+}
+
+.mobile-button:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+/* Beállítások szekció stílusai */
+#settings-section {
+    text-align: center;
+    background-color: #f4f4f4; /* Világos háttér */
+    border-radius: 10px; /* Lekerekített sarkok */
+    width: 100%;
+    padding-bottom: 20px;
+}
+
+.setting-group {
+    background-color: white;
+    border: 1px solid rgb(255, 187, 0);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    margin: 20px;
+    box-shadow: inset 0 0 10px #ffc400;
+}
+
+.setting-group h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 5px;
+}
+    
+.settings-group > * {
+    flex: 1;
+}
+
+/* Új stílusok a settings szekcióhoz */
+.settings-content {
+    max-width: 20%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#save-settings {
+    background-color: #ff0000a6;
+    color: white;
+    border: none;
+    border-radius: 6px;   
+    width: 50%;
+    margin: auto;
+    transition: background-color 0.3s ease;
+}
+
+#save-settings:hover {
+    background-color: #ffe600a2;
+    color: black;
+}
+
+.flex-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.flex-row > * {
+    flex: 1;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 5px;
+}
+
+.midyear-change-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 30%;
+    }
+    
+.midyear-change-container > * {
+    flex: 1;
+    flex-grow: 1;
+    width: 30%;
+}
+
+#settings-header {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: space-between;
+    align-items: center;
+    height: 50px;
+    font-size: 30px;
+    margin-bottom: -10px;
+    color: red;
+    text-shadow: 0.5 0.5px #000;
+}
+
+#settings-header button {
+    background-color: transparent;
+    color: white;
+    border: none;
+    height: 40px;
+    width: 40px;
+    margin: 5px;
+    border-radius: 5px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;  
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    transform-style: preserve-3d;  /* 3D transzformációk megtartása */
+    backface-visibility: hidden;
+}
+
+.midyear-change-item {
+    background: white;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+#color-settings {
+    max-width: 100%;
+    overflow-x: hidden; /* Vízszintes görgetés megakadályozása */
+    padding: 15px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Alap stílusok minden shift-select elemre */
+.shift-select {
+    width: 100%;
+    font-size: 10px;
+    padding: 0px;
+    margin: 0;
+    margin-top: 3px;
+    border-radius: 3px;
+    border: 1px solid black;
+    box-shadow: inset 0 0 3px;
+    height: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: wrap;
+    cursor: pointer;
+    text-align: center;
+    word-break: break-all;
+}
+
+select.shift-select {
+    appearance: menulist;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+}
+
+div.shift-select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.shift-select-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 400px;
+    max-height: 80vh; /* Maximum magasság a viewport 80%-a */
+    background-color: white;
+    border: 2px solid #4a90e2;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    overflow-y: auto; /* Görgetés engedélyezése */
+    -webkit-overflow-scrolling: touch; /* Jobb görgetés mobilon */
+}
+
+/* Opcionális: görgetősáv stílusa */
+.shift-select-modal::-webkit-scrollbar {
+    width: 8px;
+}
+
+.shift-select-modal::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.shift-select-modal::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.shift-select-modal::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.shift-select-modal select {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px;
+    margin-bottom: 7px;
+}
+
+.shift-select-modal button {
+    font-size: 14px; /* Nagyobb betűméret a modal gomboknak */
+    padding: 12px; /* Több padding */
+}
+
+.shift-select-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+#payroll-table {
+    width: 100%;
+    border: 2px solid #000;
+    border-collapse: separate;  /* Külön cellák */
+    border-spacing: 0;  /* Nincs térköz */
+    font-size: 15px;
+    box-shadow: 5px 5px 5px 5px;
+}
+
+#payroll-table tr {
+    transition: all 0.2s ease;  /* Sima átmenet */
+}
+
+#payroll-table th,
+#payroll-table td {
+    border: 2px solid #000;
+    border-width: 2px thin;  /* Explicit szegélyvastagság */
+    box-shadow: 0 0 5px rgb(0, 0, 0);
+    height: 20px;
+    padding: 8px;
+    text-align: left;
+    font-weight: bold;
+    transition: border-width 0.2s ease;  /* Szegély átmenete */
+}
+
+#payroll-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#payroll-section {
+    position: relative;
+    min-height: 100%;
+}
+
+#payroll-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f4f4f4;
+    position: fixed;
+    width: 100%;
+    z-index: 100;
+    flex-shrink: 0;
+    align-items: center;
+    margin: 0px;
+    height: 50px;
+    color: red;
+    text-shadow: 0 0.5px #000;
+}
+
+#payroll-content {
+    height: 100%;
+    margin: 1px;
+    margin-top: 50px;
+}
+
+#payroll-header button {
+    background-color: transparent;
+    color: white;
+    border: none;
+    margin: 5px;
+    height: 40px;
+    width: 40px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;  
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    margin-bottom: 3px;  /* Extra margó az alsó vonalnak */
+    transform-style: preserve-3d;  /* 3D transzformációk megtartása */
+    backface-visibility: hidden;
+}
+
+.w-24 {
+    width: 6rem;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.px-2 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.border {
+    border: 1px solid #e2e8f0;
+}
+
+.rounded {
+    border-radius: 0.25rem;
+}
+
+/* Input mező stílusok */
+#payroll-body input[type="number"] {
+    border: 1px solid #e2e8f0;
+    font-size: 15px;
+    font-weight: bold;
+    width: 100px;
+    text-align: center;
+    height: 100%; /* Ez teszi a mezőt a cella teljes magasságúvá */
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+#payroll-body input[type="number"]:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+salary-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.salary-input {
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.visibility-toggle {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    transition: transform 0.3s ease;
+}
+
+.visibility-toggle:active {
+    transform: scale(0.9);
+}
+
+#calendar-section, #payroll-section {
+    position: relative;
+    overflow: hidden;
+}
+
+#calendar-body, #payroll-body {
+    animation-duration: 0.2s;
+    animation-fill-mode: both;
+}
+
+#calendar-body{
+    height: calc(100vh - 170px);
+    margin-bottom: 10px;
+    display: flex column;
+    flex-grow: 1;
+}
+
+#payroll-body {
+    will-change: transform, opacity;
+}
+
+@keyframes fadeMask {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.masked-value {
+    animation: fadeMask 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translate3d(100%, 0, 0);
+        box-shadow: 0 0 5px black;
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        box-shadow: 0 0 5px black;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+        box-shadow: 0 0 5px black;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+        box-shadow: 0 0 5px black;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+        box-shadow: 0 0 5px black;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+        box-shadow: 0 0 5px black;
+    }
+}
+
+@keyframes slideOutLeft {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+        box-shadow: 0 0 5px black;
+    }
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+        box-shadow: 0 0 5px black;
+    }
+}
+
+.slide-in-right {
+    animation-name: slideInRight;
+    box-shadow: 0 0 5px black;
+}
+
+.slide-in-left {
+    animation-name: slideInLeft;
+    box-shadow: 0 0 5px black;
+}
+
+.slide-out-right {
+    animation-name: slideOutRight;
+    box-shadow: 0 0 5px black;
+}
+
+.slide-out-left {
+    animation-name: slideOutLeft;
+    box-shadow: 0 0 5px black;
+}
+
+@keyframes slideYearInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideYearInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideYearOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideYearOutLeft {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+#settings-content {
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.slide-year-in-right {
+    animation: slideYearInRight 0.2s forwards;
+}
+
+.slide-year-in-left {
+    animation: slideYearInLeft 0.2s forwards;
+}
+
+.slide-year-out-right {
+    animation: slideYearOutRight 0.2s forwards;
+}
+
+.slide-year-out-left {
+    animation: slideYearOutLeft 0.2s forwards;
+}
+
+.changelog-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.7);
+z-index: 2000;
+display: flex;
+align-items: center;
+justify-content: center;
+animation: fadeIn 0.3s ease;
+}
+
+.changelog-modal {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 90%;
+    max-height: 90%;
+    width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+
+.changelog-header {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+    border-bottom: 2px solid #4a90e2;
+    padding-bottom: 10px;
+}
+
+.changelog-version {
+    background-color: #f8f9fa;
+    border-left: 4px solid #4a90e2;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.changelog-version h4 {
+    color: #4a90e2;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.changelog-version ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.changelog-version li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.changelog-close-btn {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.changelog-close-btn:hover {
+    background-color: #357abd;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Accordion hover effektek */
+.info-accordion-header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15) !important;
+}
+
+.info-accordion-content {
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .info-accordion-header {
+        padding: 15px !important;
+    }
+    
+    .info-accordion-header h3 {
+        font-size: 16px !important;
+    }
+    
+    .info-accordion-content {
+        padding: 20px !important;
+    }
+}
+
+#payroll-table {
+    background-color: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+#payroll-table th {
+    background-color: var(--setting-group-bg);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+#payroll-table td {
+    background-color: var(--setting-group-bg);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+/* Minden második sor (páros sorok) */
+#payroll-table tr:nth-child(even) td {
+    background-color: var(--payroll-table-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Input mezők a bérszámfejtés táblázatban */
+#payroll-body input[type="number"] {
+    background-color: var(--setting-group-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+#payroll-body input[type="number"]:focus {
+    background-color: var(--bg-tertiary);
+    border-color: var(--setting-group-border);
+}
+
+/* 2. BEÁLLÍTÁSOK SZEKCIÓ JAVÍTÁSOK */
+#settings-section {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary);
+}
+
+/* Beállítás csoportok */
+.setting-group {
+    background-color: var(--setting-group-bg) !important;
+    border: 1px solid var(--setting-group-border) !important;
+    color: var(--text-primary);
+    box-shadow: inset 0 0 10px var(--setting-group-border) !important;
+}
+
+.setting-group h3 {
+    color: var(--text-primary) !important;
+    border-bottom: 2px solid var(--border-color) !important;
+}
+
+/* Mobile gombok */
+.mobile-button {
+    background-color: var(--setting-group-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: inset 0 0 7px var(--shadow-color) !important;
+}
+
+.mobile-button:focus {
+    border-color: var(--setting-group-border) !important;
+    background-color: var(--bg-tertiary) !important;
+}
+
+/* Select mezők */
+select.mobile-button {
+    background-color: var(--setting-group-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Input mezők */
+input.mobile-button {
+    background-color: var(--setting-group-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+input.mobile-button::placeholder {
+    color: var(--text-secondary) !important;
+}
+
+/* Mentés gomb */
+#save-settings {
+    background-color: var(--button-bg) !important;
+    color: white !important;
+}
+
+#save-settings:hover {
+    background-color: var(--button-hover-bg) !important;
+    color: var(--button-hover-text) !important;
+}
+
+/* 3. ÉVKÖZI VÁLTOZÁSOK */
+.midyear-change-item {
+    background: var(--setting-group-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 4. SZÍNBEÁLLÍTÁSOK RÉSZ */
+#color-settings {
+    background-color: var(--setting-group-bg) !important;
+    color: var(--text-primary);
+}
+
+.color-row {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.color-picker {
+    background: var(--setting-group-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.color-picker:hover {
+    background: var(--bg-tertiary) !important;
+}
+
+.color-preview {
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 5. CHECKBOX ÉS EGYÉB ELEMEK */
+input[type="checkbox"] {
+    accent-color: var(--setting-group-border);
+}
+
+label {
+    color: var(--text-primary) !important;
+}
+
+/* 6. FEJLÉCEK */
+#settings-header {
+    color: var(--text-primary) !important;
+}
+
+#settings-header h2 {
+    color: var(--text-primary) !important;
+}
+
+#current-settings-year {
+    color: var(--text-primary) !important;
+}
+
+/* 7. PAYROLL FEJLÉC */
+#payroll-header {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+#current-payroll-month {
+    color: var(--text-primary) !important;
+}
+
+/* 1. NAPTÁR FEJLÉC - TÉMA SZERINTI SZÍN */
+#calendar-header {
+    color: var(--text-primary); /* Általános szín fehér gomboknak */
+}
+
+#current-month {
+    color: var(--text-primary) !important; /* Téma szerinti szín */
+    text-shadow: 0 0.5px var(--shadow-color) !important;
+    font-size: 30px;
+    margin: 0;
+}
+
+/* 2. BÉRSZÁMFEJTÉS FEJLÉC - TÉMA SZERINTI SZÍN */
+#payroll-header {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary); /* Általános szín a gomboknak */
+}
+
+#current-payroll-month {
+    color: var(--text-primary) !important; /* Téma szerinti szín */
+    text-shadow: 0 0.5px var(--shadow-color) !important;
+    font-size: 30px;
+    margin: 0;
+}
+
+/* 3. BEÁLLÍTÁSOK FEJLÉC - TÉMA SZERINTI SZÍN */
+#settings-header {
+    color: var(--text-primary); /* Általános szín a gomboknak */
+}
+
+#current-settings-year {
+    color: var(--text-primary) !important; /* Téma szerinti szín */
+    text-shadow: 0 0.5px var(--shadow-color) !important;
+    font-size: 30px;
+}
+
+/* 4. NAVIGÁCIÓS GOMBOK SZÍNEI - TÉMA SZERINTI */
+#calendar-header button,
+#payroll-header button,
+#settings-header button {
+    background-color: transparent !important;
+    color: var(--text-primary) !important; /* Téma szerinti szín */
+    border: none;
+}
+
+#calendar-header button:hover,
+#payroll-header button:hover,
+#settings-header button:hover {
+    background-color: var(--shadow-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 5. NAVIGÁCIÓS GOMBOK KÉPEI - TÉMA SZERINTI */
+/* Világos téma - fekete nyilak */
+[data-theme="light"] #calendar-header button img,
+[data-theme="light"] #payroll-header button img,
+[data-theme="light"] #settings-header button img,
+:root #calendar-header button img,
+:root #payroll-header button img,
+:root #settings-header button img {
+    filter: brightness(0) invert(0) !important; /* Fekete nyilak világos témában */
+}
+
+/* Sötét téma - fehér nyilak */
+[data-theme="dark"] #calendar-header button img,
+[data-theme="dark"] #payroll-header button img,
+[data-theme="dark"] #settings-header button img {
+    filter: brightness(0) invert(1) !important; /* Fehér nyilak sötét témában */
+}
+
+/* 11. SHIFT SELECT MODAL SÖTÉT TÉMA */
+[data-theme="dark"] .shift-select-modal {
+    background-color: var(--setting-group-bg);
+    color: var(--text-primary);
+    border: 2px solid var(--setting-group-border);
+}
+
+[data-theme="dark"] .shift-select-modal h2 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .shift-select-modal button {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* ==== DATE-CONTAINER SZEGÉLY JAVÍTÁSA SÖTÉT TÉMÁBAN ==== */
+
+/* Sötét témában a date-container szegélye és árnyéka */
+[data-theme="dark"] .date-container {
+    box-shadow: inset 0 0px 3px var(--border-color) !important;
+    border: solid 1px var(--border-color) !important;
+}
+
+/* Sötét témában a dátum számok szegélye is */
+[data-theme="dark"] .date-number {
+    border: 2px solid var(--border-color) !important;
+}
+
+
+[data-theme="dark"] .shift-select:contains("") {
+    background-color: var(--bg-secondary) !important; /* Sötét háttér (invertált) */
+}
+
+/* Súgó szekció szövegei maradjanak feketék sötét témában is */
+[data-theme="dark"] #help-section,
+[data-theme="dark"] #help-section *:not(.info-accordion-header):not(.info-accordion-header *) {
+    color: #333333 !important; /* Fekete szöveg */
+}
+
+/* Accordion fejlécek maradjanak fehérek (színes háttéren) */
+[data-theme="dark"] .info-accordion-header,
+[data-theme="dark"] .info-accordion-header * {
+    color: white !important; /* Fehér szöveg a színes háttéren */
+}
