@@ -2450,6 +2450,277 @@ class BerszamfejtoApp {
         };
   }
 
+  // Export funkció - minden adat mentése fájlba
+  exportAllData() {
+    try {
+      // Összes mentett adat összegyűjtése
+      const exportData = {
+        version: "3.0.0",
+        exportDate: new Date().toISOString(),
+        yearlyData: this.yearlyData,
+        shiftColors: JSON.parse(localStorage.getItem("shiftColors") || "{}"),
+        theme: localStorage.getItem("theme") || "light",
+        installPromptShown: localStorage.getItem("installPromptShown") || "false",
+        lastSeenChangelog: localStorage.getItem("lastSeenChangelog") || ""
+      };
+
+      // JSON fájl létrehozása
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      
+      // Fájl letöltése
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `muszaknaptar_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      alert('📁 Adatok sikeresen exportálva!\n\nA fájl letöltődött. Őrizd meg biztonságos helyen!');
+    } catch (error) {
+      console.error('Hiba az export során:', error);
+      alert('❌ Hiba történt az adatok exportálása során!');
+    }
+  }
+
+  // Verzió migráció funkció
+  migrateImportedData(importData) {
+    try {
+      console.log(`Migráció: ${importData.version || 'ismeretlen'} → 3.0.0`);
+      
+      // Alapvető struktúra biztosítása
+      if (!importData.yearlyData) {
+        importData.yearlyData = {};
+      }
+      
+      // Évek 2024-2028 között biztosítása
+      for (let year = 2024; year <= 2028; year++) {
+        if (!importData.yearlyData[year]) {
+          importData.yearlyData[year] = {
+            settings: {
+              besorolasi_ber: "300000",
+              szabadsag: "25", 
+              muszakrend: "-",
+              other_income: "0",
+              children_count: "0",
+              under25: { enabled: false, birthYear: "", birthMonth: "" },
+              midyear_changes: []
+            },
+            calendar_data: {},
+            bonusEntries: {},
+            restaurantEntries: {},
+            notes: {}
+          };
+        } else {
+          // Meglévő év adatainak kiegészítése
+          const yearData = importData.yearlyData[year];
+          
+          // Settings kiegészítése hiányzó mezőkkel
+          if (!yearData.settings) yearData.settings = {};
+          if (!yearData.settings.besorolasi_ber) yearData.settings.besorolasi_ber = "300000";
+          if (!yearData.settings.szabadsag) yearData.settings.szabadsag = "25";
+          if (!yearData.settings.muszakrend) yearData.settings.muszakrend = "-";
+          if (!yearData.settings.other_income) yearData.settings.other_income = "0";
+          if (!yearData.settings.children_count) yearData.settings.children_count = "0";
+          if (!yearData.settings.under25) {
+            yearData.settings.under25 = { enabled: false, birthYear: "", birthMonth: "" };
+          }
+          if (!yearData.settings.midyear_changes) yearData.settings.midyear_changes = [];
+          
+          // Egyéb adatok biztosítása
+          if (!yearData.calendar_data) yearData.calendar_data = {};
+          if (!yearData.bonusEntries) yearData.bonusEntries = {};
+          if (!yearData.restaurantEntries) yearData.restaurantEntries = {};
+          if (!yearData.notes) yearData.notes = {};
+          
+          // Bónusz értékek alapértelmezése
+          for (let month = 0; month < 12; month++) {
+            if (yearData.bonusEntries[month] === undefined) {
+              yearData.bonusEntries[month] = 2;
+            }
+            if (yearData.restaurantEntries[month] === undefined) {
+              yearData.restaurantEntries[month] = 0;
+            }
+          }
+        }
+      }
+      
+      console.log('✅ Migráció sikeres');
+      return importData;
+      
+    } catch (error) {
+      console.error('❌ Migráció hiba:', error);
+      throw new Error('Az adatok migrációja sikertelen');
+    }
+  }
+
+  // Import funkció - adatok visszatöltése fájlból
+  importAllData() {
+    try {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      
+      input.onchange = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            let importData = JSON.parse(e.target.result);
+            
+            // Alapvető validálás
+            if (!importData.yearlyData && !importData.calendar_data) {
+              throw new Error('Érvénytelen backup fájl - nincs műszakadat!');
+            }
+            
+            // Régi formátum konvertálása
+            if (importData.calendar_data && !importData.yearlyData) {
+              console.log('Régi formátum konvertálása...');
+              importData = {
+                version: "2.0.0",
+                yearlyData: {
+                  [this.currentYear]: {
+                    settings: importData.settings || {},
+                    calendar_data: importData.calendar_data || {},
+                    bonusEntries: importData.bonusEntries || {},
+                    restaurantEntries: importData.restaurantEntries || {},
+                    notes: importData.notes || {}
+                  }
+                },
+                shiftColors: importData.shiftColors || {},
+                theme: importData.theme || "light"
+              };
+            }
+            
+            // Migráció végrehajtása
+            importData = this.migrateImportedData(importData);
+            
+            // Felhasználói megerősítés
+            const sourceVersion = importData.version || 'ismeretlen verzió';
+            if (!confirm(`🔄 Adatok importálása\n\nForrás: ${sourceVersion}\nCél: 3.0.0\n\n⚠️ Ez felülírja a jelenlegi adatokat!\n\nFolytatod az importálást?`)) {
+              return;
+            }
+            
+            // Adatok visszaállítása
+            this.yearlyData = importData.yearlyData;
+            this.saveYearlyData();
+            
+            // Egyéb beállítások visszaállítása
+            if (importData.shiftColors) {
+              localStorage.setItem('shiftColors', JSON.stringify(importData.shiftColors));
+              this.loadColorSettings();
+            }
+            
+            if (importData.theme) {
+              localStorage.setItem('theme', importData.theme);
+              document.body.setAttribute('data-theme', importData.theme);
+              const themeCheckbox = document.getElementById('theme-checkbox');
+              if (themeCheckbox) themeCheckbox.checked = importData.theme === 'dark';
+            }
+            
+            if (importData.installPromptShown) {
+              localStorage.setItem('installPromptShown', importData.installPromptShown);
+            }
+            
+            if (importData.lastSeenChangelog) {
+              localStorage.setItem('lastSeenChangelog', importData.lastSeenChangelog);
+            }
+            
+            // UI frissítése
+            this.loadYearSettings(this.currentSettingsYear);
+            this.generateCalendar();
+            this.generatePayrollTable();
+            this.updateColorPreviews();
+            
+            alert(`✅ Import sikeres!\n\n📊 Betöltve: ${Object.keys(this.yearlyData).length} év adata\n🔄 Migráció: ${sourceVersion} → 3.0.0\n\n🎉 Minden műszak és beállítás visszaállítva!`);
+            
+          } catch (error) {
+            console.error('Import hiba:', error);
+            alert(`❌ Import sikertelen!\n\nHiba: ${error.message}\n\n💡 Tipp: Ellenőrizd, hogy érvényes backup fájlt választottál-e.`);
+          }
+        };
+        
+        reader.readAsText(file);
+      };
+      
+      input.click();
+    } catch (error) {
+      console.error('Hiba az import során:', error);
+      alert('❌ Hiba történt a fájl választása során!');
+    }
+  }
+
+  // Gyors backup funkció - csak a legfontosabb adatok
+  exportQuickBackup() {
+    try {
+      const quickData = {
+        version: "3.0.0",
+        exportDate: new Date().toISOString(),
+        yearlyData: this.yearlyData,
+        currentYear: this.currentYear,
+        currentMonth: this.currentMonth
+      };
+      
+      const dataStr = JSON.stringify(quickData);
+      
+      // Vágólapra másolás
+      navigator.clipboard.writeText(dataStr).then(() => {
+        alert('📋 Gyors backup elkészítve!\n\nAz adatok a vágólapra másolódtak.\nIlleszd be egy szövegszerkesztőbe és mentsd el!');
+      }).catch(() => {
+        // Ha nem működik a vágólap, akkor fájlként mentjük
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `gyors_backup_${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert('📁 Gyors backup elkészítve fájlként!');
+      });
+    } catch (error) {
+      console.error('Hiba a gyors backup során:', error);
+      alert('❌ Hiba történt a gyors backup során!');
+    }
+  }
+
+  // Gyors visszaállítás szövegből
+  importQuickBackup() {
+    try {
+      const backupText = prompt('📋 Gyors visszaállítás\n\nIlleszd be ide a backup szöveget:');
+      
+      if (!backupText) return;
+      
+      const importData = JSON.parse(backupText);
+      
+      if (!importData.yearlyData) {
+        throw new Error('Érvénytelen backup szöveg!');
+      }
+      
+      if (!confirm('⚠️ Biztosan visszaállítod az adatokat?\n\nEz felülírja a jelenlegi beállításokat!')) {
+        return;
+      }
+      
+      this.yearlyData = importData.yearlyData;
+      this.saveYearlyData();
+      
+      this.generateCalendar();
+      this.generatePayrollTable();
+      
+      alert('✅ Gyors backup sikeresen visszaállítva!');
+      
+    } catch (error) {
+      console.error('Hiba a gyors import során:', error);
+      alert('❌ Érvénytelen backup szöveg!\n\nEllenőrizd, hogy helyesen másoltad-e be.');
+    }
+  }
+
   initEventListeners() {
     try {
       // Hónap navigáció
@@ -2921,6 +3192,35 @@ class BerszamfejtoApp {
 
       // Évközi változások megjelenítése
       this.displayMidyearChanges();
+        // Export/Import gombok eseménykezelői
+      const exportAllBtn = document.getElementById('export-all-btn');
+      const importAllBtn = document.getElementById('import-all-btn');
+      const exportQuickBtn = document.getElementById('export-quick-btn');
+      const importQuickBtn = document.getElementById('import-quick-btn');
+
+      if (exportAllBtn) {
+        exportAllBtn.addEventListener('click', () => {
+          this.exportAllData();
+        });
+      }
+
+      if (importAllBtn) {
+        importAllBtn.addEventListener('click', () => {
+          this.importAllData();
+        });
+      }
+
+      if (exportQuickBtn) {
+        exportQuickBtn.addEventListener('click', () => {
+          this.exportQuickBackup();
+        });
+      }
+
+      if (importQuickBtn) {
+        importQuickBtn.addEventListener('click', () => {
+          this.importQuickBackup();
+        });
+      }
     } catch (error) {
       console.error("Hiba a beállítások inicializálása során:", error);
     }
@@ -5202,3 +5502,4 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
+
