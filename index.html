@@ -271,6 +271,38 @@
         </div>
         </div>
 
+        <!-- ADATOK MENTÉSE ÉS VISSZAÁLLÍTÁSA -->
+<div class="setting-group">
+  <h3>📁 Adatok mentése és visszaállítása</h3>
+  
+  <!-- Teljes backup -->
+  <div style="margin-bottom: 15px;">
+    <h4 style="color: #2980b9; margin-bottom: 10px;">🔄 Teljes biztonsági mentés</h4>
+    <p style="font-size: 14px; color: #666; margin-bottom: 10px; line-height: 1.4;">
+      Minden adat: műszakok, beállítások, színek, témák
+    </p>
+    <button id="export-all-btn" class="mobile-button" style="background-color: #27ae60; color: white; margin-bottom: 5px;">
+      📤 Minden adat letöltése
+    </button>
+    <button id="import-all-btn" class="mobile-button" style="background-color: #3498db; color: white;">
+      📥 Adatok visszaállítása fájlból
+    </button>
+  </div>
+  
+  <!-- Gyors backup -->
+  <div style="margin-bottom: 15px; border-top: 1px solid #ddd; padding-top: 15px;">
+    <h4 style="color: #e67e22; margin-bottom: 10px;">⚡ Gyors mentés</h4>
+    <p style="font-size: 14px; color: #666; margin-bottom: 10px; line-height: 1.4;">
+      Csak a műszakadatok (másolás/beillesztés)
+    </p>
+    <button id="export-quick-btn" class="mobile-button" style="background-color: #f39c12; color: white; margin-bottom: 5px;">
+      📋 Gyors backup (vágólap)
+    </button>
+    <button id="import-quick-btn" class="mobile-button" style="background-color: #9b59b6; color: white;">
+      📝 Gyors visszaállítás (szöveg)
+    </button>
+  </div>
+
         <!-- Színbeállítások -->
         <div class="setting-group">
         <h3>Színbeállítások</h3>
@@ -612,4 +644,5 @@
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
