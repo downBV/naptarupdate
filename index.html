@@ -159,6 +159,82 @@
         </select>
         </div>
 
+        <!-- Évközi műszakváltás -->
+<div class="setting-group">
+  <h3>🔄 Évközi műszakváltás</h3>
+  
+  <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2196F3;">
+    <p style="margin: 0; font-size: 14px; color: #1565C0; line-height: 1.4;">
+      <strong>💡 Mire jó ez?</strong><br>
+      Ha például szeptember 7-től új műszakrendbe kerülsz, itt beállíthatod hogy ettől a dátumtól más műszakrend szerint generálódjon a naptár.
+    </p>
+  </div>
+  
+  <div style="margin-top: 10px">
+    <h4 style="margin-bottom: 10px; color: #333;">Új műszakváltás hozzáadása</h4>
+    
+    <!-- Dátum választók egy sorban -->
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+      <select
+        id="midyear-shift-month"
+        class="mobile-button"
+        style="flex: 1; color: grey"
+      >
+        <option value="">Hónap...</option>
+        <option value="0">Január</option>
+        <option value="1">Február</option>
+        <option value="2">Március</option>
+        <option value="3">Április</option>
+        <option value="4">Május</option>
+        <option value="5">Június</option>
+        <option value="6">Július</option>
+        <option value="7">Augusztus</option>
+        <option value="8">Szeptember</option>
+        <option value="9">Október</option>
+        <option value="10">November</option>
+        <option value="11">December</option>
+      </select>
+      
+      <input
+        type="number"
+        id="midyear-shift-day"
+        class="mobile-button"
+        placeholder="Nap (1-31)"
+        min="1"
+        max="31"
+        style="flex: 1"
+      />
+    </div>
+    
+    <!-- Új műszakrend választó -->
+    <select id="midyear-shift-pattern" class="mobile-button" style="margin-bottom: 10px;">
+      <option value="">Új műszakrend...</option>
+      <option value="-">Üres naptár</option>
+      <option value="1">1. Műszakrend</option>
+      <option value="2">2. Műszakrend</option>
+      <option value="3">3. Műszakrend</option>
+      <option value="4">4. Műszakrend</option>
+      <option value="A">A Műszakrend</option>
+      <option value="B">B Műszakrend</option>
+      <option value="C">C Műszakrend</option>
+    </select>
+    
+    <button id="add-midyear-shift-change" class="mobile-button" style="background-color: #4CAF50; color: white;">
+      ➕ Műszakváltás hozzáadása
+    </button>
+  </div>
+  
+  <!-- Meglévő műszakváltások listája -->
+  <div id="midyear-shift-changes-list" style="margin-top: 15px;"></div>
+  
+  <!-- Figyelmeztető üzenet -->
+  <div style="background-color: #fff3cd; color: #856404; padding: 12px; border: 1px solid #ffeeba; border-radius: 6px; margin-top: 15px;">
+    <p style="margin: 0; font-size: 13px; line-height: 1.4;">
+      <strong>⚠️ Figyelem!</strong> A műszakváltás hozzáadása után a naptár automatikusan újragenerálódik a megadott dátumtól. A manuálisan módosított műszakok megmaradnak, kivéve a váltás napját.
+    </p>
+  </div>
+</div>
+
         <!-- Besorolási bér -->
         <div class="setting-group">
         <h3>Besorolási bér</h3>
@@ -646,3 +722,4 @@
 </body>
 
 </html>
+
