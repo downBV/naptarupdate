@@ -1956,7 +1956,11 @@ class BerszamfejtoCalculator {
     let keretMaradek = maradekKeret;
 
     idoszakok.forEach((idoszak, idoszakIndex) => {
-      const kezdoNap = idoszak[0].nap;
+      // Folytatás esetén (első időszak + előző hónapból nyúlik át)
+      const elsoIdoszakFolytatodas = (idoszakIndex === 0 && folytatodas);
+
+      // Folytatás esetén 1-jétől számolunk, nem az első bejelölt naptól
+      const kezdoNap = elsoIdoszakFolytatodas ? 1 : idoszak[0].nap;
       const utolsoJeloltNap = idoszak[idoszak.length - 1].nap;
       const utolsoJeloltShift = monthData[utolsoJeloltNap] || "";
 
@@ -1964,9 +1968,6 @@ class BerszamfejtoCalculator {
         ? utolsoJeloltNap
         : daysInMonth;
 
-      // Folytatás esetén (első időszak + előző hónapból nyúlik át):
-      // nincs 15 napos szabály, egyből minden napra jár
-      const elsoIdoszakFolytatodas = (idoszakIndex === 0 && folytatodas);
       // tizenototodikNap = 0 ha folytatás → minden nap "15 után" van
       const tizenototodikNap = elsoIdoszakFolytatodas ? 0 : kezdoNap + 14;
 
