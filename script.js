@@ -2399,25 +2399,20 @@ class BerszamfejtoCalculator {
 
   // 8. EREDETI MŰSZAK LEKÉRÉSE (már létező függvény)
   getOriginalShiftForDay(year, month, day) {
+    const savedYear = this.app.currentYear;
+    const savedMonth = this.app.currentMonth;
     try {
-      const currentYear = this.app.currentYear;
-      const currentMonth = this.app.currentMonth;
-      
-      // Ideiglenesen beállítjuk a dátumot
       this.app.currentYear = year;
       this.app.currentMonth = month;
-      
-      // Generáljuk a műszakrendet (táppénz nélkül)
       const originalShift = this.app.generateShiftPattern(day);
-      
-      // Visszaállítjuk az eredeti dátumot
-      this.app.currentYear = currentYear;
-      this.app.currentMonth = currentMonth;
-      
       return originalShift;
     } catch (error) {
       console.error("Hiba az eredeti műszak lekérésénél:", error);
       return " ";
+    } finally {
+      // Mindig visszaállítjuk, hiba esetén is
+      this.app.currentYear = savedYear;
+      this.app.currentMonth = savedMonth;
     }
   }
 }
