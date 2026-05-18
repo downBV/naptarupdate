@@ -1911,6 +1911,24 @@ class BerszamfejtoCalculator {
     return felhasznalt;
   }
 
+  // SEGÉDFÜGGVÉNY: Az előző hónap végén folyt-e még a táppénz (átnyúlás)?
+  isTappenzFolytatodas(monthIndex, year) {
+    let prevMonth = monthIndex - 1;
+    let prevYear = year;
+    if (prevMonth < 0) { prevMonth = 11; prevYear--; }
+
+    const prevMonthData = this.app.yearlyData[prevYear]?.calendar_data[prevMonth] || {};
+    const daysInPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
+
+    for (let d = daysInPrevMonth; d >= 1; d--) {
+      const shift = prevMonthData[d] || "";
+      if (shift.includes("Táppénz vége")) return false;
+      if (shift.includes("Táppénz")) return true;
+      if (shift && shift !== " ") return false;
+    }
+    return false;
+  }
+
   // SEGÉDFÜGGVÉNY: Egy hónap táppénz/betegszabadság napjainak kiszámítása adott maradék kerettel
   // Visszaad: { betegszabNapok, tappenzNapok } (napok száma, nem forint)
   calculateHaviTappenzReszletek(monthIndex, year, maradekKeret) {
@@ -1930,50 +1948,47 @@ class BerszamfejtoCalculator {
     tappenzNapok.sort((a, b) => a.nap - b.nap);
 
     const idoszakok = this.getTappenzPeriods(tappenzNapok, monthData);
-
-    // Ha nincs egyetlen Táppénz vége sem a hónapban, a betegség átnyúlik
-    // → a hónap utolsó napjáig számolunk
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const folytatodas = this.isTappenzFolytatodas(monthIndex, year);
 
     let betegszabNapok = 0;
     let tappenzNapokDb = 0;
     let keretMaradek = maradekKeret;
 
-    idoszakok.forEach(idoszak => {
+    idoszakok.forEach((idoszak, idoszakIndex) => {
       const kezdoNap = idoszak[0].nap;
       const utolsoJeloltNap = idoszak[idoszak.length - 1].nap;
       const utolsoJeloltShift = monthData[utolsoJeloltNap] || "";
 
-      // Ha az utolsó jelölt nap Táppénz vége → ott ér véget
-      // Ha nem → a betegség átnyúlik, a hónap végéig számolunk
       const vegeNap = utolsoJeloltShift.includes("Táppénz vége")
         ? utolsoJeloltNap
         : daysInMonth;
 
-      const tizenototodikNap = kezdoNap + 14;
+      // Folytatás esetén (első időszak + előző hónapból nyúlik át):
+      // nincs 15 napos szabály, egyből minden napra jár
+      const elsoIdoszakFolytatodas = (idoszakIndex === 0 && folytatodas);
+      // tizenototodikNap = 0 ha folytatás → minden nap "15 után" van
+      const tizenototodikNap = elsoIdoszakFolytatodas ? 0 : kezdoNap + 14;
+
+      console.log(`[TappenzReszletek] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}`);
 
       for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
         const napAdata = idoszak.find(t => t.nap === naptariNap);
         const az_elso_15_napon_belul = naptariNap <= tizenototodikNap;
 
-        // Beosztott napnak számít: Táppénz (eredeti műszak volt) VAGY Táppénz vége műszak
         const isMuszakNap = napAdata && (
           (napAdata.originalShift && napAdata.originalShift !== " ") ||
           (monthData[naptariNap] || "").includes("Táppénz vége műszak")
         );
 
         if (keretMaradek <= 0) {
-          // Éves betegszabadság keret elfogyott → táppénz
           tappenzNapokDb++;
         } else if (az_elso_15_napon_belul) {
-          // Első 15 naptári napon belül: csak beosztott napok fogyasztják a keretet
           if (isMuszakNap) {
             betegszabNapok++;
             keretMaradek--;
           }
-          // Szabadnap az első 15-ben: nem jár semmi
         } else {
-          // 15. naptári nap után: minden naptári nap fogyaszt
           if (keretMaradek > 0) {
             betegszabNapok++;
             keretMaradek--;
@@ -1984,6 +1999,7 @@ class BerszamfejtoCalculator {
       }
     });
 
+    console.log(`[TappenzReszletek] Eredmény: betegszab=${betegszabNapok}, táppénz=${tappenzNapokDb}`);
     return { betegszabNapok, tappenzNapok: tappenzNapokDb };
   }
 
@@ -2021,30 +2037,60 @@ class BerszamfejtoCalculator {
     }
   }
 
-  // 3. TÁPPÉNZ ELLÁTÁS SZÁMÍTÁSA (TB által folyósított 60%, óra alapú)
+  // 3. TÁPPÉNZ ELLÁTÁS SZÁMÍTÁSA (TB által folyósított 60%)
+  // Alap: előző naptári év összes bruttó keresete ÷ 365 × 60%
   calculateTappenzTavolletiDij(monthIndex, year) {
     try {
-      const besorolas = this.getEffectiveSalary(year, monthIndex);
-      const munkaNapok = this.calculateWorkingDays(year, monthIndex);
-      const haviMunkaOra = munkaNapok * 8;
-      const oradij = besorolas / haviMunkaOra;
+      const prevYear = year - 1;
+      let evesOsszKereset = 0;
+      let vanElozoEvesAdat = false;
+
+      // Előző naptári év összes hónapjának bruttó bére
+      for (let m = 0; m < 12; m++) {
+        if (this.app.yearlyData[prevYear]?.calendar_data?.[m]) {
+          vanElozoEvesAdat = true;
+          // Bruttó bér táppénz nélkül (TB nem számítja bele a táppénzt az alapba)
+          const bruttoHavi = this.calculateMonthlyValue("Bruttó bér", m, prevYear)
+            - this.calculateTappenzTavolletiDij_Aktualis(m, prevYear);
+          evesOsszKereset += bruttoHavi;
+        }
+      }
+
+      // Ha nincs előző éves adat, aktuális bérrel számolunk (fallback)
+      if (!vanElozoEvesAdat) {
+        return this.calculateTappenzTavolletiDij_Aktualis(monthIndex, year);
+      }
+
+      // Napi táppénz alap: éves kereset ÷ 365
+      const napiAlap = evesOsszKereset / 365;
 
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 15 - felhasznalt);
-
       const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
 
-      // tappenzNapok × 8 óra × óradíj × 60%
-      const tappenzOra = tappenzNapok * 8;
-      const osszeg = Math.round(tappenzOra * oradij * 0.6);
+      const osszeg = Math.round(tappenzNapok * napiAlap * 0.6);
 
-      console.log(`[Táppénz] Havi munkaóra: ${haviMunkaOra}, óradíj: ${Math.round(oradij)} Ft, táppénzes napok: ${tappenzNapok} (= ${tappenzOra} óra), összeg: ${osszeg} Ft`);
+      console.log(`[Táppénz] Előző évi kereset: ${Math.round(evesOsszKereset)} Ft, napi alap: ${Math.round(napiAlap)} Ft, táppénzes napok: ${tappenzNapok}, összeg: ${osszeg} Ft`);
 
       return osszeg;
     } catch (error) {
       console.error("Hiba a táppénz számításában:", error);
       return 0;
     }
+  }
+
+  // Segédfüggvény: aktuális bér alapú táppénz (ha nincs előző éves adat)
+  calculateTappenzTavolletiDij_Aktualis(monthIndex, year) {
+    const besorolas = this.getEffectiveSalary(year, monthIndex);
+    const munkaNapok = this.calculateWorkingDays(year, monthIndex);
+    const haviMunkaOra = munkaNapok * 8;
+    const oradij = besorolas / haviMunkaOra;
+
+    const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
+    const maradekKeret = Math.max(0, 15 - felhasznalt);
+    const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
+
+    return Math.round(tappenzNapok * 8 * oradij * 0.6);
   }
 
   // 3b. BETEGSZABADSÁG + TÁPPÉNZ PÓTLÉK TD (Távolléti díj sor a bérpapíron)
