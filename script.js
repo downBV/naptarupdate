@@ -137,7 +137,8 @@ const SHIFT_COLORS = {
   Túlóra: ["#FF0000", "white"],
   Csúszó: ["#DDA0DD", "black"],
   Táppénz: ["#000000", "white"],
-  "Táppénz vége": ["#444444", "white"],
+  "Táppénz vége szabadnap": ["#444444", "white"],
+  "Táppénz vége műszak": ["#666666", "white"],
 };
 
 const MINIMUM_WAGE = {
@@ -1212,7 +1213,8 @@ class BerszamfejtoCalculator {
           shiftValue.includes("Éjszaka") ||
           shiftValue.includes("Szabadság") ||
           shiftValue.includes("Csúszó") ||
-          shiftValue.includes("Táppénz")
+          shiftValue.includes("Táppénz vége műszak") ||
+          (shiftValue.includes("Táppénz") && !shiftValue.includes("Táppénz vége"))
         ) {
           ledolgozando += 1;
         }
@@ -1929,33 +1931,49 @@ class BerszamfejtoCalculator {
 
     const idoszakok = this.getTappenzPeriods(tappenzNapok, monthData);
 
+    // Ha nincs egyetlen Táppénz vége sem a hónapban, a betegség átnyúlik
+    // → a hónap utolsó napjáig számolunk
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
     let betegszabNapok = 0;
     let tappenzNapokDb = 0;
     let keretMaradek = maradekKeret;
 
     idoszakok.forEach(idoszak => {
       const kezdoNap = idoszak[0].nap;
-      const vegeNap = idoszak[idoszak.length - 1].nap;
+      const utolsoJeloltNap = idoszak[idoszak.length - 1].nap;
+      const utolsoJeloltShift = monthData[utolsoJeloltNap] || "";
+
+      // Ha az utolsó jelölt nap Táppénz vége → ott ér véget
+      // Ha nem → a betegség átnyúlik, a hónap végéig számolunk
+      const vegeNap = utolsoJeloltShift.includes("Táppénz vége")
+        ? utolsoJeloltNap
+        : daysInMonth;
+
       const tizenototodikNap = kezdoNap + 14;
 
       for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
         const napAdata = idoszak.find(t => t.nap === naptariNap);
         const az_elso_15_napon_belul = naptariNap <= tizenototodikNap;
 
+        // Beosztott napnak számít: Táppénz (eredeti műszak volt) VAGY Táppénz vége műszak
+        const isMuszakNap = napAdata && (
+          (napAdata.originalShift && napAdata.originalShift !== " ") ||
+          (monthData[naptariNap] || "").includes("Táppénz vége műszak")
+        );
+
         if (keretMaradek <= 0) {
           // Éves betegszabadság keret elfogyott → táppénz
           tappenzNapokDb++;
         } else if (az_elso_15_napon_belul) {
           // Első 15 naptári napon belül: csak beosztott napok fogyasztják a keretet
-          if (napAdata) {
-            const munkanapVolt = (napAdata.originalShift && napAdata.originalShift !== " ");
-            if (munkanapVolt) {
-              betegszabNapok++;
-              keretMaradek--;
-            }
+          if (isMuszakNap) {
+            betegszabNapok++;
+            keretMaradek--;
           }
+          // Szabadnap az első 15-ben: nem jár semmi
         } else {
-          // 15. naptári nap után: minden naptári nap fogyasztja a keretet
+          // 15. naptári nap után: minden naptári nap fogyaszt
           if (keretMaradek > 0) {
             betegszabNapok++;
             keretMaradek--;
@@ -2169,7 +2187,7 @@ class BerszamfejtoCalculator {
         const elozoNap = jelenlegiIdoszak[jelenlegiIdoszak.length - 1];
         const elozoShift = monthData[elozoNap.nap] || "";
 
-        // Ha az előző nap "Táppénz vége" volt, új időszak kezdődik
+        // Ha az előző nap "Táppénz vége" volt (bármelyik típus), új időszak kezdődik
         if (elozoShift.includes("Táppénz vége")) {
           tappenzIdoszakok.push([...jelenlegiIdoszak]);
           jelenlegiIdoszak = [jelenlegiNap];
@@ -4659,7 +4677,8 @@ class BerszamfejtoApp {
             "Szabadság 4 óra + Csúszó 8 óra",
             "Szabadság 4 óra + Csúszó 8 óra éj",
             "Táppénz",
-            "Táppénz vége",
+            "Táppénz vége szabadnap",
+            "Táppénz vége műszak",
           ];
 
           shifts.forEach((shiftName) => {
