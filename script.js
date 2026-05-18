@@ -2121,13 +2121,14 @@ class BerszamfejtoCalculator {
 
       const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
 
-      const betegszabOra = betegszabNapok * 8;
+      // 12 órás munkarendben 1 betegszabadság nap = 12 óra (nem 8!)
+      // A törvény 8 órás napokban méri a keretet, de a kifizetés a tényleges műszakhosszal számol
+      const betegszabOra = betegszabNapok * 12;
       const osszeg = Math.round(betegszabOra * oradij * 0.7);
 
       if (isAktiv) {
         console.log(`[Betegszabadság ${honapNev}] Napok: ${betegszabNapok} (= ${betegszabOra} óra), összeg: ${osszeg} Ft`);
       }
-
       return osszeg;
 
     } catch (error) {
@@ -2202,7 +2203,7 @@ class BerszamfejtoCalculator {
     const maradekKeret = Math.max(0, 15 - felhasznalt);
     const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
 
-    return Math.round(tappenzNapok * 8 * oradij * 0.6);
+    return Math.round(tappenzNapok * 12 * oradij * 0.6);
   }
 
   // 3b. BETEGSZABADSÁG + TÁPPÉNZ PÓTLÉK TD (Távolléti díj sor a bérpapíron)
@@ -2219,8 +2220,9 @@ class BerszamfejtoCalculator {
 
       const { betegszabNapok, tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
 
-      const betegszabPotlek = betegszabNapok * 8 * potlekOradij * 0.7;
-      const tappenzPotlek = tappenzNapok * 8 * potlekOradij * 0.6;
+      // 12 órás munkarendben 1 nap = 12 óra
+      const betegszabPotlek = betegszabNapok * 12 * potlekOradij * 0.7;
+      const tappenzPotlek = tappenzNapok * 12 * potlekOradij * 0.6;
       const osszeg = Math.round(betegszabPotlek + tappenzPotlek);
 
       if (isAktiv) console.log(`[Pótlék TD ${honapNev}] Pótlék óradíj: ${Math.round(potlekOradij)} Ft/óra, betegszab: ${betegszabNapok} nap, táppénz: ${tappenzNapok} nap, összeg: ${osszeg} Ft`);
