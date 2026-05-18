@@ -2098,16 +2098,27 @@ class BerszamfejtoCalculator {
   calculateBetegszabadsagFizetes(monthIndex, year) {
     try {
       const besorolas = this.getEffectiveSalary(year, monthIndex);
-      // Ledolgozandó napok × 12 óra = havi beosztott munkaóra (pl. 14 × 12 = 168)
+
+      // Ledolgozott napok × 12 = ténylegesen ledolgozott műszakórák
+      // Ez adja a helyes osztót (pl. 6 műszak × 12 = 72 óra... de ez februárban 6 napra kis szám)
+      // Valójában a TERVEZETT beosztás az osztó, nem a tényleges — mert a betegen lévő napok
+      // is "beosztva" lettek volna. Tehát: ledolgozandó - táppénz napok = tervezett műszaknapok
       const ledolgozando = this.calculateMonthlyValue("Ledolgozandó napok", monthIndex, year);
-      const haviMunkaOra = ledolgozando * 12;
-      const oradij = haviMunkaOra > 0 ? besorolas / haviMunkaOra : besorolas / 168;
+      console.log(`[DEBUG] calculateMonthlyValue Ledolgozandó: ${ledolgozando}, monthIndex: ${monthIndex}, year: ${year}, currentMonth: ${this.app.currentMonth}, currentYear: ${this.app.currentYear}`);
+      const monthStats = this.getMonthStats(monthIndex, year);
+      const tappenzNapokSzama = monthStats?.sickDays || 0;
+      const beosztottMuszakNapok = ledolgozando - tappenzNapokSzama;
+      const haviMunkaOra = beosztottMuszakNapok > 0
+        ? beosztottMuszakNapok * 12
+        : this.calculateWorkingDays(year, monthIndex) * 12;
+
+      const oradij = besorolas / haviMunkaOra;
 
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 15 - felhasznalt);
 
+      console.log(`[Betegszabadság] Ledolgozandó: ${ledolgozando}, táppénz: ${tappenzNapokSzama}, beosztott: ${beosztottMuszakNapok} × 12 = ${haviMunkaOra} óra, óradíj: ${Math.round(oradij)} Ft`);
       console.log(`[Betegszabadság] Éves keret: 15 nap, eddig felhasznált: ${felhasznalt}, maradék: ${maradekKeret}`);
-      console.log(`[Betegszabadság] Ledolgozandó: ${ledolgozando} nap × 12 = ${haviMunkaOra} óra, óradíj: ${Math.round(oradij)} Ft`);
 
       const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
 
@@ -2169,8 +2180,19 @@ class BerszamfejtoCalculator {
   // Segédfüggvény: aktuális bér alapú táppénz (ha nincs előző éves adat)
   calculateTappenzTavolletiDij_Aktualis(monthIndex, year) {
     const besorolas = this.getEffectiveSalary(year, monthIndex);
-    const ledolgozando = this.calculateMonthlyValue("Ledolgozandó napok", monthIndex, year);
-    const haviMunkaOra = ledolgozando > 0 ? ledolgozando * 12 : 168;
+    const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
+    let valodiBeosztottNapok = 0;
+    Object.entries(monthData).forEach(([day, shiftValue]) => {
+      if (!shiftValue || shiftValue === " ") return;
+      if (
+        shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka") ||
+        shiftValue.includes("Csúszó") || shiftValue.includes("Szabadság") ||
+        shiftValue.includes("Túlóra")
+      ) valodiBeosztottNapok++;
+    });
+    const haviMunkaOra = valodiBeosztottNapok > 0
+      ? valodiBeosztottNapok * 12
+      : this.calculateWorkingDays(year, monthIndex) * 12;
     const oradij = besorolas / haviMunkaOra;
 
     const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
