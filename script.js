@@ -1986,7 +1986,8 @@ class BerszamfejtoCalculator {
 
   // SEGÉDFÜGGVÉNY: Egy hónap táppénz/betegszabadság napjainak kiszámítása adott maradék kerettel
   // Visszaad: { betegszabNapok, tappenzNapok } (napok száma, nem forint)
-  calculateHaviTappenzReszletek(monthIndex, year, maradekKeret) {
+  calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv = false) {
+    const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
     const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
 
     let tappenzNapok = [];
@@ -2052,7 +2053,7 @@ class BerszamfejtoCalculator {
         tizenototodikNap = kezdoNap + 14;
       }
 
-      console.log(`[TappenzReszletek] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}, 15. nap határa: ${tizenototodikNap}`);
+      if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}, 15. nap határa: ${tizenototodikNap}`);
 
       for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
         const napAdata = idoszak.find(t => t.nap === naptariNap);
@@ -2090,7 +2091,7 @@ class BerszamfejtoCalculator {
       }
     });
 
-    console.log(`[TappenzReszletek] Eredmény: betegszab=${betegszabNapok}, táppénz=${tappenzNapokDb}`);
+    if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Eredmény: betegszab=${betegszabNapok}, táppénz=${tappenzNapokDb}`);
     return { betegszabNapok, tappenzNapok: tappenzNapokDb };
   }
 
@@ -2099,6 +2100,8 @@ class BerszamfejtoCalculator {
     try {
       const besorolas = this.getEffectiveSalary(year, monthIndex);
       const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
+      const isAktiv = (monthIndex === this.app.currentMonth && year === this.app.currentYear);
+      const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
 
       // Táppénzes napok közvetlen számolása a naptárból
       let tappenzNapokSzama = 0;
@@ -2120,15 +2123,19 @@ class BerszamfejtoCalculator {
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 15 - felhasznalt);
 
-      console.log(`[Betegszabadság] Ledolgozandó: ${ledolgozando}, táppénz napok: ${tappenzNapokSzama}, beosztott: ${beosztottMuszakNapok} × 12 = ${haviMunkaOra} óra, óradíj: ${Math.round(oradij)} Ft`);
-      console.log(`[Betegszabadság] Éves keret: 15 nap, eddig felhasznált: ${felhasznalt}, maradék: ${maradekKeret}`);
+      if (isAktiv) {
+        console.log(`[Betegszabadság ${honapNev}] Ledolgozandó: ${ledolgozando}, táppénz napok: ${tappenzNapokSzama}, beosztott: ${beosztottMuszakNapok} × 12 = ${haviMunkaOra} óra, óradíj: ${Math.round(oradij)} Ft`);
+        console.log(`[Betegszabadság ${honapNev}] Éves keret: 15 nap, felhasznált: ${felhasznalt}, maradék: ${maradekKeret}`);
+      }
 
-      const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
+      const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
 
       const betegszabOra = betegszabNapok * 8;
       const osszeg = Math.round(betegszabOra * oradij * 0.7);
 
-      console.log(`[Betegszabadság] Betegszabadság napok: ${betegszabNapok} (= ${betegszabOra} óra), összeg: ${osszeg} Ft`);
+      if (isAktiv) {
+        console.log(`[Betegszabadság ${honapNev}] Napok: ${betegszabNapok} (= ${betegszabOra} óra), összeg: ${osszeg} Ft`);
+      }
 
       return osszeg;
 
@@ -2167,11 +2174,13 @@ class BerszamfejtoCalculator {
 
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 15 - felhasznalt);
-      const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
+      const isAktiv = (monthIndex === this.app.currentMonth && year === this.app.currentYear);
+      const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
+      const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
 
       const osszeg = Math.round(tappenzNapok * napiAlap * 0.6);
 
-      console.log(`[Táppénz] Előző évi kereset: ${Math.round(evesOsszKereset)} Ft, napi alap: ${Math.round(napiAlap)} Ft, táppénzes napok: ${tappenzNapok}, összeg: ${osszeg} Ft`);
+      if (isAktiv) console.log(`[Táppénz ${honapNev}] Előző évi kereset: ${Math.round(evesOsszKereset)} Ft, napi alap: ${Math.round(napiAlap)} Ft, táppénzes napok: ${tappenzNapok}, összeg: ${osszeg} Ft`);
 
       return osszeg;
     } catch (error) {
@@ -2214,14 +2223,16 @@ class BerszamfejtoCalculator {
 
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 15 - felhasznalt);
+      const isAktiv = (monthIndex === this.app.currentMonth && year === this.app.currentYear);
+      const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
 
-      const { betegszabNapok, tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
+      const { betegszabNapok, tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
 
       const betegszabPotlek = betegszabNapok * 8 * potlekOradij * 0.7;
       const tappenzPotlek = tappenzNapok * 8 * potlekOradij * 0.6;
       const osszeg = Math.round(betegszabPotlek + tappenzPotlek);
 
-      console.log(`[Pótlék TD] Pótlék óradíj: ${Math.round(potlekOradij)} Ft/óra, betegszab: ${betegszabNapok} nap, táppénz: ${tappenzNapok} nap, összeg: ${osszeg} Ft`);
+      if (isAktiv) console.log(`[Pótlék TD ${honapNev}] Pótlék óradíj: ${Math.round(potlekOradij)} Ft/óra, betegszab: ${betegszabNapok} nap, táppénz: ${tappenzNapok} nap, összeg: ${osszeg} Ft`);
 
       return osszeg;
     } catch (error) {
