@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -147,6 +147,7 @@
         <!-- Műszakrend -->
         <div class="setting-group">
         <h3>Műszakrend</h3>
+        <div style="padding-top: 12px;">
         <select id="shift-pattern-select" class="mobile-button">
             <option value="-">Üres naptár</option>
             <option value="1">1. Műszakrend</option>
@@ -157,31 +158,59 @@
             <option value="B">B Műszakrend</option>
             <option value="C">C Műszakrend</option>
         </select>
+        <div class="save" style="padding-top: 10px; padding-bottom: 14px; text-align: center;">
+        <button id="save-settings" class="mobile-button">Műszak mentése</button>
+        </div>
+        </div>
         </div>
 
-        <!-- Besorolási bér -->
+        
+
+        <!-- Alapadatok -->
         <div class="setting-group">
-        <h3>Besorolási bér</h3>
-        <div style="position: relative;">
-            <input
-                type="number"
-                id="base-salary"
-                class="mobile-button salary-input"
-                placeholder="Besorolási bér"
-                style="padding-right: 45px;"
-            />
+        <h3>Alapadatok</h3>
+        <div style="padding-top: 12px;">
+
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <label style="flex: 1; font-size: 16px; color: var(--text-primary); text-align: center;">Besorolási bér</label>
+                <div style="position: relative; flex: 1;">
+                    <input
+                        type="number"
+                        id="base-salary"
+                        class="mobile-button salary-input"
+                        placeholder="Ft"
+                        style="padding-right: 45px;"
+                    />
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <label style="flex: 1; font-size: 16px; color: var(--text-primary); text-align: center;">Éves szabadság</label>
+                <div style="flex: 1;">
+                    <input type="number" id="vacation-days" class="mobile-button" placeholder="nap" step="0.5">
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <label style="flex: 1; font-size: 16px; color: var(--text-primary); text-align: center;">Gyermekek száma</label>
+                <div style="flex: 1;">
+                    <input type="number" id="children-count" class="mobile-button" placeholder="fő" min="0" max="99"/>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label style="flex: 1; font-size: 16px; color: var(--text-primary); text-align: center;">Egyéb jövedelem (Nettó)</label>
+                <div style="flex: 1;">
+                    <input type="number" id="other-income" class="mobile-button" placeholder="Ft"/>
+                </div>
+            </div>
+
         </div>
-        </div>
-        <div class="setting-group">
-            <h3>Éves szabadság</h3>
-            <input type="number" id="vacation-days" class="mobile-button" placeholder="Éves szabadságnapok" step="0.5">
         </div>
 
         <div class="setting-group">
             <h3>🔄 Évközi műszakváltás</h3>            
-            <div style="margin-top: 10px">
-                <h4 style="margin-bottom: 10px; color: white;">Új műszakváltás hozzáadása</h4>
-                
+            <div style="margin-top: 10px">                
                 <!-- Dátum választók egy sorban -->
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                 <select
@@ -239,55 +268,41 @@
 
         <!-- Évközi változás -->
         <div class="setting-group">
-        <div style="margin-top: 10px">
-            <h3>Évközi bérváltozás beállítása</h3>
-            <select
-            id="midyear-month"
-            class="mobile-button"
-            style="width: 49%; display: inline-block; color: grey"
-            >
-            <option value="">Hónap...</option>
-            <option value="0">Január</option>
-            <option value="1">Február</option>
-            <option value="2">Március</option>
-            <option value="3">Április</option>
-            <option value="4">Május</option>
-            <option value="5">Június</option>
-            <option value="6">Július</option>
-            <option value="7">Augusztus</option>
-            <option value="8">Szeptember</option>
-            <option value="9">Október</option>
-            <option value="10">November</option>
-            <option value="11">December</option>
-            </select>
-            <input
-            type="number"
-            id="midyear-salary"
-            class="mobile-button"
-            placeholder="Új besorolási bér"
-            style="width: 49%; display: inline-block"
-            />
+        <h3>Évközi bérváltozás beállítása</h3>
+        <div style="padding-top: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <select
+                id="midyear-month"
+                class="mobile-button"
+                style="flex: 1; color: grey"
+                >
+                <option value="">Hónap...</option>
+                <option value="0">Január</option>
+                <option value="1">Február</option>
+                <option value="2">Március</option>
+                <option value="3">Április</option>
+                <option value="4">Május</option>
+                <option value="5">Június</option>
+                <option value="6">Július</option>
+                <option value="7">Augusztus</option>
+                <option value="8">Szeptember</option>
+                <option value="9">Október</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+                </select>
+                <input
+                type="number"
+                id="midyear-salary"
+                class="mobile-button"
+                placeholder="Új besorolási bér"
+                style="flex: 1"
+                />
+            </div>
+            <button id="add-midyear-change" class="mobile-button">
+                Évközi változás hozzáadása
+            </button>
+            <div id="midyear-changes-list" style="margin-top: 10px"></div>
         </div>
-        <button id="add-midyear-change" class="mobile-button">
-            Évközi változás hozzáadása
-        </button>
-        <div id="midyear-changes-list" style="margin-top: 10px"></div>
-        </div>
-
-        <div class="setting-group">
-            <h3>Családi adókedvezmény</h3>
-            <input type="number" id="children-count" class="mobile-button" placeholder="Gyermekek száma" min="0" max="99"/>
-        </div>
-
-        <!-- Egyéb jövedelem -->
-        <div class="setting-group">
-        <h3>Egyéb jövedelem</h3>
-        <input
-            type="number"
-            id="other-income"
-            class="mobile-button"
-            placeholder="Egyéb jövedelem"
-        />
         </div>
 
         <!-- 25 év alatti kedvezmény -->
@@ -337,7 +352,6 @@
         
         <!-- Teljes backup -->
         <div style="margin-bottom: 15px;">
-            <h4 style="color: #2980b9; margin-bottom: 10px;">🔄 Adatok mentése/betöltése</h4>
             <button id="export-all-btn" class="mobile-button" style="background-color: #27ae60; color: white; margin-bottom: 5px;">
             📤 Adatok mentése
             </button>
@@ -478,11 +492,6 @@
             </div>
         </div>
         </div>
-
-        <!-- Mentés gomb --> 
-        <div class="save">
-        <button id="save-settings" class="mobile-button">Mentés</button>
-        </div>
     </div>
 
     <div id="help-section" class="section">
@@ -490,7 +499,18 @@
         <h2 style="font-size: 28px; color: #2c3e50; margin-bottom: 30px;">
             📚 Súgó és Információk
         </h2>
-        
+
+        <!-- EMAIL KAPCSOLAT -->
+        <div style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); border-radius: 12px; padding: 20px 25px; margin-bottom: 25px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+            <p style="color: white; font-size: 16px; margin: 0 0 12px 0;">
+                💡 Ha ötlete vagy javaslata van a program fejlesztésével kapcsolatban, írja meg e-mailben!
+            </p>
+            <a href="mailto:infomuszaknaptar@gmail.com" 
+               style="display: inline-block; background: white; color: #27ae60; font-weight: bold; font-size: 15px; padding: 10px 22px; border-radius: 8px; text-decoration: none;">
+                ✉️ infomuszaknaptar@gmail.com
+            </a>
+        </div>
+
         <!-- 1. PROGRAM HASZNÁLATA -->
         <div class="info-accordion-item" style="margin-bottom: 15px;">
             <div class="info-accordion-header" onclick="toggleAccordion('usage')" 
