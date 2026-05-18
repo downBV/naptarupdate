@@ -1911,7 +1911,8 @@ class BerszamfejtoCalculator {
     return felhasznalt;
   }
 
-  // SEGÉDFÜGGVÉNY: Az előző hónap végén folyt-e még a táppénz (átnyúlás)?
+  // SEGÉDFÜGGVÉNY: Az előző hónap végén folyt-e még a táppénz?
+  // Visszaad: { folytatodas: bool, elozoHonapKezdoNap: nap száma vagy null, elozoHonapKezdoEv: év, elozoHonapKezdoHonap: hónap }
   isTappenzFolytatodas(monthIndex, year) {
     let prevMonth = monthIndex - 1;
     let prevYear = year;
@@ -1920,13 +1921,67 @@ class BerszamfejtoCalculator {
     const prevMonthData = this.app.yearlyData[prevYear]?.calendar_data[prevMonth] || {};
     const daysInPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
 
+    let tappenzTalalt = false;
     for (let d = daysInPrevMonth; d >= 1; d--) {
       const shift = prevMonthData[d] || "";
-      if (shift.includes("Táppénz vége")) return false;
-      if (shift.includes("Táppénz")) return true;
-      if (shift && shift !== " ") return false;
+      if (shift.includes("Táppénz vége")) return { folytatodas: false };
+      if (shift.includes("Táppénz")) { tappenzTalalt = true; }
+      else if (tappenzTalalt && shift && shift !== " ") {
+        // Volt táppénz és most más műszak jön visszafelé haladva → ez a betegség kezdete utáni nap
+        break;
+      }
     }
-    return false;
+
+    if (!tappenzTalalt) return { folytatodas: false };
+
+    // Megkeressük a betegség kezdőnapját az előző hónapban (vagy még korábbi hónapban)
+    const kezdoNap = this.getTappenzKezdoNap(prevMonth, prevYear);
+    return {
+      folytatodas: true,
+      kezdoNap: kezdoNap.nap,
+      kezdoHonap: kezdoNap.honap,
+      kezdoEv: kezdoNap.ev
+    };
+  }
+
+  // SEGÉDFÜGGVÉNY: Megkeresi a táppénz időszak legelső napját visszamenőleg
+  getTappenzKezdoNap(monthIndex, year) {
+    let m = monthIndex;
+    let y = year;
+
+    while (true) {
+      const monthData = this.app.yearlyData[y]?.calendar_data[m] || {};
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      let elsoTappenz = null;
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const shift = monthData[d] || "";
+        if (shift.includes("Táppénz")) {
+          if (elsoTappenz === null) elsoTappenz = d;
+        } else if (elsoTappenz !== null && shift && shift !== " ") {
+          // Megszakítás → az elsoTappenz az igazi kezdőnap
+          return { nap: elsoTappenz, honap: m, ev: y };
+        }
+      }
+
+      if (elsoTappenz !== null) {
+        // Megnézzük az előző hónapot is — hátha ott is folytatódott
+        let prevM = m - 1; let prevY = y;
+        if (prevM < 0) { prevM = 11; prevY--; }
+        const prevData = this.app.yearlyData[prevY]?.calendar_data[prevM] || {};
+        const daysInPrev = new Date(prevY, prevM + 1, 0).getDate();
+        const lastShift = prevData[daysInPrev] || "";
+
+        // Ha az előző hónap utolsó napja is táppénz volt → menjünk még visszább
+        if (lastShift.includes("Táppénz") && !lastShift.includes("Táppénz vége")) {
+          m = prevM; y = prevY;
+          continue;
+        }
+        return { nap: elsoTappenz, honap: m, ev: y };
+      }
+
+      return { nap: 1, honap: m, ev: y }; // fallback
+    }
   }
 
   // SEGÉDFÜGGVÉNY: Egy hónap táppénz/betegszabadság napjainak kiszámítása adott maradék kerettel
@@ -1949,17 +2004,35 @@ class BerszamfejtoCalculator {
 
     const idoszakok = this.getTappenzPeriods(tappenzNapok, monthData);
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-    const folytatodas = this.isTappenzFolytatodas(monthIndex, year);
+    const folytatodasInfo = this.isTappenzFolytatodas(monthIndex, year);
+    const folytatodas = folytatodasInfo.folytatodas;
+
+    // Ha folytatás: kiszámoljuk hány naptári nap telt már el a 15-ből az előző hónap(ok)ban
+    let elozoHonapbanElfogyott15 = 0;
+    if (folytatodas) {
+      const kezdoEv = folytatodasInfo.kezdoEv;
+      const kezdoHonap = folytatodasInfo.kezdoHonap;
+      const kezdoNapszam = folytatodasInfo.kezdoNap;
+
+      // Megszámoljuk hány naptári nap telt el a betegség kezdetétől az előző hónap végéig
+      let m = kezdoHonap;
+      let y = kezdoEv;
+      let elsoNap = kezdoNapszam;
+
+      while (!(m === monthIndex && y === year)) {
+        const daysInM = new Date(y, m + 1, 0).getDate();
+        elozoHonapbanElfogyott15 += (daysInM - elsoNap + 1);
+        elsoNap = 1;
+        m++; if (m > 11) { m = 0; y++; }
+      }
+    }
 
     let betegszabNapok = 0;
     let tappenzNapokDb = 0;
     let keretMaradek = maradekKeret;
 
     idoszakok.forEach((idoszak, idoszakIndex) => {
-      // Folytatás esetén (első időszak + előző hónapból nyúlik át)
       const elsoIdoszakFolytatodas = (idoszakIndex === 0 && folytatodas);
-
-      // Folytatás esetén 1-jétől számolunk, nem az első bejelölt naptól
       const kezdoNap = elsoIdoszakFolytatodas ? 1 : idoszak[0].nap;
       const utolsoJeloltNap = idoszak[idoszak.length - 1].nap;
       const utolsoJeloltShift = monthData[utolsoJeloltNap] || "";
@@ -1968,17 +2041,34 @@ class BerszamfejtoCalculator {
         ? utolsoJeloltNap
         : daysInMonth;
 
-      // tizenototodikNap = 0 ha folytatás → minden nap "15 után" van
-      const tizenototodikNap = elsoIdoszakFolytatodas ? 0 : kezdoNap + 14;
+      // 15 napos határ: ha folytatás, figyelembe vesszük az előző hónapban eltelt napokat
+      // tizenototodikNap = az a nap ameddig az "első 15 naptári nap" tart
+      // Ha az előző hónapban már eltelt pl. 11 nap → csak 4 nap van még hátra ebben a hónapban
+      let tizenototodikNap;
+      if (elsoIdoszakFolytatodas) {
+        const maradek15 = 15 - elozoHonapbanElfogyott15;
+        tizenototodikNap = maradek15 <= 0 ? 0 : kezdoNap + maradek15 - 1;
+      } else {
+        tizenototodikNap = kezdoNap + 14;
+      }
 
-      console.log(`[TappenzReszletek] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}`);
+      console.log(`[TappenzReszletek] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}, 15. nap határa: ${tizenototodikNap}`);
 
       for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
         const napAdata = idoszak.find(t => t.nap === naptariNap);
         const az_elso_15_napon_belul = naptariNap <= tizenototodikNap;
 
+        // 1. PROBLÉMA JAVÍTÁSA:
+        // Beosztott napnak számít ha:
+        // a) A generateShiftPattern szerint műszak lett volna, VAGY
+        // b) A felhasználó manuálisan jelölt be táppénzt arra a napra (napAdata létezik)
+        //    és az originalShift üres/nincs → ez azt jelenti manuálisan lett bejelölve
+        // c) "Táppénz vége műszak" jelzés
+        const originalShift = napAdata?.originalShift || "";
+        const manualTappenz = napAdata && (!originalShift || originalShift === " ");
         const isMuszakNap = napAdata && (
-          (napAdata.originalShift && napAdata.originalShift !== " ") ||
+          (originalShift && originalShift !== " ") ||
+          manualTappenz ||
           (monthData[naptariNap] || "").includes("Táppénz vége műszak")
         );
 
