@@ -2103,41 +2103,87 @@ class BerszamfejtoCalculator {
   }
 
   // 3. TÁPPÉNZ ELLÁTÁS SZÁMÍTÁSA (TB által folyósított 60%)
-  // Alap: előző naptári év összes bruttó keresete ÷ 365 × 60%
+  // Alap: táppénz kezdőnapját megelőző 3. hónap utolsó napjától visszafelé 180 naptári nap
+  // De legfeljebb a táppénz kezdőnapját megelőző naptári év január 1-jéig
   calculateTappenzTavolletiDij(monthIndex, year) {
     try {
-      const prevYear = year - 1;
-      let evesOsszKereset = 0;
-      let vanElozoEvesAdat = false;
+      const isAktiv = (monthIndex === this.app.currentMonth && year === this.app.currentYear);
+      const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
 
-      // Előző naptári év összes hónapjának bruttó bére
-      for (let m = 0; m < 12; m++) {
-        if (this.app.yearlyData[prevYear]?.calendar_data?.[m]) {
-          vanElozoEvesAdat = true;
-          // Bruttó bér táppénz nélkül (TB nem számítja bele a táppénzt az alapba)
-          const bruttoHavi = this.calculateMonthlyValue("Bruttó bér", m, prevYear)
-            - this.calculateTappenzTavolletiDij_Aktualis(m, prevYear);
-          evesOsszKereset += bruttoHavi;
+      // 1. Táppénz kezdőnapjának meghatározása az adott hónapban
+      const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
+      let tappenzKezdete = null;
+
+      // Ha folytatás az előző hónapból, visszakeressük az eredeti kezdőnapot
+      const folytatodasInfo = this.isTappenzFolytatodas(monthIndex, year);
+      if (folytatodasInfo.folytatodas) {
+        const kezdo = this.getTappenzKezdoNap(monthIndex, year);
+        tappenzKezdete = new Date(Date.UTC(kezdo.ev, kezdo.honap, kezdo.nap));
+      } else {
+        // Az adott hónapban keressük az első táppénz napot
+        const napok = Object.entries(monthData)
+          .filter(([, v]) => v && v.includes("Táppénz"))
+          .map(([d]) => parseInt(d))
+          .sort((a, b) => a - b);
+        if (napok.length === 0) return 0;
+        tappenzKezdete = new Date(Date.UTC(year, monthIndex, napok[0]));
+      }
+
+      // 2. Vizsgált időszak meghatározása
+      // Záródátum: táppénz kezdőnapját megelőző 3. hónap utolsó napja
+      const zaroHonap = new Date(Date.UTC(tappenzKezdete.getUTCFullYear(), tappenzKezdete.getUTCMonth() - 3, 1));
+      const zaroDatum = new Date(Date.UTC(zaroHonap.getUTCFullYear(), zaroHonap.getUTCMonth() + 1, 0)); // hónap utolsó napja
+
+      // Kezdődátum: zaroDatumtól visszafelé 180 nap
+      const kezdoDatum = new Date(zaroDatum);
+      kezdoDatum.setUTCDate(kezdoDatum.getUTCDate() - 179); // 180 nap = zaroDatum + 179 nap visszafelé
+
+      // Korlát: táppénz kezdőnapját megelőző naptári év január 1.
+      const korlat = new Date(Date.UTC(tappenzKezdete.getUTCFullYear() - 1, 0, 1));
+      if (kezdoDatum < korlat) kezdoDatum.setTime(korlat.getTime());
+
+      if (isAktiv) console.log(`[Táppénz ${honapNev}] Táppénz kezdete: ${tappenzKezdete.toISOString().slice(0,10)}, vizsgált időszak: ${kezdoDatum.toISOString().slice(0,10)} – ${zaroDatum.toISOString().slice(0,10)}`);
+
+      // 3. Tényleges napok száma a vizsgált időszakban
+      const vizsgaltNapok = Math.round((zaroDatum - kezdoDatum) / (1000 * 60 * 60 * 24)) + 1;
+
+      // 4. Bruttó kereset összesítése a vizsgált időszakra (arányosan havi bontásban)
+      let osszKereset = 0;
+
+      let datum = new Date(kezdoDatum);
+      while (datum <= zaroDatum) {
+        const ev = datum.getUTCFullYear();
+        const honap = datum.getUTCMonth();
+        const daysInMonth = new Date(Date.UTC(ev, honap + 1, 0)).getUTCDate();
+
+        // Hány nap esik ebből a hónapból a vizsgált időszakra
+        const honapKezdete = new Date(Date.UTC(ev, honap, 1));
+        const honapVege = new Date(Date.UTC(ev, honap, daysInMonth));
+        const idoszakKezdete = datum > honapKezdete ? datum : honapKezdete;
+        const idoszakVege = zaroDatum < honapVege ? zaroDatum : honapVege;
+        const napokSzama = Math.round((idoszakVege - idoszakKezdete) / (1000 * 60 * 60 * 24)) + 1;
+
+        // Arányos bruttó (táppénz nélkül)
+        if (this.app.yearlyData[ev]?.calendar_data?.[honap]) {
+          const bruttoHavi = this.calculateMonthlyValue("Bruttó bér", honap, ev)
+            - this.calculateTappenzTavolletiDij_Aktualis(honap, ev);
+          osszKereset += bruttoHavi * (napokSzama / daysInMonth);
         }
+
+        // Következő hónap első napjára ugrunk
+        datum = new Date(Date.UTC(ev, honap + 1, 1));
       }
 
-      // Ha nincs előző éves adat, aktuális bérrel számolunk (fallback)
-      if (!vanElozoEvesAdat) {
-        return this.calculateTappenzTavolletiDij_Aktualis(monthIndex, year);
-      }
-
-      // Napi táppénz alap: éves kereset ÷ 365
-      const napiAlap = evesOsszKereset / 365;
+      // 5. Napi táppénz alap = összes kereset ÷ vizsgált napok száma
+      const napiAlap = vizsgaltNapok > 0 ? osszKereset / vizsgaltNapok : 0;
 
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 10 - felhasznalt);
-      const isAktiv = (monthIndex === this.app.currentMonth && year === this.app.currentYear);
-      const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
       const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
 
       const osszeg = Math.round(tappenzNapok * napiAlap * 0.6);
 
-      if (isAktiv) console.log(`[Táppénz ${honapNev}] Előző évi kereset: ${Math.round(evesOsszKereset)} Ft, napi alap: ${Math.round(napiAlap)} Ft, táppénzes napok: ${tappenzNapok}, összeg: ${osszeg} Ft`);
+      if (isAktiv) console.log(`[Táppénz ${honapNev}] Vizsgált napok: ${vizsgaltNapok}, összes kereset: ${Math.round(osszKereset)} Ft, napi alap: ${Math.round(napiAlap)} Ft, táppénzes napok: ${tappenzNapok}, összeg: ${osszeg} Ft`);
 
       return osszeg;
     } catch (error) {
