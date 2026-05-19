@@ -1890,7 +1890,6 @@ class BerszamfejtoCalculator {
       const szabadsagTavolletiDij = this.calculateSzabadsagTavolletiDij(monthIndex, year);
       const betegTappenzPotlekTD = this.calculateBetegTappenzPotlekTD(monthIndex, year);
 
-      console.log(`[TD] Szabadság TD: ${szabadsagTavolletiDij} Ft, Beteg/táppénz pótlék TD: ${betegTappenzPotlekTD} Ft`);
 
       return szabadsagTavolletiDij + betegTappenzPotlekTD;
 
@@ -1990,8 +1989,7 @@ class BerszamfejtoCalculator {
 
   // SEGÉDFÜGGVÉNY: Egy hónap táppénz/betegszabadság napjainak kiszámítása adott maradék kerettel
   // Visszaad: { betegszabNapok, tappenzNapok } (napok száma, nem forint)
-  calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv = false) {
-    const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
+  calculateHaviTappenzReszletek(monthIndex, year, maradekKeret) {
     const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
 
     let tappenzNapok = [];
@@ -2028,7 +2026,6 @@ class BerszamfejtoCalculator {
         ? utolsoJeloltNap
         : daysInMonth;
 
-      if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}, keret: ${keretOra} óra`);
 
       for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
         const napAdata = idoszak.find(t => t.nap === naptariNap);
@@ -2056,7 +2053,6 @@ class BerszamfejtoCalculator {
       }
     });
 
-    if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Eredmény: betegszab=${betegszabNapok}, táppénz=${tappenzNapokDb}, maradék keret: ${keretOra} óra`);
     return { betegszabNapok, tappenzNapok: tappenzNapokDb };
   }
 
@@ -2065,8 +2061,6 @@ class BerszamfejtoCalculator {
     try {
       const besorolas = this.getEffectiveSalary(year, monthIndex);
       const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
-      const isAktiv = (monthIndex === this.app.currentMonth && year === this.app.currentYear);
-      const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
 
       // Ledolgozandó napok × 12 = havi beosztott munkaóra (tartalmazza a táppénzes napokat is)
       const ledolgozando = this.calculateMonthlyValue("Ledolgozandó napok", monthIndex, year);
@@ -2077,23 +2071,13 @@ class BerszamfejtoCalculator {
       const oradij = besorolas / haviMunkaOra;
 
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
-      const maradekKeret = Math.max(0, 10 - felhasznalt); // 120 óra ÷ 12 óra/nap = 10 nap
+      const maradekKeret = Math.max(0, 10 - felhasznalt);
 
-      if (isAktiv) {
-        console.log(`[Betegszabadság ${honapNev}] Ledolgozandó: ${ledolgozando} × 12 = ${haviMunkaOra} óra, óradíj: ${Math.round(oradij)} Ft`);
-        console.log(`[Betegszabadság ${honapNev}] Éves keret: 10 nap (120 óra), felhasznált: ${felhasznalt}, maradék: ${maradekKeret}`);
-      }
+      const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
 
-      const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
-
-      // 12 órás munkarendben 1 betegszabadság nap = 12 óra (nem 8!)
-      // A törvény 8 órás napokban méri a keretet, de a kifizetés a tényleges műszakhosszal számol
       const betegszabOra = betegszabNapok * 12;
       const osszeg = Math.round(betegszabOra * oradij * 0.7);
 
-      if (isAktiv) {
-        console.log(`[Betegszabadság ${honapNev}] Napok: ${betegszabNapok} (= ${betegszabOra} óra), összeg: ${osszeg} Ft`);
-      }
       return osszeg;
 
     } catch (error) {
@@ -2107,8 +2091,6 @@ class BerszamfejtoCalculator {
   // De legfeljebb a táppénz kezdőnapját megelőző naptári év január 1-jéig
   calculateTappenzTavolletiDij(monthIndex, year) {
     try {
-      const isAktiv = (monthIndex === this.app.currentMonth && year === this.app.currentYear);
-      const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
 
       // 1. Táppénz kezdőnapjának meghatározása az adott hónapban
       const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
@@ -2142,7 +2124,6 @@ class BerszamfejtoCalculator {
       const korlat = new Date(Date.UTC(tappenzKezdete.getUTCFullYear() - 1, 0, 1));
       if (kezdoDatum < korlat) kezdoDatum.setTime(korlat.getTime());
 
-      if (isAktiv) console.log(`[Táppénz ${honapNev}] Táppénz kezdete: ${tappenzKezdete.toISOString().slice(0,10)}, vizsgált időszak: ${kezdoDatum.toISOString().slice(0,10)} – ${zaroDatum.toISOString().slice(0,10)}`);
 
       // 3. Tényleges napok száma a vizsgált időszakban
       const vizsgaltNapok = Math.round((zaroDatum - kezdoDatum) / (1000 * 60 * 60 * 24)) + 1;
@@ -2179,11 +2160,10 @@ class BerszamfejtoCalculator {
 
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 10 - felhasznalt);
-      const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
+      const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
 
       const osszeg = Math.round(tappenzNapok * napiAlap * 0.6);
 
-      if (isAktiv) console.log(`[Táppénz ${honapNev}] Vizsgált napok: ${vizsgaltNapok}, összes kereset: ${Math.round(osszKereset)} Ft, napi alap: ${Math.round(napiAlap)} Ft, táppénzes napok: ${tappenzNapok}, összeg: ${osszeg} Ft`);
 
       return osszeg;
     } catch (error) {
@@ -2226,17 +2206,14 @@ class BerszamfejtoCalculator {
 
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 10 - felhasznalt);
-      const isAktiv = (monthIndex === this.app.currentMonth && year === this.app.currentYear);
-      const honapNev = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
 
-      const { betegszabNapok, tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
+      const { betegszabNapok, tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
 
       // 12 órás munkarendben 1 nap = 12 óra
       const betegszabPotlek = betegszabNapok * 12 * potlekOradij * 0.7;
       const tappenzPotlek = tappenzNapok * 12 * potlekOradij * 0.6;
       const osszeg = Math.round(betegszabPotlek + tappenzPotlek);
 
-      if (isAktiv) console.log(`[Pótlék TD ${honapNev}] Pótlék óradíj: ${Math.round(potlekOradij)} Ft/óra, betegszab: ${betegszabNapok} nap, táppénz: ${tappenzNapok} nap, összeg: ${osszeg} Ft`);
 
       return osszeg;
     } catch (error) {
@@ -4087,6 +4064,16 @@ class BerszamfejtoApp {
       if (otherIncomeInput && this.yearlyData[this.currentYear]?.settings) {
         otherIncomeInput.value =
           this.yearlyData[this.currentYear].settings.other_income || "0";
+
+        // Auto-save hozzáadása
+        otherIncomeInput.addEventListener("input", () => {
+          if (this.yearlyData[this.currentSettingsYear]?.settings) {
+            this.yearlyData[this.currentSettingsYear].settings.other_income =
+              otherIncomeInput.value || "0";
+            this.saveYearlyData();
+            this.generatePayrollTable();
+          }
+        });
       }
 
       // 25 év alatti beállítások betöltése
@@ -5999,6 +5986,9 @@ class BerszamfejtoApp {
           input.addEventListener("change", (e) => {
             window.validateBonus(e.target, this.currentPayrollMonth);
           });
+          input.addEventListener("input", (e) => {
+            window.validateBonus(e.target, this.currentPayrollMonth);
+          });
         } else if (item.label === "Éttermi fogyasztás") {
           const input = document.createElement("input");
           input.type = "number";
@@ -6016,6 +6006,9 @@ class BerszamfejtoApp {
           input.addEventListener("change", (e) => {
             window.validateRestaurant(e.target, this.currentPayrollMonth);
           });
+          input.addEventListener("input", (e) => {
+            window.validateRestaurant(e.target, this.currentPayrollMonth);
+          });
         } else if (item.label === "Egyéb jövedelem") {
           const input = document.createElement("input");
           input.type = "number";
@@ -6031,6 +6024,9 @@ class BerszamfejtoApp {
           valueCell.appendChild(input);
 
           input.addEventListener("change", (e) => {
+            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth);
+          });
+          input.addEventListener("input", (e) => {
             window.validateEgyebJovedelem(e.target, this.currentPayrollMonth);
           });
         } else {
