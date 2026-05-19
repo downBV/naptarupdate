@@ -137,6 +137,8 @@ const SHIFT_COLORS = {
   Túlóra: ["#FF0000", "white"],
   Csúszó: ["#DDA0DD", "black"],
   Táppénz: ["#000000", "white"],
+  "Táppénz kezdete műszak": ["#1a1a1a", "white"],
+  "Táppénz kezdete szabadnap": ["#2d2d2d", "white"],
   "Táppénz vége szabadnap": ["#444444", "white"],
   "Táppénz vége műszak": ["#666666", "white"],
 };
@@ -1214,7 +1216,8 @@ class BerszamfejtoCalculator {
           shiftValue.includes("Szabadság") ||
           shiftValue.includes("Csúszó") ||
           shiftValue.includes("Táppénz vége műszak") ||
-          (shiftValue.includes("Táppénz") && !shiftValue.includes("Táppénz vége"))
+          shiftValue.includes("Táppénz kezdete műszak") ||
+          (shiftValue.includes("Táppénz") && !shiftValue.includes("Táppénz vége") && !shiftValue.includes("Táppénz kezdete"))
         ) {
           ledolgozando += 1;
         }
@@ -2072,7 +2075,8 @@ class BerszamfejtoCalculator {
         const isMuszakNap = napAdata && (
           (originalShift && originalShift !== " ") ||
           manualTappenz ||
-          (monthData[naptariNap] || "").includes("Táppénz vége műszak")
+          (monthData[naptariNap] || "").includes("Táppénz vége műszak") ||
+          (monthData[naptariNap] || "").includes("Táppénz kezdete műszak")
         );
 
         if (keretMaradek <= 0) {
@@ -2342,14 +2346,15 @@ class BerszamfejtoCalculator {
       const shiftValue = monthData[jelenlegiNap.nap] || "";
 
       if (jelenlegiIdoszak.length === 0) {
-        // ELSŐ táppénzes nap - új időszak kezdete
+        // Első táppénzes nap — új időszak kezdete
         jelenlegiIdoszak.push(jelenlegiNap);
       } else {
         const elozoNap = jelenlegiIdoszak[jelenlegiIdoszak.length - 1];
         const elozoShift = monthData[elozoNap.nap] || "";
 
-        // Ha az előző nap "Táppénz vége" volt (bármelyik típus), új időszak kezdődik
-        if (elozoShift.includes("Táppénz vége")) {
+        // Ha az előző nap "Táppénz vége" volt → új időszak
+        // Ha a jelenlegi nap "Táppénz kezdete" → új időszak
+        if (elozoShift.includes("Táppénz vége") || shiftValue.includes("Táppénz kezdete")) {
           tappenzIdoszakok.push([...jelenlegiIdoszak]);
           jelenlegiIdoszak = [jelenlegiNap];
         } else {
@@ -2370,7 +2375,7 @@ class BerszamfejtoCalculator {
       }
     }
 
-    // Utolsó időszak lezárása (ha nincs "Táppénz vége" jelzés)
+    // Utolsó időszak lezárása
     if (jelenlegiIdoszak.length > 0) {
       tappenzIdoszakok.push(jelenlegiIdoszak);
     }
@@ -4832,6 +4837,8 @@ class BerszamfejtoApp {
             "Szabadság 8 óra + Csúszó 4 óra éj",
             "Szabadság 4 óra + Csúszó 8 óra",
             "Szabadság 4 óra + Csúszó 8 óra éj",
+            "Táppénz kezdete műszak",
+            "Táppénz kezdete szabadnap",
             "Táppénz",
             "Táppénz vége szabadnap",
             "Táppénz vége műszak",
