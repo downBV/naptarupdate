@@ -1907,7 +1907,6 @@ class BerszamfejtoCalculator {
     let felhasznalt = 0;
 
     for (let m = 0; m < monthIndex; m++) {
-      const monthData = this.app.yearlyData[year]?.calendar_data[m] || {};
       const { betegszabNapok } = this.calculateHaviTappenzReszletek(m, year, BETEGSZAB_KERET_NAP - felhasznalt);
       felhasznalt += betegszabNapok;
       if (felhasznalt >= BETEGSZAB_KERET_NAP) { felhasznalt = BETEGSZAB_KERET_NAP; break; }
@@ -2013,29 +2012,11 @@ class BerszamfejtoCalculator {
     const folytatodasInfo = this.isTappenzFolytatodas(monthIndex, year);
     const folytatodas = folytatodasInfo.folytatodas;
 
-    // Ha folytatás: kiszámoljuk hány naptári nap telt már el a 15-ből az előző hónap(ok)ban
-    let elozoHonapbanElfogyott15 = 0;
-    if (folytatodas) {
-      const kezdoEv = folytatodasInfo.kezdoEv;
-      const kezdoHonap = folytatodasInfo.kezdoHonap;
-      const kezdoNapszam = folytatodasInfo.kezdoNap;
-
-      // Megszámoljuk hány naptári nap telt el a betegség kezdetétől az előző hónap végéig
-      let m = kezdoHonap;
-      let y = kezdoEv;
-      let elsoNap = kezdoNapszam;
-
-      while (!(m === monthIndex && y === year)) {
-        const daysInM = new Date(y, m + 1, 0).getDate();
-        elozoHonapbanElfogyott15 += (daysInM - elsoNap + 1);
-        elsoNap = 1;
-        m++; if (m > 11) { m = 0; y++; }
-      }
-    }
+    // Keret ÓRÁBAN: maradekKeret napokban jön (10 nap = 120 óra max)
+    let keretOra = maradekKeret * 12;
 
     let betegszabNapok = 0;
     let tappenzNapokDb = 0;
-    let keretMaradek = maradekKeret;
 
     idoszakok.forEach((idoszak, idoszakIndex) => {
       const elsoIdoszakFolytatodas = (idoszakIndex === 0 && folytatodas);
@@ -2047,60 +2028,35 @@ class BerszamfejtoCalculator {
         ? utolsoJeloltNap
         : daysInMonth;
 
-      // 15 napos határ: ha folytatás, figyelembe vesszük az előző hónapban eltelt napokat
-      // tizenototodikNap = az a nap ameddig az "első 15 naptári nap" tart
-      // Ha az előző hónapban már eltelt pl. 11 nap → csak 4 nap van még hátra ebben a hónapban
-      let tizenototodikNap;
-      if (elsoIdoszakFolytatodas) {
-        const maradek15 = 15 - elozoHonapbanElfogyott15;
-        tizenototodikNap = maradek15 <= 0 ? 0 : kezdoNap + maradek15 - 1;
-      } else {
-        tizenototodikNap = kezdoNap + 14;
-      }
-
-      if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}, 15. nap határa: ${tizenototodikNap}`);
-
-      // Ha az időszak elején már nincs keret → az egész időszak táppénz
-      // (nincs 15 napos szabály, nincs beosztás vizsgálat)
-      if (keretMaradek <= 0) {
-        for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
-          tappenzNapokDb++;
-        }
-        if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap - nincs betegszabadság keret, minden nap táppénz`);
-        return; // forEach-ben return = continue
-      }
+      if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}, keret: ${keretOra} óra`);
 
       for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
         const napAdata = idoszak.find(t => t.nap === naptariNap);
-        const az_elso_15_napon_belul = naptariNap <= tizenototodikNap;
-
+        const shiftErtek = monthData[naptariNap] || "";
         const originalShift = napAdata?.originalShift || "";
-        const manualTappenz = napAdata && (!originalShift || originalShift === " ");
+
+        // Beosztott napnak számít: volt eredeti műszak, vagy manuálisan jelölte be,
+        // vagy Táppénz kezdete/vége műszak opció
         const isMuszakNap = napAdata && (
           (originalShift && originalShift !== " ") ||
-          manualTappenz ||
-          (monthData[naptariNap] || "").includes("Táppénz vége műszak") ||
-          (monthData[naptariNap] || "").includes("Táppénz kezdete műszak")
+          shiftErtek.includes("Táppénz kezdete műszak") ||
+          shiftErtek.includes("Táppénz vége műszak") ||
+          (!originalShift || originalShift === " ")
         );
 
-        if (keretMaradek <= 0) {
-          // Nincs több betegszabadság keret → táppénz minden naptári napra
+        if (keretOra <= 0) {
+          // Nincs betegszabadság keret → táppénz minden naptári napra
           tappenzNapokDb++;
-        } else if (az_elso_15_napon_belul) {
-          // Első 15 naptári napon belül: csak beosztott napok fogyasztják a keretet
-          if (isMuszakNap) {
-            betegszabNapok++;
-            keretMaradek--;
-          }
-        } else {
-          // 15. naptári nap után: minden naptári nap fogyaszt a keretből
+        } else if (isMuszakNap) {
+          // Beosztott nap: 12 óra fogy a keretből → betegszabadság
           betegszabNapok++;
-          keretMaradek--;
+          keretOra -= 12;
         }
+        // Szabadnap és nincs keret sem: nem jár semmi
       }
     });
 
-    if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Eredmény: betegszab=${betegszabNapok}, táppénz=${tappenzNapokDb}`);
+    if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Eredmény: betegszab=${betegszabNapok}, táppénz=${tappenzNapokDb}, maradék keret: ${keretOra} óra`);
     return { betegszabNapok, tappenzNapok: tappenzNapokDb };
   }
 
