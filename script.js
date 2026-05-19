@@ -2060,16 +2060,20 @@ class BerszamfejtoCalculator {
 
       if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap, folytatás: ${elsoIdoszakFolytatodas}, 15. nap határa: ${tizenototodikNap}`);
 
+      // Ha az időszak elején már nincs keret → az egész időszak táppénz
+      // (nincs 15 napos szabály, nincs beosztás vizsgálat)
+      if (keretMaradek <= 0) {
+        for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
+          tappenzNapokDb++;
+        }
+        if (isAktiv) console.log(`[TappenzReszletek ${honapNev}] Időszak ${idoszakIndex+1}: ${kezdoNap}-${vegeNap}. nap - nincs betegszabadság keret, minden nap táppénz`);
+        return; // forEach-ben return = continue
+      }
+
       for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
         const napAdata = idoszak.find(t => t.nap === naptariNap);
         const az_elso_15_napon_belul = naptariNap <= tizenototodikNap;
 
-        // 1. PROBLÉMA JAVÍTÁSA:
-        // Beosztott napnak számít ha:
-        // a) A generateShiftPattern szerint műszak lett volna, VAGY
-        // b) A felhasználó manuálisan jelölt be táppénzt arra a napra (napAdata létezik)
-        //    és az originalShift üres/nincs → ez azt jelenti manuálisan lett bejelölve
-        // c) "Táppénz vége műszak" jelzés
         const originalShift = napAdata?.originalShift || "";
         const manualTappenz = napAdata && (!originalShift || originalShift === " ");
         const isMuszakNap = napAdata && (
@@ -2080,19 +2084,18 @@ class BerszamfejtoCalculator {
         );
 
         if (keretMaradek <= 0) {
+          // Nincs több betegszabadság keret → táppénz minden naptári napra
           tappenzNapokDb++;
         } else if (az_elso_15_napon_belul) {
+          // Első 15 naptári napon belül: csak beosztott napok fogyasztják a keretet
           if (isMuszakNap) {
             betegszabNapok++;
             keretMaradek--;
           }
         } else {
-          if (keretMaradek > 0) {
-            betegszabNapok++;
-            keretMaradek--;
-          } else {
-            tappenzNapokDb++;
-          }
+          // 15. naptári nap után: minden naptári nap fogyaszt a keretből
+          betegszabNapok++;
+          keretMaradek--;
         }
       }
     });
