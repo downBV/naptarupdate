@@ -2120,7 +2120,6 @@ class BerszamfejtoCalculator {
         console.log(`[Betegszabadság ${honapNev}] Ledolgozandó: ${ledolgozando} × 12 = ${haviMunkaOra} óra, óradíj: ${Math.round(oradij)} Ft`);
         console.log(`[Betegszabadság ${honapNev}] Éves keret: 10 nap (120 óra), felhasznált: ${felhasznalt}, maradék: ${maradekKeret}`);
       }
-      }
 
       const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret, isAktiv);
 
