@@ -2330,6 +2330,8 @@ class BerszamfejtoCalculator {
       const betegszabPotlek = betegszabNapok * 12 * potlekOradij * 0.7;
       const osszeg = Math.round(betegszabPotlek);
 
+      console.log(`[BetegTD] pótlék óradíj: ${Math.round(potlekOradij)} Ft/óra, betegszab napok: ${betegszabNapok}, összeg: ${osszeg} Ft`);
+
 
       return osszeg;
     } catch (error) {
