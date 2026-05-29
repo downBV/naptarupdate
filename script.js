@@ -4256,7 +4256,7 @@ class BerszamfejtoApp {
           this.yearlyData[this.currentYear].settings.other_income || "0";
 
         // Auto-save hozzáadása
-        otherIncomeInput.addEventListener("input", () => {
+        otherIncomeInput.addEventListener("blur", () => {
           if (this.yearlyData[this.currentSettingsYear]?.settings) {
             this.yearlyData[this.currentSettingsYear].settings.other_income =
               otherIncomeInput.value || "0";
@@ -6194,7 +6194,7 @@ class BerszamfejtoApp {
           input.addEventListener("change", (e) => {
             window.validateBonus(e.target, this.currentPayrollMonth);
           });
-          input.addEventListener("input", (e) => {
+          input.addEventListener("blur", (e) => {
             window.validateBonus(e.target, this.currentPayrollMonth);
           });
         } else if (item.label === "Éttermi fogyasztás") {
@@ -6214,7 +6214,7 @@ class BerszamfejtoApp {
           input.addEventListener("change", (e) => {
             window.validateRestaurant(e.target, this.currentPayrollMonth);
           });
-          input.addEventListener("input", (e) => {
+          input.addEventListener("blur", (e) => {
             window.validateRestaurant(e.target, this.currentPayrollMonth);
           });
         } else if (item.label === "Egyéb jövedelem") {
@@ -6234,7 +6234,7 @@ class BerszamfejtoApp {
           input.addEventListener("change", (e) => {
             window.validateEgyebJovedelem(e.target, this.currentPayrollMonth);
           });
-          input.addEventListener("input", (e) => {
+          input.addEventListener("blur", (e) => {
             window.validateEgyebJovedelem(e.target, this.currentPayrollMonth);
           });
         } else {
