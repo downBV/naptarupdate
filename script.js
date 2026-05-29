@@ -2038,33 +2038,9 @@ class BerszamfejtoCalculator {
   // 1. FŐ TÁVOLLÉTI DÍJ FÜGGVÉNY (szabadság TD + betegszabadság/táppénz pótlék TD)
   calculateTavolletDij(monthIndex, year) {
     try {
-      const besorolas = this.getEffectiveSalary(year, monthIndex);
-      const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
-      const {atlagEjszakaiPotlek, atlagVasarnapiPotlek} = this.calculateAveragePotlekok(monthIndex, year, besorolas);
-      const potlekOradij = atlagEjszakaiPotlek + atlagVasarnapiPotlek;
-
-      let osszTD = 0;
-
-      // Szabadság napok pótlék TD-je (100%)
-      Object.entries(monthData).forEach(([day, shiftValue]) => {
-        if (!shiftValue || shiftValue === " ") return;
-
-        if (shiftValue.includes("Szabadság")) {
-          let orak = 12;
-          if (shiftValue.includes("8 óra")) orak = 8;
-          if (shiftValue.includes("4 óra")) orak = 4;
-          osszTD += potlekOradij * orak;
-        }
-      });
-
-      // Betegszabadság napok pótlék TD-je (70%)
-      const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
-      const maradekKeret = Math.max(0, 10 - felhasznalt);
-      const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
-      osszTD += betegszabNapok * 12 * potlekOradij * 0.7;
-
-
-      return Math.round(osszTD);
+      const szabadsagTavolletiDij = this.calculateSzabadsagTavolletiDij(monthIndex, year);
+      const betegTappenzPotlekTD = this.calculateBetegTappenzPotlekTD(monthIndex, year);
+      return szabadsagTavolletiDij + betegTappenzPotlekTD;
     } catch (error) {
       console.error("Hiba a távolléti díj számításában:", error);
       return 0;
