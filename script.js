@@ -2441,7 +2441,6 @@ class BerszamfejtoCalculator {
     const atlagVasarnapiPotlek = osszesLedolgozottOra > 0 ? osszesVasarnapiPotlek / osszesLedolgozottOra : 0;
 
     if (monthIndex === this.app.currentMonth && year === this.app.currentYear) {
-      console.log(`[AvgPotlek ${year}/${String(monthIndex+1).padStart(2,"0")}] Rendes muszakora: ${osszesLedolgozottOra}, atlag: ${Math.round(atlagEjszakaiPotlek + atlagVasarnapiPotlek)} Ft/ora`);
     }
 
     return {atlagEjszakaiPotlek, atlagVasarnapiPotlek};
