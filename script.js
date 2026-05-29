@@ -1992,7 +1992,6 @@ class BerszamfejtoCalculator {
       const szabadsagTavolletiDij = this.calculateSzabadsagTavolletiDij(monthIndex, year);
       const betegTappenzPotlekTD = this.calculateBetegTappenzPotlekTD(monthIndex, year);
       const osszeg = szabadsagTavolletiDij + betegTappenzPotlekTD;
-      console.log(`[TD] szabadság: ${szabadsagTavolletiDij}, beteg pótlék: ${betegTappenzPotlekTD}, összesen: ${osszeg}`);
       return osszeg;
     } catch (error) {
       console.error("Hiba a távolléti díj számításában:", error);
@@ -2332,7 +2331,6 @@ class BerszamfejtoCalculator {
       const betegszabPotlek = betegszabNapok * 12 * potlekOradij * 0.7;
       const osszeg = Math.round(betegszabPotlek);
 
-      console.log(`[BetegTD] pótlék óradíj: ${Math.round(potlekOradij)} Ft/óra, betegszab napok: ${betegszabNapok}, összeg: ${osszeg} Ft`);
 
 
       return osszeg;
@@ -2418,7 +2416,11 @@ class BerszamfejtoCalculator {
 
         // Ledolgozott műszakok és túlórák számítanak
         if (isMuszak || isTulora) {
-          osszesLedolgozottOra += orak;
+          // Osztóba csak a rendes beosztás szerinti műszakórák kerülnek (túlóra nélkül)
+          // A törvény szerint a TD pótlék átlagát a rendes munkaidőhöz viszonyítják
+          if (isMuszak) {
+            osszesLedolgozottOra += orak;
+          }
 
           // Éjszakai pótlék: éjszakás műszak vagy éjszakás túlóra
           if (shiftValue.includes("Éjszaka") || shiftValue.includes("éj")) {
@@ -2437,6 +2439,10 @@ class BerszamfejtoCalculator {
     // Átlagos pótlékok Ft/óra értékben
     const atlagEjszakaiPotlek = osszesLedolgozottOra > 0 ? osszesEjszakaiPotlek / osszesLedolgozottOra : 0;
     const atlagVasarnapiPotlek = osszesLedolgozottOra > 0 ? osszesVasarnapiPotlek / osszesLedolgozottOra : 0;
+
+    if (monthIndex === this.app.currentMonth && year === this.app.currentYear) {
+      console.log(`[AvgPotlek ${year}/${String(monthIndex+1).padStart(2,"0")}] Rendes muszakora: ${osszesLedolgozottOra}, atlag: ${Math.round(atlagEjszakaiPotlek + atlagVasarnapiPotlek)} Ft/ora`);
+    }
 
     return {atlagEjszakaiPotlek, atlagVasarnapiPotlek};
   }
