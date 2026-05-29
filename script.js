@@ -2318,15 +2318,23 @@ class BerszamfejtoCalculator {
         const idoszakVege = zaroDatum < honapVege ? zaroDatum : honapVege;
         const napokSzama = Math.round((idoszakVege - idoszakKezdete) / (1000 * 60 * 60 * 24)) + 1;
 
-        // Arányos bruttó (táppénz nélkül - TB járulékalapot képező jövedelem)
-        const bruttoHavi = this.calculateMonthlyValue("Bruttó bér", honap, ev);
-        const tappenzEllatasHavi = this.calculateTappenzTavolletiDij_Aktualis(honap, ev);
-        const tbAlap = bruttoHavi - tappenzEllatasHavi; // Táppénz TB-mentes
+        // TB-járulékalapot képező jövedelem: bruttó bér mínusz betegszabadság és táppénz
+        // (ezek nem képeznek TB-járulék alapot)
+        let tbAlap = 0;
 
-        if (tbAlap > 0) {
-          osszKereset += tbAlap * (napokSzama / daysInMonth);
+        if (this.app.yearlyData[ev]?.calendar_data?.[honap]) {
+          // Van naptár adat - számítsuk ki pontosan
+          const bruttoHavi = this.calculateMonthlyValue("Bruttó bér", honap, ev);
+          const betegszabHavi = this.calculateMonthlyValue("Betegszabadságra jutó fizetés", honap, ev);
+          // Betegszabadság TB-köteles! Csak a táppénzt kell kivonni
+          // (a táppénz TB-mentes, de a betegszabadság TB-köteles)
+          const besorolas = this.getEffectiveSalary(ev, honap);
+          tbAlap = bruttoHavi;
+          if (tbAlap > 0) {
+            osszKereset += tbAlap * (napokSzama / daysInMonth);
+          }
         } else if (this.app.yearlyData[ev]?.settings) {
-          // Ha nincs naptár adat de van besorolás, azt használjuk
+          // Nincs naptár adat - besorolási bérrel becsülünk
           const besorolas = this.getEffectiveSalary(ev, honap);
           if (besorolas > 0) {
             osszKereset += besorolas * (napokSzama / daysInMonth);
