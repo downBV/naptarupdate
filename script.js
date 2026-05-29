@@ -160,54 +160,34 @@ function normalizeKey(key) {
 }
 
 // Az ablak validateBonus függvényének javítása
-window.validateBonus = function (entry, monthIndex) {
+window.validateBonus = function (entry, monthIndex, silent = false) {
   try {
     let bonus = entry.value === "" ? 2 : parseInt(entry.value);
 
-    // Érték korlátozása 0 és 2 közé
     if (isNaN(bonus) || bonus < 0) {
       bonus = 0;
     } else if (bonus > 2) {
       bonus = 2;
     }
 
-    // Az input mező értékének frissítése
-    entry.value = bonus.toString();
+    if (!silent) entry.value = bonus.toString();
 
-    // Ellenőrizzük és inicializáljuk az évet és a bonusEntries objektumot
     const currentYear = window.app.currentPayrollYear;
     if (!window.app.yearlyData[currentYear]) {
       window.app.yearlyData[currentYear] = {
-        settings: {
-          besorolasi_ber: "300000",
-          szabadsag: "25",
-          muszakrend: "-",
-          other_income: "0",
-          under25: {
-            enabled: false,
-            birthYear: "",
-            birthMonth: "",
-          },
-          midyear_changes: [],
-        },
-        calendar_data: {},
-        bonusEntries: {},
-        restaurantEntries: {},
-        egyebJovedelmEntries: {},
+        settings: { besorolasi_ber: "300000", szabadsag: "25", muszakrend: "-", other_income: "0", under25: { enabled: false, birthYear: "", birthMonth: "" }, midyear_changes: [] },
+        calendar_data: {}, bonusEntries: {}, restaurantEntries: {}, egyebJovedelmEntries: {},
       };
     }
 
-    // Inicializáljuk a bonusEntries objektumot, ha nem létezik
     if (!window.app.yearlyData[currentYear].bonusEntries) {
       window.app.yearlyData[currentYear].bonusEntries = {};
     }
 
-    // Frissítjük a bonusEntries értékét
     window.app.yearlyData[currentYear].bonusEntries[monthIndex] = bonus;
-
-    // Újraszámoljuk a kapcsolódó értékeket
-    window.app.generatePayrollTable();
     window.app.saveYearlyData();
+
+    if (!silent) window.app.generatePayrollTable();
 
     return true;
   } catch (error) {
@@ -217,49 +197,30 @@ window.validateBonus = function (entry, monthIndex) {
 };
 
 // Az ablak validateRestaurant függvényének javítása
-window.validateRestaurant = function (entry, monthIndex) {
+window.validateRestaurant = function (entry, monthIndex, silent = false) {
   try {
     const restaurant = entry.value === "" ? 0 : parseInt(entry.value);
     if (isNaN(restaurant) || restaurant < 0) {
-      entry.value = "0";
+      if (!silent) entry.value = "0";
       throw new Error("Az éttermi fogyasztás nem lehet negatív");
     }
 
-    // Ellenőrizzük és inicializáljuk az évet és a restaurantEntries objektumot
     const currentYear = window.app.currentPayrollYear;
     if (!window.app.yearlyData[currentYear]) {
       window.app.yearlyData[currentYear] = {
-        settings: {
-          besorolasi_ber: "300000",
-          szabadsag: "25",
-          muszakrend: "-",
-          other_income: "0",
-          under25: {
-            enabled: false,
-            birthYear: "",
-            birthMonth: "",
-          },
-          midyear_changes: [],
-        },
-        calendar_data: {},
-        bonusEntries: {},
-        restaurantEntries: {},
-        egyebJovedelmEntries: {},
+        settings: { besorolasi_ber: "300000", szabadsag: "25", muszakrend: "-", other_income: "0", under25: { enabled: false, birthYear: "", birthMonth: "" }, midyear_changes: [] },
+        calendar_data: {}, bonusEntries: {}, restaurantEntries: {}, egyebJovedelmEntries: {},
       };
     }
 
-    // Inicializáljuk a restaurantEntries objektumot, ha nem létezik
     if (!window.app.yearlyData[currentYear].restaurantEntries) {
       window.app.yearlyData[currentYear].restaurantEntries = {};
     }
 
-    // Frissítjük a restaurantEntries értékét
-    window.app.yearlyData[currentYear].restaurantEntries[monthIndex] =
-      restaurant;
-
-    // Újraszámoljuk a kapcsolódó értékeket
-    window.app.generatePayrollTable();
+    window.app.yearlyData[currentYear].restaurantEntries[monthIndex] = restaurant;
     window.app.saveYearlyData();
+
+    if (!silent) window.app.generatePayrollTable();
 
     return true;
   } catch (error) {
@@ -269,29 +230,19 @@ window.validateRestaurant = function (entry, monthIndex) {
 };
 
 // Az ablak validateEgyebJovedelem függvénye
-window.validateEgyebJovedelem = function (entry, monthIndex) {
+window.validateEgyebJovedelem = function (entry, monthIndex, silent = false) {
   try {
     const egyebJovedelem = entry.value === "" ? 0 : parseInt(entry.value);
     if (isNaN(egyebJovedelem) || egyebJovedelem < 0) {
-      entry.value = "0";
+      if (!silent) entry.value = "0";
       throw new Error("Az egyéb jövedelem nem lehet negatív");
     }
 
     const currentYear = window.app.currentPayrollYear;
     if (!window.app.yearlyData[currentYear]) {
       window.app.yearlyData[currentYear] = {
-        settings: {
-          besorolasi_ber: "300000",
-          szabadsag: "25",
-          muszakrend: "-",
-          other_income: "0",
-          under25: { enabled: false, birthYear: "", birthMonth: "" },
-          midyear_changes: [],
-        },
-        calendar_data: {},
-        bonusEntries: {},
-        restaurantEntries: {},
-        egyebJovedelmEntries: {},
+        settings: { besorolasi_ber: "300000", szabadsag: "25", muszakrend: "-", other_income: "0", under25: { enabled: false, birthYear: "", birthMonth: "" }, midyear_changes: [] },
+        calendar_data: {}, bonusEntries: {}, restaurantEntries: {}, egyebJovedelmEntries: {},
       };
     }
 
@@ -300,9 +251,9 @@ window.validateEgyebJovedelem = function (entry, monthIndex) {
     }
 
     window.app.yearlyData[currentYear].egyebJovedelmEntries[monthIndex] = egyebJovedelem;
-
-    window.app.generatePayrollTable();
     window.app.saveYearlyData();
+
+    if (!silent) window.app.generatePayrollTable();
 
     return true;
   } catch (error) {
@@ -6167,10 +6118,13 @@ class BerszamfejtoApp {
           valueCell.appendChild(input);
 
           input.addEventListener("change", (e) => {
-            window.validateBonus(e.target, this.currentPayrollMonth);
+            window.validateBonus(e.target, this.currentPayrollMonth, false);
           });
           input.addEventListener("blur", (e) => {
-            window.validateBonus(e.target, this.currentPayrollMonth);
+            window.validateBonus(e.target, this.currentPayrollMonth, false);
+          });
+          input.addEventListener("input", (e) => {
+            window.validateBonus(e.target, this.currentPayrollMonth, true);
           });
         } else if (item.label === "Éttermi fogyasztás") {
           const input = document.createElement("input");
@@ -6187,10 +6141,13 @@ class BerszamfejtoApp {
           valueCell.appendChild(input);
 
           input.addEventListener("change", (e) => {
-            window.validateRestaurant(e.target, this.currentPayrollMonth);
+            window.validateRestaurant(e.target, this.currentPayrollMonth, false);
           });
           input.addEventListener("blur", (e) => {
-            window.validateRestaurant(e.target, this.currentPayrollMonth);
+            window.validateRestaurant(e.target, this.currentPayrollMonth, false);
+          });
+          input.addEventListener("input", (e) => {
+            window.validateRestaurant(e.target, this.currentPayrollMonth, true);
           });
         } else if (item.label === "Egyéb jövedelem") {
           const input = document.createElement("input");
@@ -6207,10 +6164,13 @@ class BerszamfejtoApp {
           valueCell.appendChild(input);
 
           input.addEventListener("change", (e) => {
-            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth);
+            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth, false);
           });
           input.addEventListener("blur", (e) => {
-            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth);
+            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth, false);
+          });
+          input.addEventListener("input", (e) => {
+            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth, true);
           });
         } else {
           // Normál értékek megjelenítése utótaggal
