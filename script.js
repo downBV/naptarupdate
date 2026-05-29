@@ -1991,7 +1991,9 @@ class BerszamfejtoCalculator {
     try {
       const szabadsagTavolletiDij = this.calculateSzabadsagTavolletiDij(monthIndex, year);
       const betegTappenzPotlekTD = this.calculateBetegTappenzPotlekTD(monthIndex, year);
-      return szabadsagTavolletiDij + betegTappenzPotlekTD;
+      const osszeg = szabadsagTavolletiDij + betegTappenzPotlekTD;
+      console.log(`[TD] szabadság: ${szabadsagTavolletiDij}, beteg pótlék: ${betegTappenzPotlekTD}, összesen: ${osszeg}`);
+      return osszeg;
     } catch (error) {
       console.error("Hiba a távolléti díj számításában:", error);
       return 0;
