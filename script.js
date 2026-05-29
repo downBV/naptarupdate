@@ -2373,12 +2373,11 @@ class BerszamfejtoCalculator {
       const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
       const maradekKeret = Math.max(0, 10 - felhasznalt);
 
-      const { betegszabNapok, tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
+      const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
 
-      // 12 órás munkarendben 1 nap = 12 óra
+      // Csak betegszabadság napokra jár pótlék TD (70%), táppénzre NEM
       const betegszabPotlek = betegszabNapok * 12 * potlekOradij * 0.7;
-      const tappenzPotlek = tappenzNapok * 12 * potlekOradij * 0.6;
-      const osszeg = Math.round(betegszabPotlek + tappenzPotlek);
+      const osszeg = Math.round(betegszabPotlek);
 
 
       return osszeg;
