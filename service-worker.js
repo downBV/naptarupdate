@@ -1,4 +1,4 @@
-const CACHE_NAME = 'muszakrend-cache-v5';
+const CACHE_NAME = 'muszakrend-cache-v6';
 const urlsToCache = [
   '/naptarupdate/',
   '/naptarupdate/index.html',
