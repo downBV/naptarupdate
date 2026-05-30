@@ -2133,9 +2133,9 @@ class BerszamfejtoCalculator {
 
       const honapiBesorolas = this.getEffectiveSalary(vizsgaltEv, vizsgaltHonap);
 
-      // Ledolgozott napok * 12 = rendes műszakórák
-      const ledolgozottNapok = this.calculateMonthlyValue("Ledolgozott napok", vizsgaltHonap, vizsgaltEv);
-      osszesLedolgozottOra += ledolgozottNapok * 12;
+      // Ledolgozandó napok * 12 = teljes beosztott munkaidő (műszak + szabadság)
+      const ledolgozandoNapok = this.calculateMonthlyValue("Ledolgozandó napok", vizsgaltHonap, vizsgaltEv);
+      osszesLedolgozottOra += ledolgozandoNapok * 12;
 
       // Éjszakai pótlék órák (Műszakpótlék 40% sor adja meg az órákat)
       const ejszakaiOrak = this.calculateMonthlyValue("Műszakpótlék 40%", vizsgaltHonap, vizsgaltEv);
