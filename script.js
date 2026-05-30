@@ -2157,8 +2157,9 @@ class BerszamfejtoCalculator {
             osszesVasarnapiPotlek += (honapiBesorolas / 174) * orak * 0.5;
           }
         } else if (shiftValue.includes("Csúszó") && shiftValue.includes("éj") && !shiftValue.includes("Szabadság")) {
-          // Sima csúszó éjszaka (beleértve túlórakeretből, túlórából):
-          // maradék ledolgozott éjszakai órák pótléka
+          // Csúszó éjszaka: az egész nap beosztott volt → 12 óra az osztóba
+          osszesLedolgozottOra += 12;
+          // Maradék ledolgozott éjszakai órák pótléka
           const csuszoOra = this.extractHoursFromShift(shiftValue) || orak;
           const maradek = Math.max(0, 12 - csuszoOra);
           if (maradek > 0) {
@@ -2168,8 +2169,19 @@ class BerszamfejtoCalculator {
               osszesVasarnapiPotlek += (honapiBesorolas / 174) * maradek * 0.5;
             }
           }
+        } else if (shiftValue.includes("Csúszó") && !shiftValue.includes("Szabadság")) {
+          // Sima nappali csúszó: az egész nap beosztott volt → 12 óra az osztóba
+          osszesLedolgozottOra += 12;
+          // Vasárnapi pótlék a maradék órákra ha vasárnap
+          const csuszoOra2 = this.extractHoursFromShift(shiftValue) || orak;
+          const maradek2 = Math.max(0, 12 - csuszoOra2);
+          const dateCsuszo2 = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
+          if (dateCsuszo2.getDay() === 0 && maradek2 > 0) {
+            osszesVasarnapiPotlek += (honapiBesorolas / 174) * maradek2 * 0.5;
+          }
         } else if (shiftValue.includes("Szabadság") && shiftValue.includes("Csúszó") && shiftValue.includes("éj")) {
-          // Szabadság+Csúszó éj kombó: csúszó maradék éjszakai pótléka
+          // Szabadság+Csúszó éj kombó: 12 óra az osztóba
+          osszesLedolgozottOra += 12;
           const csuzsoMatch = shiftValue.match(/Csúszó\s+(\d+\.?\d*)\s+[oó]ra/i);
           const csuszoOra = csuzsoMatch ? parseFloat(csuzsoMatch[1]) : 0;
           const maradek = Math.max(0, 12 - csuszoOra);
