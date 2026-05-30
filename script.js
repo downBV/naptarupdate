@@ -2222,7 +2222,7 @@ class BerszamfejtoCalculator {
         : 0;
 
     if (monthIndex === this.app.currentMonth && year === this.app.currentYear) {
-      console.log(`[AvgPotlek] osztó: ${osszesLedolgozottOra} óra, éjszakai: ${Math.round(osszesEjszakaiPotlek)}, vasárnapi: ${Math.round(osszesVasarnapiPotlek)}, átlag: ${Math.round(atlagEjszakaiPotlek + atlagVasarnapiPotlek)} Ft/óra`);
+      console.log(`[AvgPotlek ${year}/${String(monthIndex+1).padStart(2,'0')}] osztó: ${osszesLedolgozottOra} óra, átlag: ${Math.round(atlagEjszakaiPotlek + atlagVasarnapiPotlek)} Ft/óra`);
     }
 
     return { atlagEjszakaiPotlek, atlagVasarnapiPotlek };
