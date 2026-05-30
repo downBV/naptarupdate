@@ -2139,17 +2139,43 @@ class BerszamfejtoCalculator {
 
       const honapiBesorolas = this.getEffectiveSalary(vizsgaltEv, vizsgaltHonap);
 
-      // Ledolgozandó napok * 12 = teljes beosztott munkaidő (műszak + szabadság)
-      const ledolgozandoNapok = this.calculateMonthlyValue("Ledolgozandó napok", vizsgaltHonap, vizsgaltEv);
-      osszesLedolgozottOra += ledolgozandoNapok * 12;
+      // Osztó = ledolgozott műszakórák + szabadság órák
+      // (táppénz napok nem számítanak bele)
+      const ledolgozottNapok = this.calculateMonthlyValue("Ledolgozott napok", vizsgaltHonap, vizsgaltEv);
+      const szabadsagOrak = this.calculateMonthlyValue("Szabadság kivét (óra)", vizsgaltHonap, vizsgaltEv);
+      osszesLedolgozottOra += (ledolgozottNapok * 12) + szabadsagOrak;
 
-      // Éjszakai pótlék órák (Műszakpótlék 40% sor adja meg az órákat)
-      const ejszakaiOrak = this.calculateMonthlyValue("Műszakpótlék 40%", vizsgaltHonap, vizsgaltEv);
-      osszesEjszakaiPotlek += (honapiBesorolas / 174) * ejszakaiOrak * 0.4;
+      // Éjszakai és vasárnapi pótlék számítása a naptárból (minden releváns műszak típus)
+      const honapiAdat = this.app.yearlyData[vizsgaltEv].calendar_data[vizsgaltHonap] || {};
 
-      // Hétvégi pótlék órák (Hétvégi pótlék 50% sor adja meg az órákat)
-      const hetvegOrak = this.calculateMonthlyValue("Hétvégi pótlék 50%", vizsgaltHonap, vizsgaltEv);
-      osszesVasarnapiPotlek += (honapiBesorolas / 174) * hetvegOrak * 0.5;
+      Object.entries(honapiAdat).forEach(([nap, shiftValue]) => {
+        if (!shiftValue || shiftValue === " ") return;
+
+        let orak = 12;
+        if (shiftValue.includes("8 óra")) orak = 8;
+        if (shiftValue.includes("4 óra")) orak = 4;
+
+        const date = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
+
+        // Éjszakai pótlék: éjszakás műszak, csúszó éj, szabadság éj
+        if (shiftValue.includes("Éjszaka") ||
+            (shiftValue.includes("éj") && !shiftValue.includes("Csúszó túlóra"))) {
+          osszesEjszakaiPotlek += (honapiBesorolas / 174) * orak * 0.4;
+        }
+
+        // Kombinált Szabadság+Csúszó éj: a csúszó órákat kinyerjük
+        if (shiftValue.includes("Szabadság") && shiftValue.includes("Csúszó") && shiftValue.includes("éj")) {
+          const csuzsoMatch = shiftValue.match(/Csúszó\s+(\d+)\s+[oó]ra/i);
+          const csuszoOra = csuzsoMatch ? parseInt(csuzsoMatch[1]) : 0;
+          const maradekOra = Math.max(0, 12 - csuszoOra);
+          osszesEjszakaiPotlek += (honapiBesorolas / 174) * maradekOra * 0.4;
+        }
+
+        // Vasárnapi pótlék: minden vasárnapi műszak/szabadság
+        if (date.getDay() === 0) {
+          osszesVasarnapiPotlek += (honapiBesorolas / 174) * orak * 0.5;
+        }
+      });
     }
 
     const atlagEjszakaiPotlek = osszesLedolgozottOra > 0 ? osszesEjszakaiPotlek / osszesLedolgozottOra : 0;
