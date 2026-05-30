@@ -2120,7 +2120,7 @@ class BerszamfejtoCalculator {
   }
 
   // 5. ÁTLAGOS PÓTLÉKOK SZÁMÍTÁSA (segéd függvény)
-  // Visszatér: Ft/óra értékekkel - a bérszámfejtés kiszámolt adataiból
+  // Visszatér: Ft/óra értékekkel (atlagEjszakaiPotlek, atlagVasarnapiPotlek)
   calculateAveragePotlekok(monthIndex, year, besorolas) {
     let osszesEjszakaiPotlek = 0;
     let osszesVasarnapiPotlek = 0;
@@ -2135,18 +2135,15 @@ class BerszamfejtoCalculator {
         vizsgaltEv--;
       }
 
-      if (!this.app.yearlyData[vizsgaltEv]?.calendar_data) continue;
+      if (
+        !this.app.yearlyData[vizsgaltEv] ||
+        !this.app.yearlyData[vizsgaltEv].calendar_data
+      ) {
+        continue;
+      }
 
-      const honapiBesorolas = this.getEffectiveSalary(vizsgaltEv, vizsgaltHonap);
-
-      // Osztó = ledolgozott műszakórák + szabadság órák
-      // (táppénz napok nem számítanak bele)
-      const ledolgozottNapok = this.calculateMonthlyValue("Ledolgozott napok", vizsgaltHonap, vizsgaltEv);
-      const szabadsagOrak = this.calculateMonthlyValue("Szabadság kivét (óra)", vizsgaltHonap, vizsgaltEv);
-      osszesLedolgozottOra += (ledolgozottNapok * 12) + szabadsagOrak;
-
-      // Éjszakai és vasárnapi pótlék számítása a naptárból (minden releváns műszak típus)
       const honapiAdat = this.app.yearlyData[vizsgaltEv].calendar_data[vizsgaltHonap] || {};
+      const honapiBesorolas = this.getEffectiveSalary(vizsgaltEv, vizsgaltHonap);
 
       Object.entries(honapiAdat).forEach(([nap, shiftValue]) => {
         if (!shiftValue || shiftValue === " ") return;
@@ -2156,24 +2153,68 @@ class BerszamfejtoCalculator {
         if (shiftValue.includes("4 óra")) orak = 4;
 
         const date = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
+        const isVasarnap = date.getDay() === 0;
+        const isEjszaka = shiftValue.includes("Éjszaka") || shiftValue.includes("éj");
 
-        // Éjszakai pótlék: éjszakás műszak, csúszó éj, szabadság éj
-        if (shiftValue.includes("Éjszaka") ||
-            (shiftValue.includes("éj") && !shiftValue.includes("Csúszó túlóra"))) {
-          osszesEjszakaiPotlek += (honapiBesorolas / 174) * orak * 0.4;
-        }
+        const isMuszak = shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka");
+        const isTulora = shiftValue.includes("Túlóra");
+        const isSzabadsagCsuszo = shiftValue.includes("Csúszó") && shiftValue.includes("Szabadság");
+        const isCsuszo = shiftValue.includes("Csúszó") && !shiftValue.includes("Szabadság");
+        const isSzabadsag = shiftValue.includes("Szabadság") && !shiftValue.includes("Csúszó");
 
-        // Kombinált Szabadság+Csúszó éj: a csúszó órákat kinyerjük
-        if (shiftValue.includes("Szabadság") && shiftValue.includes("Csúszó") && shiftValue.includes("éj")) {
-          const csuzsoMatch = shiftValue.match(/Csúszó\s+(\d+)\s+[oó]ra/i);
-          const csuszoOra = csuzsoMatch ? parseInt(csuzsoMatch[1]) : 0;
-          const maradekOra = Math.max(0, 12 - csuszoOra);
-          osszesEjszakaiPotlek += (honapiBesorolas / 174) * maradekOra * 0.4;
-        }
+        if (isMuszak) {
+          // Teljes műszak - osztóba kerül
+          osszesLedolgozottOra += orak;
+          if (isEjszaka) osszesEjszakaiPotlek += (honapiBesorolas / 174) * orak * 0.4;
+          if (isVasarnap) osszesVasarnapiPotlek += (honapiBesorolas / 174) * orak * 0.5;
 
-        // Vasárnapi pótlék: minden vasárnapi műszak/szabadság
-        if (date.getDay() === 0) {
-          osszesVasarnapiPotlek += (honapiBesorolas / 174) * orak * 0.5;
+        } else if (isTulora) {
+          // Túlóra - csak pótlék, osztóba nem kerül
+          if (isEjszaka) osszesEjszakaiPotlek += (honapiBesorolas / 174) * orak * 0.4;
+          if (isVasarnap) osszesVasarnapiPotlek += (honapiBesorolas / 174) * orak * 0.5;
+
+        } else if (isCsuszo) {
+          // Csúszó: pontos óra kinyerése (pl. 6.5 óra is lehetséges)
+          const csuszoOra = this.extractHoursFromShift(shiftValue) || orak;
+          const maradek = Math.max(0, 12 - csuszoOra);
+          if (maradek > 0) {
+            osszesLedolgozottOra += maradek;
+            if (isEjszaka) osszesEjszakaiPotlek += (honapiBesorolas / 174) * maradek * 0.4;
+            if (isVasarnap) osszesVasarnapiPotlek += (honapiBesorolas / 174) * maradek * 0.5;
+          }
+
+        } else if (isSzabadsag) {
+          // Szabadság: pontos óra kinyerése
+          const szabOra = (orak === 12 && !shiftValue.includes("12 óra"))
+            ? 12
+            : (this.extractHoursFromShift(shiftValue) || orak);
+          osszesLedolgozottOra += szabOra;
+          if (isEjszaka) osszesEjszakaiPotlek += (honapiBesorolas / 174) * szabOra * 0.4;
+          if (isVasarnap) osszesVasarnapiPotlek += (honapiBesorolas / 174) * szabOra * 0.5;
+          const maradek = Math.max(0, 12 - szabOra);
+          if (maradek > 0) {
+            osszesLedolgozottOra += maradek;
+            if (isEjszaka) osszesEjszakaiPotlek += (honapiBesorolas / 174) * maradek * 0.4;
+            if (isVasarnap) osszesVasarnapiPotlek += (honapiBesorolas / 174) * maradek * 0.5;
+          }
+
+        } else if (isSzabadsagCsuszo) {
+          // Szabadság+Csúszó kombó - pontos órák kinyerése regex-szel
+          const csuzsoMatch = shiftValue.match(/Csúszó\s+(\d+\.?\d*)\s+[oó]ra/i);
+          const csuszoOra = csuzsoMatch ? parseFloat(csuzsoMatch[1]) : 0;
+          const szabMatch = shiftValue.match(/Szabadság\s+(\d+\.?\d*)\s+[oó]ra/i);
+          const szabOra = szabMatch ? parseFloat(szabMatch[1]) : 0;
+          const maradek = Math.max(0, 12 - csuszoOra);
+
+          osszesLedolgozottOra += szabOra;
+          if (isEjszaka) osszesEjszakaiPotlek += (honapiBesorolas / 174) * szabOra * 0.4;
+          if (isVasarnap) osszesVasarnapiPotlek += (honapiBesorolas / 174) * szabOra * 0.5;
+
+          if (maradek > 0) {
+            osszesLedolgozottOra += maradek;
+            if (isEjszaka) osszesEjszakaiPotlek += (honapiBesorolas / 174) * maradek * 0.4;
+            if (isVasarnap) osszesVasarnapiPotlek += (honapiBesorolas / 174) * maradek * 0.5;
+          }
         }
       });
     }
