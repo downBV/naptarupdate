@@ -2142,7 +2142,6 @@ class BerszamfejtoCalculator {
         // Ledolgozott műszakok és túlórák számítanak
         if (isMuszak || isTulora) {
           // Osztóba csak a rendes beosztás szerinti műszakórák kerülnek (túlóra nélkül)
-          // A törvény szerint a TD pótlék átlagát a rendes munkaidőhöz viszonyítják
           if (isMuszak) {
             osszesLedolgozottOra += orak;
           }
@@ -2156,6 +2155,30 @@ class BerszamfejtoCalculator {
           const date = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
           if (date.getDay() === 0) {
             osszesVasarnapiPotlek += (honapiBesorolas / 174) * orak * 0.5;
+          }
+        } else if (shiftValue.includes("Csúszó") && shiftValue.includes("éj") && !shiftValue.includes("Szabadság")) {
+          // Sima csúszó éjszaka (beleértve túlórakeretből, túlórából):
+          // maradék ledolgozott éjszakai órák pótléka
+          const csuszoOra = this.extractHoursFromShift(shiftValue) || orak;
+          const maradek = Math.max(0, 12 - csuszoOra);
+          if (maradek > 0) {
+            osszesEjszakaiPotlek += (honapiBesorolas / 174) * maradek * 0.4;
+            const dateCsuszo = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
+            if (dateCsuszo.getDay() === 0) {
+              osszesVasarnapiPotlek += (honapiBesorolas / 174) * maradek * 0.5;
+            }
+          }
+        } else if (shiftValue.includes("Szabadság") && shiftValue.includes("Csúszó") && shiftValue.includes("éj")) {
+          // Szabadság+Csúszó éj kombó: csúszó maradék éjszakai pótléka
+          const csuzsoMatch = shiftValue.match(/Csúszó\s+(\d+\.?\d*)\s+[oó]ra/i);
+          const csuszoOra = csuzsoMatch ? parseFloat(csuzsoMatch[1]) : 0;
+          const maradek = Math.max(0, 12 - csuszoOra);
+          if (maradek > 0) {
+            osszesEjszakaiPotlek += (honapiBesorolas / 174) * maradek * 0.4;
+            const dateKombo = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
+            if (dateKombo.getDay() === 0) {
+              osszesVasarnapiPotlek += (honapiBesorolas / 174) * maradek * 0.5;
+            }
           }
         }
       });
