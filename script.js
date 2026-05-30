@@ -131,18 +131,12 @@ function initSalaryVisibility() {
 }
 
 const SHIFT_COLORS = {
-  Munkakezdés: ["#00AA44", "white"],
   Nappal: ["#FFD700", "black"],
-  "Nappal 8 óra": ["#FFC200", "black"],
   Éjszaka: ["#4169E1", "white"],
   Szabadság: ["#09fd00", "black"],
   Túlóra: ["#FF0000", "white"],
   Csúszó: ["#DDA0DD", "black"],
   Táppénz: ["#000000", "white"],
-  "Táppénz kezdete műszak": ["#1a1a1a", "white"],
-  "Táppénz kezdete szabadnap": ["#2d2d2d", "white"],
-  "Táppénz vége szabadnap": ["#444444", "white"],
-  "Táppénz vége műszak": ["#666666", "white"],
 };
 
 const MINIMUM_WAGE = {
@@ -160,34 +154,54 @@ function normalizeKey(key) {
 }
 
 // Az ablak validateBonus függvényének javítása
-window.validateBonus = function (entry, monthIndex, silent = false) {
+window.validateBonus = function (entry, monthIndex) {
   try {
     let bonus = entry.value === "" ? 2 : parseInt(entry.value);
 
+    // Érték korlátozása 0 és 2 közé
     if (isNaN(bonus) || bonus < 0) {
       bonus = 0;
     } else if (bonus > 2) {
       bonus = 2;
     }
 
-    if (!silent) entry.value = bonus.toString();
+    // Az input mező értékének frissítése
+    entry.value = bonus.toString();
 
+    // Ellenőrizzük és inicializáljuk az évet és a bonusEntries objektumot
     const currentYear = window.app.currentPayrollYear;
     if (!window.app.yearlyData[currentYear]) {
       window.app.yearlyData[currentYear] = {
-        settings: { besorolasi_ber: "300000", szabadsag: "25", muszakrend: "-", other_income: "0", under25: { enabled: false, birthYear: "", birthMonth: "" }, midyear_changes: [] },
-        calendar_data: {}, bonusEntries: {}, restaurantEntries: {}, egyebJovedelmEntries: {},
+        settings: {
+          besorolasi_ber: "300000",
+          szabadsag: "25",
+          muszakrend: "-",
+          other_income: "0",
+          under25: {
+            enabled: false,
+            birthYear: "",
+            birthMonth: "",
+          },
+          midyear_changes: [],
+        },
+        calendar_data: {},
+        bonusEntries: {},
+        restaurantEntries: {},
+        egyebJovedelmEntries: {},
       };
     }
 
+    // Inicializáljuk a bonusEntries objektumot, ha nem létezik
     if (!window.app.yearlyData[currentYear].bonusEntries) {
       window.app.yearlyData[currentYear].bonusEntries = {};
     }
 
+    // Frissítjük a bonusEntries értékét
     window.app.yearlyData[currentYear].bonusEntries[monthIndex] = bonus;
-    window.app.saveYearlyData();
 
-    if (!silent) window.app.generatePayrollTable();
+    // Újraszámoljuk a kapcsolódó értékeket
+    window.app.generatePayrollTable();
+    window.app.saveYearlyData();
 
     return true;
   } catch (error) {
@@ -197,30 +211,49 @@ window.validateBonus = function (entry, monthIndex, silent = false) {
 };
 
 // Az ablak validateRestaurant függvényének javítása
-window.validateRestaurant = function (entry, monthIndex, silent = false) {
+window.validateRestaurant = function (entry, monthIndex) {
   try {
     const restaurant = entry.value === "" ? 0 : parseInt(entry.value);
     if (isNaN(restaurant) || restaurant < 0) {
-      if (!silent) entry.value = "0";
+      entry.value = "0";
       throw new Error("Az éttermi fogyasztás nem lehet negatív");
     }
 
+    // Ellenőrizzük és inicializáljuk az évet és a restaurantEntries objektumot
     const currentYear = window.app.currentPayrollYear;
     if (!window.app.yearlyData[currentYear]) {
       window.app.yearlyData[currentYear] = {
-        settings: { besorolasi_ber: "300000", szabadsag: "25", muszakrend: "-", other_income: "0", under25: { enabled: false, birthYear: "", birthMonth: "" }, midyear_changes: [] },
-        calendar_data: {}, bonusEntries: {}, restaurantEntries: {}, egyebJovedelmEntries: {},
+        settings: {
+          besorolasi_ber: "300000",
+          szabadsag: "25",
+          muszakrend: "-",
+          other_income: "0",
+          under25: {
+            enabled: false,
+            birthYear: "",
+            birthMonth: "",
+          },
+          midyear_changes: [],
+        },
+        calendar_data: {},
+        bonusEntries: {},
+        restaurantEntries: {},
+        egyebJovedelmEntries: {},
       };
     }
 
+    // Inicializáljuk a restaurantEntries objektumot, ha nem létezik
     if (!window.app.yearlyData[currentYear].restaurantEntries) {
       window.app.yearlyData[currentYear].restaurantEntries = {};
     }
 
-    window.app.yearlyData[currentYear].restaurantEntries[monthIndex] = restaurant;
-    window.app.saveYearlyData();
+    // Frissítjük a restaurantEntries értékét
+    window.app.yearlyData[currentYear].restaurantEntries[monthIndex] =
+      restaurant;
 
-    if (!silent) window.app.generatePayrollTable();
+    // Újraszámoljuk a kapcsolódó értékeket
+    window.app.generatePayrollTable();
+    window.app.saveYearlyData();
 
     return true;
   } catch (error) {
@@ -230,19 +263,29 @@ window.validateRestaurant = function (entry, monthIndex, silent = false) {
 };
 
 // Az ablak validateEgyebJovedelem függvénye
-window.validateEgyebJovedelem = function (entry, monthIndex, silent = false) {
+window.validateEgyebJovedelem = function (entry, monthIndex) {
   try {
     const egyebJovedelem = entry.value === "" ? 0 : parseInt(entry.value);
     if (isNaN(egyebJovedelem) || egyebJovedelem < 0) {
-      if (!silent) entry.value = "0";
+      entry.value = "0";
       throw new Error("Az egyéb jövedelem nem lehet negatív");
     }
 
     const currentYear = window.app.currentPayrollYear;
     if (!window.app.yearlyData[currentYear]) {
       window.app.yearlyData[currentYear] = {
-        settings: { besorolasi_ber: "300000", szabadsag: "25", muszakrend: "-", other_income: "0", under25: { enabled: false, birthYear: "", birthMonth: "" }, midyear_changes: [] },
-        calendar_data: {}, bonusEntries: {}, restaurantEntries: {}, egyebJovedelmEntries: {},
+        settings: {
+          besorolasi_ber: "300000",
+          szabadsag: "25",
+          muszakrend: "-",
+          other_income: "0",
+          under25: { enabled: false, birthYear: "", birthMonth: "" },
+          midyear_changes: [],
+        },
+        calendar_data: {},
+        bonusEntries: {},
+        restaurantEntries: {},
+        egyebJovedelmEntries: {},
       };
     }
 
@@ -251,9 +294,9 @@ window.validateEgyebJovedelem = function (entry, monthIndex, silent = false) {
     }
 
     window.app.yearlyData[currentYear].egyebJovedelmEntries[monthIndex] = egyebJovedelem;
-    window.app.saveYearlyData();
 
-    if (!silent) window.app.generatePayrollTable();
+    window.app.generatePayrollTable();
+    window.app.saveYearlyData();
 
     return true;
   } catch (error) {
@@ -482,112 +525,7 @@ changelog.forEach((version) => {
   }
 }
 
-// ==================== MUNKAKEZDÉS MODAL ====================
-
-function showMunkakezdésModal(app, clickedDay, shiftDiv, dateSpan) {
-  const overlay = document.createElement('div');
-  overlay.className = 'shift-select-overlay';
-
-  const modal = document.createElement('div');
-  modal.className = 'shift-select-modal';
-
-  const title = document.createElement('h2');
-  title.textContent = 'Munkakezdés — Válassz műszakrendet';
-  title.style.marginBottom = '20px';
-  title.style.color = '#333';
-  modal.appendChild(title);
-
-  const desc = document.createElement('p');
-  desc.textContent = 'Ettől a naptól generálja a program a műszakbeosztást:';
-  desc.style.marginBottom = '15px';
-  desc.style.color = '#666';
-  modal.appendChild(desc);
-
-  const patterns = ['1', '2', '3', '4', 'A', 'B', 'C'];
-
-  patterns.forEach(p => {
-    const btn = document.createElement('button');
-    btn.textContent = `${p} műszakrend`;
-    btn.style.display = 'block';
-    btn.style.width = '100%';
-    btn.style.padding = '12px';
-    btn.style.marginBottom = '8px';
-    btn.style.backgroundColor = '#00AA44';
-    btn.style.color = 'white';
-    btn.style.border = 'none';
-    btn.style.borderRadius = '5px';
-    btn.style.fontSize = '16px';
-    btn.style.cursor = 'pointer';
-
-    btn.addEventListener('click', () => {
-      // Munkakezdés nap mentése a naptárba
-      // Először töröljük az egész év naptár adatait (mint beállításokban műszakrend váltáskor)
-      for (let m = 0; m < 12; m++) {
-        app.yearlyData[app.currentYear].calendar_data[m] = {};
-      }
-
-      // Munkakezdés dátum és műszakrend mentése a settings-be
-      const munkakezdésDátum = new Date(Date.UTC(app.currentYear, app.currentMonth, clickedDay));
-      app.yearlyData[app.currentYear].settings.munkakezdés = munkakezdésDátum.toISOString().slice(0, 10);
-      app.yearlyData[app.currentYear].settings.muszakrend = p;
-      app.yearlyData[app.currentYear].settings.munkakezdés_nap = clickedDay;
-      app.yearlyData[app.currentYear].settings.munkakezdés_honap = app.currentMonth;
-
-      // Teljes év naptárának előregenerálása (mint saveSettings-ben)
-      // Így a bérszámfejtés minden hónapra elérhető lesz lapozás nélkül is
-      const year = app.currentYear;
-      for (let month = 0; month < 12; month++) {
-        app.yearlyData[year].calendar_data[month] = {};
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const savedYear = app.currentYear;
-        const savedMonth = app.currentMonth;
-        app.currentYear = year;
-        app.currentMonth = month;
-
-        for (let day = 1; day <= daysInMonth; day++) {
-          const shiftValue = app.generateShiftPattern(day);
-          if (shiftValue && shiftValue !== " ") {
-            app.yearlyData[year].calendar_data[month][day] = shiftValue;
-          }
-        }
-
-        app.currentYear = savedYear;
-        app.currentMonth = savedMonth;
-      }
-
-      // Munkakezdés nap beírása felülírva (Munkakezdés felirat)
-      app.yearlyData[app.currentYear].calendar_data[app.currentMonth][clickedDay] = 'Munkakezdés';
-
-      app.saveYearlyData();
-      app.generateCalendar();
-      app.generatePayrollTable();
-      document.body.removeChild(overlay);
-    });
-
-    modal.appendChild(btn);
-  });
-
-  // Mégsem gomb
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = 'Mégsem';
-  cancelBtn.style.display = 'block';
-  cancelBtn.style.width = '100%';
-  cancelBtn.style.padding = '12px';
-  cancelBtn.style.backgroundColor = '#999';
-  cancelBtn.style.color = 'white';
-  cancelBtn.style.border = 'none';
-  cancelBtn.style.borderRadius = '5px';
-  cancelBtn.style.fontSize = '16px';
-  cancelBtn.style.cursor = 'pointer';
-  cancelBtn.addEventListener('click', () => document.body.removeChild(overlay));
-  modal.appendChild(cancelBtn);
-
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) document.body.removeChild(overlay); });
-}
-
-
+// ==================== CSÚSZÓ ÓRASZÁM MODAL ====================
 
 function showHourInputModal(shiftType, callback) {
   const overlay = document.createElement('div');
@@ -1116,13 +1054,15 @@ class BerszamfejtoCalculator {
           }
 
           // Ledolgozott órák (csúszók nélkül)
-          if (shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka") || shiftValue === "Munkakezdés") {
-            if (shiftValue === "Munkakezdés" || shiftValue.includes("8 óra")) {
+          if (shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka")) {
+            if (shiftValue.includes("12 óra")) {
+              totalLedolgozottOrak += 12;
+            } else if (shiftValue.includes("8 óra")) {
               totalLedolgozottOrak += 8;
             } else if (shiftValue.includes("4 óra")) {
               totalLedolgozottOrak += 4;
             } else {
-              totalLedolgozottOrak += 12;
+              totalLedolgozottOrak += 12; // Alapértelmezett
             }
           }
 
@@ -1157,17 +1097,7 @@ class BerszamfejtoCalculator {
     }
   }
 
-  // Visszaadja a munkakezdés dátumát ha be van állítva, null ha nincs
-  getMunkakezdésDátum(year) {
-    const yearData = this.app.yearlyData[year];
-    if (!yearData?.settings?.munkakezdés) return null;
-    const d = new Date(yearData.settings.munkakezdés);
-    return isNaN(d.getTime()) ? null : d;
-  }
-
-  // A teljes hónap munkanapjainak száma munkakezdéstől FÜGGETLENÜL
-  // Ez az alapbér osztója hóközbeni belépőnél is
-  calculateTeljesHonapMunkanapok(year, month) {
+  calculateWorkingDays(year, month) {
     try {
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const holidays = this.getHolidays(year);
@@ -1176,47 +1106,25 @@ class BerszamfejtoCalculator {
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
         const dayOfWeek = date.getDay();
+
+        // Csak hétköznapi napok (hétfő-péntek) vizsgálata
         const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
-        const isHoliday = holidays.some((h) => h.month === month && h.day === day);
-        const isWeekendHoliday = isHoliday && (dayOfWeek === 0 || dayOfWeek === 6);
 
-        if (isWeekday && !isHoliday && !isWeekendHoliday) {
-          workingDays += 1;
-        }
-      }
+        // Ünnepnap ellenőrzés
+        const isHoliday = holidays.some(
+          (h) => h.month === month && h.day === day
+        );
 
-      return workingDays;
-    } catch (error) {
-      console.error("Hiba a teljes hónap munkanapjainak számításánál:", error);
-      return 22; // fallback
-    }
-  }
+        // Hétvégi ünnepnapok kizárása
+        const isWeekendHoliday =
+          isHoliday && (dayOfWeek === 0 || dayOfWeek === 6);
 
-  calculateWorkingDays(year, month) {
-    try {
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const holidays = this.getHolidays(year);
-      let workingDays = 0;
-
-      // Munkakezdés védelem: ha be van állítva, csak attól a naptól számolunk
-      const munkakezdés = this.getMunkakezdésDátum(year);
-      const munkakezdésNap = munkakezdés && munkakezdés.getFullYear() === year && munkakezdés.getMonth() === month
-        ? munkakezdés.getDate()
-        : (munkakezdés && new Date(year, month, 1) < munkakezdés ? null : 1);
-
-      // Ha a teljes hónap a munkakezdés előtt van, 0 munkanapot adunk vissza
-      if (munkakezdésNap === null) return 0;
-
-      for (let day = munkakezdésNap; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dayOfWeek = date.getDay();
-        const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
-        const isHoliday = holidays.some((h) => h.month === month && h.day === day);
-        const isWeekendHoliday = isHoliday && (dayOfWeek === 0 || dayOfWeek === 6);
-
+        // Csak hétköznapi nem hétvégi ünnepnapok számítása
         if (isWeekday && isHoliday && !isWeekendHoliday) {
-          workingDays += 0;
+          // Hétköznapi ünnepnap
+          workingDays += 0; // Nem számoljuk munkanapnak
         } else if (isWeekday && !isHoliday) {
+          // Normál munkanap
           workingDays += 1;
         }
       }
@@ -1303,10 +1211,7 @@ class BerszamfejtoCalculator {
           shiftValue.includes("Éjszaka") ||
           shiftValue.includes("Szabadság") ||
           shiftValue.includes("Csúszó") ||
-          shiftValue === "Munkakezdés" ||
-          shiftValue.includes("Táppénz vége műszak") ||
-          shiftValue.includes("Táppénz kezdete műszak") ||
-          (shiftValue.includes("Táppénz") && !shiftValue.includes("Táppénz vége") && !shiftValue.includes("Táppénz kezdete"))
+          shiftValue.includes("Táppénz")
         ) {
           ledolgozando += 1;
         }
@@ -1315,8 +1220,7 @@ class BerszamfejtoCalculator {
         if (
           shiftValue.includes("Nappal") ||
           shiftValue.includes("Éjszaka") ||
-          shiftValue.includes("Csúszó") ||
-          shiftValue === "Munkakezdés"
+          shiftValue.includes("Csúszó")
         ) {
           ledolgozott += 1;
         } else if (shiftValue.includes("Szabadság")) {
@@ -1606,23 +1510,10 @@ class BerszamfejtoCalculator {
           return effectiveSalary * 0.05 * bonusValue;
         }
 
-        case "Alapbér": {
-          const munkakezdés = this.getMunkakezdésDátum(year);
-          if (munkakezdés) {
-            const mkEv = munkakezdés.getFullYear();
-            const mkHonap = munkakezdés.getMonth();
-            // Csak a munkakezdés hónapjára számolunk arányosan
-            if (year === mkEv && monthIndex === mkHonap) {
-              const teljesHonapMunkanapok = this.calculateTeljesHonapMunkanapok(year, monthIndex);
-              return teljesHonapMunkanapok > 0
-                ? Math.round((effectiveSalary / teljesHonapMunkanapok) * ledolgozott)
-                : 0;
-            }
-          }
+        case "Alapbér":
           return ledolgozando > 0
-            ? Math.round((effectiveSalary / ledolgozando) * ledolgozott)
+            ? (effectiveSalary / ledolgozando) * ledolgozott
             : 0;
-        }
 
         case "Túlóra alap": {
           const workingDays = this.calculateWorkingDays(year, monthIndex);
@@ -1655,9 +1546,6 @@ class BerszamfejtoCalculator {
 
         case "Betegszabadságra jutó fizetés":
           return this.calculateBetegszabadsagFizetes(monthIndex, year);
-
-        case "Táppénz ellátás (60%)":
-          return this.calculateTappenzTavolletiDij(monthIndex, year);
 
         case "Fizetett ünnepnap":
           return ledolgozando > 0
@@ -1722,25 +1610,32 @@ class BerszamfejtoCalculator {
         }
 
         case "TB Járulék 18,5%": {
-          const bruttoBer = this.calculateMonthlyValue("Bruttó bér", monthIndex, year);
-          // Táppénz ellátás TB-mentes és nincs a bruttóban - TB alap = bruttó bér
+          const bruttoBer = this.calculateMonthlyValue(
+            "Bruttó bér",
+            monthIndex,
+            year
+          );
           return Math.round(bruttoBer * 0.185);
         }
 
         case "Rendszeres SZJA előleg": {
-          const bruttoBer = this.calculateMonthlyValue("Bruttó bér", monthIndex, year);
-          // Táppénz SZJA-köteles, hozzáadjuk az alaphoz
-          const tappenzEllatas = this.calculateMonthlyValue("Táppénz ellátás (60%)", monthIndex, year);
-          const szjaAlap = bruttoBer + tappenzEllatas;
-          const baseSSZJA = Math.round(szjaAlap * 0.15);
+          const bruttoBer = this.calculateMonthlyValue(
+            "Bruttó bér",
+            monthIndex,
+            year
+          );
+          const baseSSZJA = Math.round(bruttoBer * 0.15);
 
+          // 25 év alatti kedvezmény levonása az SZJA-ból
           const under25Discount = this.app.calculateUnder25Discount(
             year,
             monthIndex,
-            szjaAlap
+            bruttoBer
           );
 
+          // Az SZJA előleg nem lehet negatív
           const finalSZJA = Math.max(0, baseSSZJA - under25Discount);
+
           return finalSZJA;
         }
 
@@ -1775,14 +1670,11 @@ class BerszamfejtoCalculator {
             "Rendszeres SZJA előleg",
             monthIndex,
             year
-          );
+          ); // Ez már tartalmazza a levonást
 
-          // Táppénz ellátás nincs a bruttóban, de a nettóhoz hozzáadjuk
-          const tappenzEllatas = this.calculateMonthlyValue("Táppénz ellátás (60%)", monthIndex, year);
-
+          // A 25 év alatti kedvezményt már nem adjuk hozzá külön, mert az SZJA-ban van kezelve
           return Math.round(
             bruttoBer +
-              tappenzEllatas +
               otherIncome +
               childBenefit -
               tbJarulek -
@@ -1823,7 +1715,6 @@ class BerszamfejtoCalculator {
               "Túlóra alap",
               "Szabadságra jutó fizetés",
               "Távolléti díj",
-              "Betegszabadságra jutó fizetés",
               "Fizetett ünnepnap",
               "Túlórapótlék",
               "Hétvégi pótlék (50%)",
@@ -1986,356 +1877,192 @@ class BerszamfejtoCalculator {
     return null;
   }
 
-  // 1. FŐ TÁVOLLÉTI DÍJ FÜGGVÉNY (szabadság TD + betegszabadság/táppénz pótlék TD)
+  // 1. FŐ TÁVOLLÉTI DÍJ FÜGGVÉNY (szabadság + táppénz távolléti díj együtt)
   calculateTavolletDij(monthIndex, year) {
     try {
+      // SZABADSÁG távolléti díj (100%)
       const szabadsagTavolletiDij = this.calculateSzabadsagTavolletiDij(monthIndex, year);
-      const betegTappenzPotlekTD = this.calculateBetegTappenzPotlekTD(monthIndex, year);
-      const osszeg = szabadsagTavolletiDij + betegTappenzPotlekTD;
-      return osszeg;
+      
+      // TÁPPÉNZ távolléti díj (70%/60%)
+      const tappenzTavolletiDij = this.calculateTappenzTavolletiDij(monthIndex, year);
+
+      // Összesen
+      return szabadsagTavolletiDij + tappenzTavolletiDij;
+      
     } catch (error) {
       console.error("Hiba a távolléti díj számításában:", error);
+      console.error("Hiba részletei:", error.stack);
       return 0;
     }
   }
 
-  // SEGÉDFÜGGVÉNY: Hány betegszabadság nap fogyott el az év elejétől az adott hónap ELŐTT
-  // A törvényi keret 120 óra = 15 × 8 óra, de 12 órás munkarendben ez 10 nap (120 ÷ 12)
-  calculateFelhasznaltBetegszabadsagNapok(monthIndex, year) {
-    const BETEGSZAB_KERET_NAP = 10; // 120 óra ÷ 12 óra/nap
-    let felhasznalt = 0;
-
-    for (let m = 0; m < monthIndex; m++) {
-      const { betegszabNapok } = this.calculateHaviTappenzReszletek(m, year, BETEGSZAB_KERET_NAP - felhasznalt);
-      felhasznalt += betegszabNapok;
-      if (felhasznalt >= BETEGSZAB_KERET_NAP) { felhasznalt = BETEGSZAB_KERET_NAP; break; }
-    }
-
-    return felhasznalt;
-  }
-
-  // SEGÉDFÜGGVÉNY: Az előző hónap végén folyt-e még a táppénz?
-  // Visszaad: { folytatodas: bool, elozoHonapKezdoNap: nap száma vagy null, elozoHonapKezdoEv: év, elozoHonapKezdoHonap: hónap }
-  isTappenzFolytatodas(monthIndex, year) {
-    let prevMonth = monthIndex - 1;
-    let prevYear = year;
-    if (prevMonth < 0) { prevMonth = 11; prevYear--; }
-
-    const prevMonthData = this.app.yearlyData[prevYear]?.calendar_data[prevMonth] || {};
-    const daysInPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
-
-    let tappenzTalalt = false;
-    for (let d = daysInPrevMonth; d >= 1; d--) {
-      const shift = prevMonthData[d] || "";
-      if (shift.includes("Táppénz vége")) return { folytatodas: false };
-      if (shift.includes("Táppénz")) { tappenzTalalt = true; }
-      else if (tappenzTalalt && shift && shift !== " ") {
-        // Volt táppénz és most más műszak jön visszafelé haladva → ez a betegség kezdete utáni nap
-        break;
-      }
-    }
-
-    if (!tappenzTalalt) return { folytatodas: false };
-
-    // Megkeressük a betegség kezdőnapját az előző hónapban (vagy még korábbi hónapban)
-    const kezdoNap = this.getTappenzKezdoNap(prevMonth, prevYear);
-    return {
-      folytatodas: true,
-      kezdoNap: kezdoNap.nap,
-      kezdoHonap: kezdoNap.honap,
-      kezdoEv: kezdoNap.ev
-    };
-  }
-
-  // SEGÉDFÜGGVÉNY: Megkeresi a táppénz időszak legelső napját visszamenőleg
-  getTappenzKezdoNap(monthIndex, year) {
-    let m = monthIndex;
-    let y = year;
-
-    while (true) {
-      const monthData = this.app.yearlyData[y]?.calendar_data[m] || {};
-      const daysInMonth = new Date(y, m + 1, 0).getDate();
-      let elsoTappenz = null;
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const shift = monthData[d] || "";
-        if (shift.includes("Táppénz")) {
-          if (elsoTappenz === null) elsoTappenz = d;
-        } else if (elsoTappenz !== null && shift && shift !== " ") {
-          // Megszakítás → az elsoTappenz az igazi kezdőnap
-          return { nap: elsoTappenz, honap: m, ev: y };
-        }
-      }
-
-      if (elsoTappenz !== null) {
-        // Megnézzük az előző hónapot is — hátha ott is folytatódott
-        let prevM = m - 1; let prevY = y;
-        if (prevM < 0) { prevM = 11; prevY--; }
-        const prevData = this.app.yearlyData[prevY]?.calendar_data[prevM] || {};
-        const daysInPrev = new Date(prevY, prevM + 1, 0).getDate();
-        const lastShift = prevData[daysInPrev] || "";
-
-        // Ha az előző hónap utolsó napja is táppénz volt → menjünk még visszább
-        if (lastShift.includes("Táppénz") && !lastShift.includes("Táppénz vége")) {
-          m = prevM; y = prevY;
-          continue;
-        }
-        return { nap: elsoTappenz, honap: m, ev: y };
-      }
-
-      return { nap: 1, honap: m, ev: y }; // fallback
-    }
-  }
-
-  // SEGÉDFÜGGVÉNY: Egy hónap táppénz/betegszabadság napjainak kiszámítása adott maradék kerettel
-  // Visszaad: { betegszabNapok, tappenzNapok } (napok száma, nem forint)
-  calculateHaviTappenzReszletek(monthIndex, year, maradekKeret) {
-    const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
-
-    let tappenzNapok = [];
-    Object.entries(monthData).forEach(([day, shiftValue]) => {
-      if (shiftValue && shiftValue.includes("Táppénz")) {
-        tappenzNapok.push({
-          nap: parseInt(day),
-          originalShift: this.getOriginalShiftForDay(year, monthIndex, parseInt(day))
-        });
-      }
-    });
-
-    if (tappenzNapok.length === 0) return { betegszabNapok: 0, tappenzNapok: 0 };
-    tappenzNapok.sort((a, b) => a.nap - b.nap);
-
-    const idoszakok = this.getTappenzPeriods(tappenzNapok, monthData);
-    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-    const folytatodasInfo = this.isTappenzFolytatodas(monthIndex, year);
-    const folytatodas = folytatodasInfo.folytatodas;
-
-    // Keret ÓRÁBAN: maradekKeret napokban jön (10 nap = 120 óra max)
-    let keretOra = maradekKeret * 12;
-
-    let betegszabNapok = 0;
-    let tappenzNapokDb = 0;
-
-    idoszakok.forEach((idoszak, idoszakIndex) => {
-      const elsoIdoszakFolytatodas = (idoszakIndex === 0 && folytatodas);
-      const kezdoNap = elsoIdoszakFolytatodas ? 1 : idoszak[0].nap;
-      const utolsoJeloltNap = idoszak[idoszak.length - 1].nap;
-      const utolsoJeloltShift = monthData[utolsoJeloltNap] || "";
-
-      const vegeNap = utolsoJeloltShift.includes("Táppénz vége")
-        ? utolsoJeloltNap
-        : daysInMonth;
-
-
-      for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
-        const napAdata = idoszak.find(t => t.nap === naptariNap);
-        const shiftErtek = monthData[naptariNap] || "";
-        const originalShift = napAdata?.originalShift || "";
-
-        // Beosztott napnak számít: volt eredeti műszak, vagy manuálisan jelölte be,
-        // vagy Táppénz kezdete/vége műszak opció
-        const isMuszakNap = napAdata && (
-          (originalShift && originalShift !== " ") ||
-          shiftErtek.includes("Táppénz kezdete műszak") ||
-          shiftErtek.includes("Táppénz vége műszak") ||
-          (!originalShift || originalShift === " ")
-        );
-
-        if (keretOra <= 0) {
-          // Nincs betegszabadság keret → táppénz minden naptári napra
-          tappenzNapokDb++;
-        } else if (isMuszakNap) {
-          // Beosztott nap: 12 óra fogy a keretből → betegszabadság
-          betegszabNapok++;
-          keretOra -= 12;
-        }
-        // Szabadnap és nincs keret sem: nem jár semmi
-      }
-    });
-
-    return { betegszabNapok, tappenzNapok: tappenzNapokDb };
-  }
-
-  // 2. BETEGSZABADSÁGRA JUTÓ FIZETÉS SZÁMÍTÁSA (óra alapú, ledolgozandó × 12 osztóval)
+  // 2. BETEGSZABADSÁGRA JUTÓ FIZETÉS SZÁMÍTÁSA
   calculateBetegszabadsagFizetes(monthIndex, year) {
     try {
+      const yearData = this.app.yearlyData[year];
+      const monthData = yearData?.calendar_data[monthIndex] || {};
       const besorolas = this.getEffectiveSalary(year, monthIndex);
-      const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
+      
+      // Napi átlagbér: besorolási bér / 30 nap
+      const napiBer = besorolas / 30;
+      
+      // TÁPPÉNZ PLAFON - minimálbér kétszeresének harmincad része
+      const minimalberEv = {
+        2024: 266800,
+        2025: 290800, 
+        2026: 328618,
+        2027: 374624,
+        2028: 426160
+      };
+      const tappenzPlafon = (minimalberEv[year] * 2) / 30;
 
-      // Ledolgozandó napok × 12 = havi beosztott munkaóra
-      const ledolgozando = this.calculateMonthlyValue("Ledolgozandó napok", monthIndex, year);
-      const haviMunkaOra = ledolgozando > 0
-        ? ledolgozando * 12
-        : this.calculateWorkingDays(year, monthIndex) * 12;
+      // Táppénzes napok összegyűjtése
+      let tappenzNapok = [];
+      Object.entries(monthData).forEach(([day, shiftValue]) => {
+        if (shiftValue && shiftValue.includes("Táppénz")) {
+          tappenzNapok.push({
+            nap: parseInt(day),
+            originalShift: this.getOriginalShiftForDay(year, monthIndex, parseInt(day))
+          });
+        }
+      });
 
-      // Alapbér óradíj
-      const oradij = besorolas / haviMunkaOra;
+      if (tappenzNapok.length === 0) return 0;
 
-      const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
-      const maradekKeret = Math.max(0, 10 - felhasznalt);
+      // Napok rendezése dátum szerint
+      tappenzNapok.sort((a, b) => a.nap - b.nap);
 
-      const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
+      // Táppénz időszakok meghatározása
+      let tappenzIdoszakok = this.getTappenzPeriods(tappenzNapok, monthData);
 
-      const betegszabOra = betegszabNapok * 12;
-      // Csak alapbér komponens (70%) - pótlék a Távolléti díj sorban van
-      const osszeg = Math.round(betegszabOra * oradij * 0.7);
+      let osszBetegszabadsag = 0;
 
-      return osszeg;
+      // Minden időszak számítása
+      tappenzIdoszakok.forEach(idoszak => {
+        let munkanapokSzama = 0;
+        
+        // Időszak kezdete és vége
+        const kezdoNap = idoszak[0].nap;
+        const vegeNap = idoszak[idoszak.length - 1].nap;
+        
+        // MINDEN NAPTÁRI NAP végigiterálása az időszakban
+        for (let naptariNap = kezdoNap; naptariNap <= vegeNap; naptariNap++) {
+          
+          // Keressük meg, van-e táppénz erre a napra bejelölve
+          const napAdata = idoszak.find(t => t.nap === naptariNap);
+          
+          if (napAdata) {
+            // Ez egy BEJELÖLT táppénzes nap (tehát munkanap volt)
+            const munkanapVolt = (napAdata.originalShift && napAdata.originalShift !== " ");
+            
+            if (munkanapVolt) {
+              let napiBetegszabadsag = 0;
+              
+              if (munkanapokSzama < 15) {
+                // ELSŐ 15 NAP: BETEGSZABADSÁG - 100% (munkáltatói kiegészítés)
+                napiBetegszabadsag = napiBer * 1.0;
+                munkanapokSzama++;
+              } else {
+                // 15 NAP UTÁN: TÁPPÉNZ - 60%
+                napiBetegszabadsag = napiBer * 0.6;
+              }
+              
+              // PLAFON ALKALMAZÁSA
+              napiBetegszabadsag = Math.min(napiBetegszabadsag, tappenzPlafon);
+              osszBetegszabadsag += napiBetegszabadsag;
+            }
+            // Ha nem volt munkanap, de 15 munkanap után vagyunk
+            else if (munkanapokSzama >= 15) {
+              // 15 nap után szabadnapokra is jár 60% táppénz
+              const napiBetegszabadsag = Math.min(napiBer * 0.6, tappenzPlafon);
+              osszBetegszabadsag += napiBetegszabadsag;
+            }
+          } else {
+            // KÖZTES napok - MINDEN táppénz napon jár betegszabadság/táppénz
+            if (munkanapokSzama < 15) {
+              // ELSŐ 15 NAP ALATT is jár a köztes napokra 100%
+              const napiBetegszabadsag = Math.min(napiBer * 1.0, tappenzPlafon);
+              osszBetegszabadsag += napiBetegszabadsag;
+            } else {
+              // 15 nap után a köztes napokra 60%
+              const napiBetegszabadsag = Math.min(napiBer * 0.6, tappenzPlafon);
+              osszBetegszabadsag += napiBetegszabadsag;
+            }
+          }
+        }
+      });
 
+      return Math.round(osszBetegszabadsag);
+      
     } catch (error) {
       console.error("Hiba a betegszabadság számításában:", error);
       return 0;
     }
   }
 
-  // 3. TÁPPÉNZ ELLÁTÁS SZÁMÍTÁSA (TB által folyósított 60%)
-  // Alap: táppénz kezdőnapját megelőző 3. hónap utolsó napjától visszafelé 180 naptári nap
-  // De legfeljebb a táppénz kezdőnapját megelőző naptári év január 1-jéig
+  // 3. TÁPPÉNZ TÁVOLLÉTI DÍJ SZÁMÍTÁSA
   calculateTappenzTavolletiDij(monthIndex, year) {
     try {
-
-      // 1. Táppénz kezdőnapjának meghatározása az adott hónapban
-      const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
-      let tappenzKezdete = null;
-
-      // Ha folytatás az előző hónapból, visszakeressük az eredeti kezdőnapot
-      const folytatodasInfo = this.isTappenzFolytatodas(monthIndex, year);
-      if (folytatodasInfo.folytatodas) {
-        const kezdo = this.getTappenzKezdoNap(monthIndex, year);
-        tappenzKezdete = new Date(Date.UTC(kezdo.ev, kezdo.honap, kezdo.nap));
-      } else {
-        // Az adott hónapban keressük az első táppénz napot
-        const napok = Object.entries(monthData)
-          .filter(([, v]) => v && v.includes("Táppénz"))
-          .map(([d]) => parseInt(d))
-          .sort((a, b) => a - b);
-        if (napok.length === 0) return 0;
-        tappenzKezdete = new Date(Date.UTC(year, monthIndex, napok[0]));
-      }
-
-      // 2. Vizsgált időszak meghatározása
-      // Záródátum: táppénz kezdőnapját megelőző 3. hónap utolsó napja
-      const zaroHonap = new Date(Date.UTC(tappenzKezdete.getUTCFullYear(), tappenzKezdete.getUTCMonth() - 3, 1));
-      const zaroDatum = new Date(Date.UTC(zaroHonap.getUTCFullYear(), zaroHonap.getUTCMonth() + 1, 0)); // hónap utolsó napja
-
-      // Kezdődátum: zaroDatumtól visszafelé 180 nap
-      const kezdoDatum = new Date(zaroDatum);
-      kezdoDatum.setUTCDate(kezdoDatum.getUTCDate() - 179); // 180 nap = zaroDatum + 179 nap visszafelé
-
-      // Korlát: táppénz kezdőnapját megelőző naptári év január 1.
-      const korlat = new Date(Date.UTC(tappenzKezdete.getUTCFullYear() - 1, 0, 1));
-      if (kezdoDatum < korlat) kezdoDatum.setTime(korlat.getTime());
-
-
-      // 3. Tényleges napok száma a vizsgált időszakban
-      const vizsgaltNapok = Math.round((zaroDatum - kezdoDatum) / (1000 * 60 * 60 * 24)) + 1;
-
-      // 4. Bruttó kereset összesítése a vizsgált időszakra (arányosan havi bontásban)
-      let osszKereset = 0;
-
-      let datum = new Date(kezdoDatum);
-      while (datum <= zaroDatum) {
-        const ev = datum.getUTCFullYear();
-        const honap = datum.getUTCMonth();
-        const daysInMonth = new Date(Date.UTC(ev, honap + 1, 0)).getUTCDate();
-
-        // Hány nap esik ebből a hónapból a vizsgált időszakra
-        const honapKezdete = new Date(Date.UTC(ev, honap, 1));
-        const honapVege = new Date(Date.UTC(ev, honap, daysInMonth));
-        const idoszakKezdete = datum > honapKezdete ? datum : honapKezdete;
-        const idoszakVege = zaroDatum < honapVege ? zaroDatum : honapVege;
-        const napokSzama = Math.round((idoszakVege - idoszakKezdete) / (1000 * 60 * 60 * 24)) + 1;
-
-        // TB-járulékalapot képező jövedelem: bruttó bér mínusz betegszabadság és táppénz
-        // (ezek nem képeznek TB-járulék alapot)
-        let tbAlap = 0;
-
-        if (this.app.yearlyData[ev]?.calendar_data?.[honap]) {
-          // Van naptár adat - számítsuk ki pontosan
-          const bruttoHavi = this.calculateMonthlyValue("Bruttó bér", honap, ev);
-          const betegszabHavi = this.calculateMonthlyValue("Betegszabadságra jutó fizetés", honap, ev);
-          // Betegszabadság TB-köteles! Csak a táppénzt kell kivonni
-          // (a táppénz TB-mentes, de a betegszabadság TB-köteles)
-          const besorolas = this.getEffectiveSalary(ev, honap);
-          tbAlap = bruttoHavi;
-          if (tbAlap > 0) {
-            osszKereset += tbAlap * (napokSzama / daysInMonth);
-          }
-        } else if (this.app.yearlyData[ev]?.settings) {
-          // Nincs naptár adat - besorolási bérrel becsülünk
-          const besorolas = this.getEffectiveSalary(ev, honap);
-          if (besorolas > 0) {
-            osszKereset += besorolas * (napokSzama / daysInMonth);
-          }
-        }
-
-        // Következő hónap első napjára ugrunk
-        datum = new Date(Date.UTC(ev, honap + 1, 1));
-      }
-
-      // 5. Napi táppénz alap = összes kereset ÷ vizsgált napok száma
-      const napiAlap = vizsgaltNapok > 0 ? osszKereset / vizsgaltNapok : 0;
-
-      const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
-      const maradekKeret = Math.max(0, 10 - felhasznalt);
-      const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
-
-      const osszeg = Math.round(tappenzNapok * napiAlap * 0.6);
-
-
-      return osszeg;
-    } catch (error) {
-      console.error("Hiba a táppénz számításában:", error);
-      return 0;
-    }
-  }
-
-  // Segédfüggvény: aktuális bér alapú táppénz (ha nincs előző éves adat)
-  calculateTappenzTavolletiDij_Aktualis(monthIndex, year) {
-    const besorolas = this.getEffectiveSalary(year, monthIndex);
-    const monthData = this.app.yearlyData[year]?.calendar_data[monthIndex] || {};
-    let valodiBeosztottNapok = 0;
-    Object.entries(monthData).forEach(([day, shiftValue]) => {
-      if (!shiftValue || shiftValue === " ") return;
-      if (
-        shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka") ||
-        shiftValue.includes("Csúszó") || shiftValue.includes("Szabadság") ||
-        shiftValue.includes("Túlóra")
-      ) valodiBeosztottNapok++;
-    });
-    const haviMunkaOra = valodiBeosztottNapok > 0
-      ? valodiBeosztottNapok * 12
-      : this.calculateWorkingDays(year, monthIndex) * 12;
-    const oradij = besorolas / haviMunkaOra;
-
-    const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
-    const maradekKeret = Math.max(0, 10 - felhasznalt);
-    const { tappenzNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
-
-    return Math.round(tappenzNapok * 12 * oradij * 0.6);
-  }
-
-  // 3b. BETEGSZABADSÁG + TÁPPÉNZ PÓTLÉK TD (Távolléti díj sor a bérpapíron)
-  calculateBetegTappenzPotlekTD(monthIndex, year) {
-    try {
+      const yearData = this.app.yearlyData[year];
+      const monthData = yearData?.calendar_data[monthIndex] || {};
       const besorolas = this.getEffectiveSalary(year, monthIndex);
+
+      // Előző 6 hónap pótlékainak átlaga
       const {atlagEjszakaiPotlek, atlagVasarnapiPotlek} = this.calculateAveragePotlekok(monthIndex, year, besorolas);
-      const potlekOradij = atlagEjszakaiPotlek + atlagVasarnapiPotlek;
 
-      const felhasznalt = this.calculateFelhasznaltBetegszabadsagNapok(monthIndex, year);
-      const maradekKeret = Math.max(0, 10 - felhasznalt);
+      // Táppénzes napok és órák összegyűjtése
+      let tappenzNapok = [];
+      Object.entries(monthData).forEach(([day, shiftValue]) => {
+        if (shiftValue && shiftValue.includes("Táppénz")) {
+          const originalShift = this.getOriginalShiftForDay(year, monthIndex, parseInt(day));
+          let orak = 12;
+          if (originalShift && originalShift.includes("8 óra")) orak = 8;
+          if (originalShift && originalShift.includes("4 óra")) orak = 4;
+          
+          tappenzNapok.push({
+            nap: parseInt(day),
+            orak: orak,
+            originalShift: originalShift
+          });
+        }
+      });
 
-      const { betegszabNapok } = this.calculateHaviTappenzReszletek(monthIndex, year, maradekKeret);
+      if (tappenzNapok.length === 0) return 0;
 
-      // Csak betegszabadság napokra jár pótlék TD (70%), táppénzre NEM
-      const betegszabPotlek = betegszabNapok * 12 * potlekOradij * 0.7;
-      const osszeg = Math.round(betegszabPotlek);
+      // Rendezés dátum szerint
+      tappenzNapok.sort((a, b) => a.nap - b.nap);
 
+      // Táppénz időszakok meghatározása
+      let tappenzIdoszakok = this.getTappenzPeriods(tappenzNapok, monthData);
 
+      let osszTavolletiDij = 0;
 
-      return osszeg;
+      // Minden időszak számítása
+      tappenzIdoszakok.forEach(idoszak => {
+        let munkanapokSzama = 0;
+        
+        idoszak.forEach(napAdata => {
+          const munkanapVolt = (napAdata.originalShift && napAdata.originalShift !== " ");
+          
+          if (munkanapVolt) {
+            // Pótlékok számítása az adott napra
+            const napiPotlek = (atlagEjszakaiPotlek + atlagVasarnapiPotlek) * napAdata.orak;
+            
+            if (munkanapokSzama < 15) {
+              // ELSŐ 15 NAP: BETEGSZABADSÁG = 70% a pótlékekből
+              osszTavolletiDij += napiPotlek * 0.7;
+              munkanapokSzama++;
+            } else {
+              // 15 NAP UTÁN: TÁPPÉNZ = 60% a pótlékekből
+              osszTavolletiDij += napiPotlek * 0.6;
+            }
+          }
+        });
+      });
+
+      return Math.round(osszTavolletiDij);
     } catch (error) {
-      console.error("Hiba a pótlék TD számításában:", error);
+      console.error("Hiba a táppénz távolléti díj számításában:", error);
       return 0;
     }
   }
@@ -2362,8 +2089,20 @@ class BerszamfejtoCalculator {
           if (shiftValue.includes("8 óra")) orak = 8;
           if (shiftValue.includes("4 óra")) orak = 4;
 
-          // SZABADSÁGNÁL: teljes pótlék (100%)
-          szabadsagTavolletiDij += (atlagEjszakaiPotlek + atlagVasarnapiPotlek) * orak;
+          let potlek = 0;
+
+          // Éjszakai pótlék csak éjszakás szabadságra
+          if (shiftValue.includes("éj") || shiftValue.includes("Éjszaka")) {
+            potlek += atlagEjszakaiPotlek;
+          }
+
+          // Vasárnapi pótlék csak vasárnapi szabadságra
+          const date = new Date(year, monthIndex, parseInt(day));
+          if (date.getDay() === 0) {
+            potlek += atlagVasarnapiPotlek;
+          }
+
+          szabadsagTavolletiDij += potlek * orak;
         }
       });
 
@@ -2375,13 +2114,12 @@ class BerszamfejtoCalculator {
   }
 
   // 5. ÁTLAGOS PÓTLÉKOK SZÁMÍTÁSA (segéd függvény)
-  // Visszatér: Ft/óra értékekkel (atlagEjszakaiPotlek, atlagVasarnapiPotlek)
+  // Visszatér: Ft/óra értékekkel - a bérszámfejtés kiszámolt adataiból
   calculateAveragePotlekok(monthIndex, year, besorolas) {
     let osszesEjszakaiPotlek = 0;
     let osszesVasarnapiPotlek = 0;
     let osszesLedolgozottOra = 0;
 
-    // Előző 6 hónap vizsgálata
     for (let i = 1; i <= 6; i++) {
       let vizsgaltHonap = monthIndex - i;
       let vizsgaltEv = year;
@@ -2391,57 +2129,25 @@ class BerszamfejtoCalculator {
         vizsgaltEv--;
       }
 
-      if (
-        !this.app.yearlyData[vizsgaltEv] ||
-        !this.app.yearlyData[vizsgaltEv].calendar_data
-      ) {
-        continue;
-      }
+      if (!this.app.yearlyData[vizsgaltEv]?.calendar_data) continue;
 
-      const honapiAdat = this.app.yearlyData[vizsgaltEv].calendar_data[vizsgaltHonap] || {};
-      // Az adott hónap érvényes besorolási bére
       const honapiBesorolas = this.getEffectiveSalary(vizsgaltEv, vizsgaltHonap);
-      // Napi TD alap az adott hónapban: besorolas / 22
-      const napiAlapber = honapiBesorolas / 22;
 
-      Object.entries(honapiAdat).forEach(([nap, shiftValue]) => {
-        if (!shiftValue || shiftValue === " ") return;
+      // Ledolgozott napok * 12 = rendes műszakórák
+      const ledolgozottNapok = this.calculateMonthlyValue("Ledolgozott napok", vizsgaltHonap, vizsgaltEv);
+      osszesLedolgozottOra += ledolgozottNapok * 12;
 
-        let orak = 12;
-        if (shiftValue.includes("8 óra")) orak = 8;
-        if (shiftValue.includes("4 óra")) orak = 4;
+      // Éjszakai pótlék órák (Műszakpótlék 40% sor adja meg az órákat)
+      const ejszakaiOrak = this.calculateMonthlyValue("Műszakpótlék 40%", vizsgaltHonap, vizsgaltEv);
+      osszesEjszakaiPotlek += (honapiBesorolas / 174) * ejszakaiOrak * 0.4;
 
-        const isMuszak = shiftValue.includes("Nappal") || shiftValue.includes("Éjszaka");
-        const isTulora = shiftValue.includes("Túlóra");
-
-        // Ledolgozott műszakok és túlórák számítanak
-        if (isMuszak || isTulora) {
-          // Osztóba csak a rendes beosztás szerinti műszakórák kerülnek (túlóra nélkül)
-          // A törvény szerint a TD pótlék átlagát a rendes munkaidőhöz viszonyítják
-          if (isMuszak) {
-            osszesLedolgozottOra += orak;
-          }
-
-          // Éjszakai pótlék: éjszakás műszak vagy éjszakás túlóra
-          if (shiftValue.includes("Éjszaka") || shiftValue.includes("éj")) {
-            osszesEjszakaiPotlek += (honapiBesorolas / 174) * orak * 0.4;
-          }
-
-          // Vasárnapi pótlék: ha vasárnap volt a műszak/túlóra
-          const date = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
-          if (date.getDay() === 0) {
-            osszesVasarnapiPotlek += (honapiBesorolas / 174) * orak * 0.5;
-          }
-        }
-      });
+      // Hétvégi pótlék órák (Hétvégi pótlék 50% sor adja meg az órákat)
+      const hetvegOrak = this.calculateMonthlyValue("Hétvégi pótlék 50%", vizsgaltHonap, vizsgaltEv);
+      osszesVasarnapiPotlek += (honapiBesorolas / 174) * hetvegOrak * 0.5;
     }
 
-    // Átlagos pótlékok Ft/óra értékben
     const atlagEjszakaiPotlek = osszesLedolgozottOra > 0 ? osszesEjszakaiPotlek / osszesLedolgozottOra : 0;
     const atlagVasarnapiPotlek = osszesLedolgozottOra > 0 ? osszesVasarnapiPotlek / osszesLedolgozottOra : 0;
-
-    if (monthIndex === this.app.currentMonth && year === this.app.currentYear) {
-    }
 
     return {atlagEjszakaiPotlek, atlagVasarnapiPotlek};
   }
@@ -2453,38 +2159,27 @@ class BerszamfejtoCalculator {
 
     for (let i = 0; i < tappenzNapok.length; i++) {
       const jelenlegiNap = tappenzNapok[i];
-      const shiftValue = monthData[jelenlegiNap.nap] || "";
-
+      
       if (jelenlegiIdoszak.length === 0) {
-        // Első táppénzes nap — új időszak kezdete
+        // ELSŐ táppénzes nap - új időszak kezdete
         jelenlegiIdoszak.push(jelenlegiNap);
       } else {
         const elozoNap = jelenlegiIdoszak[jelenlegiIdoszak.length - 1];
-        const elozoShift = monthData[elozoNap.nap] || "";
-
-        // Ha az előző nap "Táppénz vége" volt → új időszak
-        // Ha a jelenlegi nap "Táppénz kezdete" → új időszak
-        if (elozoShift.includes("Táppénz vége") || shiftValue.includes("Táppénz kezdete")) {
+        
+        // Ellenőrizzük, hogy folyamatos-e a táppénz
+        const folyamatos = this.isTappenzContinuous(elozoNap.nap, jelenlegiNap.nap, monthData);
+        
+        if (folyamatos) {
+          // FOLYAMATOS táppénz - hozzáadjuk a jelenlegi időszakhoz
+          jelenlegiIdoszak.push(jelenlegiNap);
+        } else {
+          // MEGSZAKÍTÁS - lezárjuk az előző időszakot, új kezdődik
           tappenzIdoszakok.push([...jelenlegiIdoszak]);
           jelenlegiIdoszak = [jelenlegiNap];
-        } else {
-          const folyamatos = this.isTappenzContinuous(elozoNap.nap, jelenlegiNap.nap, monthData);
-          if (folyamatos) {
-            jelenlegiIdoszak.push(jelenlegiNap);
-          } else {
-            tappenzIdoszakok.push([...jelenlegiIdoszak]);
-            jelenlegiIdoszak = [jelenlegiNap];
-          }
         }
       }
-
-      // Ha ez a nap "Táppénz vége", lezárjuk az időszakot
-      if (shiftValue.includes("Táppénz vége")) {
-        tappenzIdoszakok.push([...jelenlegiIdoszak]);
-        jelenlegiIdoszak = [];
-      }
     }
-
+    
     // Utolsó időszak lezárása
     if (jelenlegiIdoszak.length > 0) {
       tappenzIdoszakok.push(jelenlegiIdoszak);
@@ -2503,37 +2198,44 @@ class BerszamfejtoCalculator {
     // Ellenőrizzük a köztes napokat
     for (let kozesNap = elozoNap + 1; kozesNap < jelenlegiNap; kozesNap++) {
       const kozesShift = monthData[kozesNap];
-
-      // Megszakítás: ha van munkavégzés közben
+      
       if (kozesShift && kozesShift !== " " && !kozesShift.includes("Táppénz")) {
+        // MEGSZAKÍTÁS: van munkavégzés közben (Nappal, Éjszaka, Szabadság, Csúszó, stb.)
         return false;
       }
     }
 
     // Ha 7+ nap szünet van táppénz nélkül, azt is megszakításnak tekintjük
+    // (Ez egy biztonsági intézkedés - túl hosszú szünet = új betegség)
     if (jelenlegiNap - elozoNap > 7) {
       return false;
     }
 
+    // Egyébként folyamatos
     return true;
   }
 
   // 8. EREDETI MŰSZAK LEKÉRÉSE (már létező függvény)
   getOriginalShiftForDay(year, month, day) {
-    const savedYear = this.app.currentYear;
-    const savedMonth = this.app.currentMonth;
     try {
+      const currentYear = this.app.currentYear;
+      const currentMonth = this.app.currentMonth;
+      
+      // Ideiglenesen beállítjuk a dátumot
       this.app.currentYear = year;
       this.app.currentMonth = month;
+      
+      // Generáljuk a műszakrendet (táppénz nélkül)
       const originalShift = this.app.generateShiftPattern(day);
+      
+      // Visszaállítjuk az eredeti dátumot
+      this.app.currentYear = currentYear;
+      this.app.currentMonth = currentMonth;
+      
       return originalShift;
     } catch (error) {
       console.error("Hiba az eredeti műszak lekérésénél:", error);
       return " ";
-    } finally {
-      // Mindig visszaállítjuk, hiba esetén is
-      this.app.currentYear = savedYear;
-      this.app.currentMonth = savedMonth;
     }
   }
 }
@@ -3745,21 +3447,24 @@ class BerszamfejtoApp {
 
     if (!birthYear || !birthMonth) return 0;
 
-    // A kedvezmény a 25. életév betöltésének HÓNAPJÁRA még jár
-    // Tehát ha valaki 2000. december-ben született, 2025. decemberben még kapja
-    // 2026. januártól már nem
-    const lastEligibleYear = birthYear + 25;
-    const lastEligibleMonth = birthMonth; // ugyanaz a hónap, 25 évvel később
-
-    // Az aktuális hónap (1-alapú összehasonlításhoz)
-    const currentYearMonth = year * 12 + month + 1; // month 0-alapú, +1
-    const lastEligibleYearMonth = lastEligibleYear * 12 + lastEligibleMonth;
-
-    // Ha az aktuális hónap már az utolsó jogosult hónap UTÁN van → nem jár
-    if (currentYearMonth > lastEligibleYearMonth) return 0;
-
-    // birthDate szükséges az éves jogosult hónapok számításához
+    // Pontos életkor számítás
     const birthDate = new Date(birthYear, birthMonth - 1);
+    const currentDate = new Date(year, month);
+
+    // Életkor számítása pontosan
+    let age = currentDate.getFullYear() - birthDate.getFullYear();
+    if (
+      currentDate <
+      new Date(
+        currentDate.getFullYear(),
+        birthDate.getMonth(),
+        birthDate.getDate()
+      )
+    ) {
+      age--;
+    }
+
+    if (age >= 25) return 0;
 
     const maxDiscount = {
       2024: 1037880,
@@ -3774,10 +3479,10 @@ class BerszamfejtoApp {
     // Havi arányosítás, ha az adott évben nem teljes évig jogosult
     const firstEligibleMonth =
       birthDate.getMonth() + (birthDate.getFullYear() === year ? 1 : 0);
-    const lastEligibleMonthInYear = birthDate.getMonth() + 12;
+    const lastEligibleMonth = birthDate.getMonth() + 12;
     const eligibleMonthsInYear = Math.min(
       12,
-      lastEligibleMonthInYear - firstEligibleMonth + 1
+      lastEligibleMonth - firstEligibleMonth + 1
     );
 
     const monthlyDiscountRate = eligibleMonthsInYear / 12;
@@ -4189,16 +3894,6 @@ class BerszamfejtoApp {
       if (otherIncomeInput && this.yearlyData[this.currentYear]?.settings) {
         otherIncomeInput.value =
           this.yearlyData[this.currentYear].settings.other_income || "0";
-
-        // Auto-save hozzáadása
-        otherIncomeInput.addEventListener("blur", () => {
-          if (this.yearlyData[this.currentSettingsYear]?.settings) {
-            this.yearlyData[this.currentSettingsYear].settings.other_income =
-              otherIncomeInput.value || "0";
-            this.saveYearlyData();
-            this.generatePayrollTable();
-          }
-        });
       }
 
       // 25 év alatti beállítások betöltése
@@ -4933,7 +4628,6 @@ class BerszamfejtoApp {
           const shifts = [
             "", // Szabadnap
             "Nappal",
-            "Nappal 8 óra",
             "Éjszaka",
             "Szabadság 12 óra",
             "Szabadság éj 12 óra",
@@ -4955,12 +4649,7 @@ class BerszamfejtoApp {
             "Szabadság 8 óra + Csúszó 4 óra éj",
             "Szabadság 4 óra + Csúszó 8 óra",
             "Szabadság 4 óra + Csúszó 8 óra éj",
-            "Táppénz kezdete műszak",
-            "Táppénz kezdete szabadnap",
             "Táppénz",
-            "Táppénz vége szabadnap",
-            "Táppénz vége műszak",
-            "Munkakezdés",
           ];
 
           shifts.forEach((shiftName) => {
@@ -4997,13 +4686,6 @@ class BerszamfejtoApp {
             }
 
             button.addEventListener("click", () => {
-              // Munkakezdés opció: műszakrend választó ablak
-              if (shiftName === "Munkakezdés") {
-                document.body.removeChild(overlay);
-                showMunkakezdésModal(this, clickedDay, shiftDiv, dateSpan);
-                return;
-              }
-
               // Csúszó opciók esetén óraszám modal
               if (shiftName.startsWith("Csúszó")) {
                 showHourInputModal(shiftName, (hours) => {
@@ -5146,15 +4828,6 @@ class BerszamfejtoApp {
   generateShiftPattern(day) {
     try {
       const currentDate = new Date(this.currentYear, this.currentMonth, day);
-
-      // Munkakezdés védelem: a munkakezdés napja előtt ne generáljon műszakot
-      const munkakezdés = this.yearlyData[this.currentYear]?.settings?.munkakezdés;
-      if (munkakezdés) {
-        const munkakezdésDátum = new Date(munkakezdés);
-        const currentNap = new Date(Date.UTC(this.currentYear, this.currentMonth, day));
-        if (currentNap < munkakezdésDátum) return " ";
-      }
-
       const effectivePattern = this.getEffectiveShiftPattern(
       this.currentYear, 
       this.currentMonth, 
@@ -6087,7 +5760,6 @@ class BerszamfejtoApp {
         { label: "Szabadságra jutó fizetés", suffix: " Ft" },
         { label: "Távolléti díj", suffix: " Ft" },
         { label: "Betegszabadságra jutó fizetés", suffix: " Ft" },
-        { label: "Táppénz ellátás (60%)", suffix: " Ft" },
         { label: "Fizetett ünnepnap", suffix: " Ft" },
         { label: "Túlórapótlék", suffix: " Ft" },
         { label: "Hétvégi pótlék (50%)", suffix: " Ft" },
@@ -6127,13 +5799,7 @@ class BerszamfejtoApp {
           valueCell.appendChild(input);
 
           input.addEventListener("change", (e) => {
-            window.validateBonus(e.target, this.currentPayrollMonth, false);
-          });
-          input.addEventListener("blur", (e) => {
-            window.validateBonus(e.target, this.currentPayrollMonth, false);
-          });
-          input.addEventListener("input", (e) => {
-            window.validateBonus(e.target, this.currentPayrollMonth, true);
+            window.validateBonus(e.target, this.currentPayrollMonth);
           });
         } else if (item.label === "Éttermi fogyasztás") {
           const input = document.createElement("input");
@@ -6150,13 +5816,7 @@ class BerszamfejtoApp {
           valueCell.appendChild(input);
 
           input.addEventListener("change", (e) => {
-            window.validateRestaurant(e.target, this.currentPayrollMonth, false);
-          });
-          input.addEventListener("blur", (e) => {
-            window.validateRestaurant(e.target, this.currentPayrollMonth, false);
-          });
-          input.addEventListener("input", (e) => {
-            window.validateRestaurant(e.target, this.currentPayrollMonth, true);
+            window.validateRestaurant(e.target, this.currentPayrollMonth);
           });
         } else if (item.label === "Egyéb jövedelem") {
           const input = document.createElement("input");
@@ -6173,13 +5833,7 @@ class BerszamfejtoApp {
           valueCell.appendChild(input);
 
           input.addEventListener("change", (e) => {
-            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth, false);
-          });
-          input.addEventListener("blur", (e) => {
-            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth, false);
-          });
-          input.addEventListener("input", (e) => {
-            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth, true);
+            window.validateEgyebJovedelem(e.target, this.currentPayrollMonth);
           });
         } else {
           // Normál értékek megjelenítése utótaggal
@@ -6243,13 +5897,12 @@ class BerszamfejtoApp {
 
   updateColorPreviews() {
     Object.entries(SHIFT_COLORS).forEach(([type, [bgColor, textColor]]) => {
-      // Normalizáljuk a class nevet (ékezetek és szóközök eltávolítása)
+      // Normalizáljuk a class nevet (ékezetek eltávolítása)
       const previewClass =
         type
           .toLowerCase()
           .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/\s+/g, "-") + "-preview";
+          .replace(/[\u0300-\u036f]/g, "") + "-preview";
 
       const preview = document.querySelector(`.${previewClass}`);
       if (preview) {
