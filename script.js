@@ -2125,9 +2125,8 @@ class BerszamfejtoCalculator {
         vizsgaltEv,
         vizsgaltHonap,
       );
-      // Havi beosztott órák (ledolgozandó × 12) - pontosabb mint a fix 174
-      const honapiLedolgozando = this.calculateMonthlyValue("Ledolgozandó napok", vizsgaltHonap, vizsgaltEv);
-      const honapiOraAlap = honapiLedolgozando > 0 ? honapiLedolgozando * 12 : 174;
+      // Napi TD alap az adott hónapban: besorolas / 22
+      const napiAlapber = honapiBesorolas / 22;
 
       Object.entries(honapiAdat).forEach(([nap, shiftValue]) => {
         if (!shiftValue || shiftValue === " ") return;
@@ -2142,71 +2141,21 @@ class BerszamfejtoCalculator {
 
         // Ledolgozott műszakok és túlórák számítanak
         if (isMuszak || isTulora) {
+          // Osztóba csak a rendes beosztás szerinti műszakórák kerülnek (túlóra nélkül)
+          // A törvény szerint a TD pótlék átlagát a rendes munkaidőhöz viszonyítják
           if (isMuszak) {
             osszesLedolgozottOra += orak;
           }
+
+          // Éjszakai pótlék: éjszakás műszak vagy éjszakás túlóra
           if (shiftValue.includes("Éjszaka") || shiftValue.includes("éj")) {
-            osszesEjszakaiPotlek += (honapiBesorolas / honapiOraAlap) * orak * 0.4;
+            osszesEjszakaiPotlek += (honapiBesorolas / 174) * orak * 0.4;
           }
+
+          // Vasárnapi pótlék: ha vasárnap volt a műszak/túlóra
           const date = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
           if (date.getDay() === 0) {
-            osszesVasarnapiPotlek += (honapiBesorolas / honapiOraAlap) * orak * 0.5;
-          }
-        } else if (shiftValue.includes("Szabadság") && !shiftValue.includes("Csúszó")) {
-          // Szabadság: 12 óra az osztóba (beosztott munkanap volt)
-          osszesLedolgozottOra += 12;
-          const dateSzab = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
-          if (shiftValue.includes("éj") || shiftValue.includes("Éjszaka")) {
-            osszesEjszakaiPotlek += (honapiBesorolas / honapiOraAlap) * orak * 0.4;
-          }
-          if (dateSzab.getDay() === 0) {
-            osszesVasarnapiPotlek += (honapiBesorolas / honapiOraAlap) * orak * 0.5;
-          }
-        } else if (shiftValue.includes("Csúszó") && shiftValue.includes("éj") && !shiftValue.includes("Szabadság")) {
-          // Csúszó éjszaka: 12 óra az osztóba, maradék éjszakai pótlék
-          osszesLedolgozottOra += 12;
-          const csuszoOra = this.extractHoursFromShift(shiftValue) || orak;
-          const maradek = Math.max(0, 12 - csuszoOra);
-          if (maradek > 0) {
-            osszesEjszakaiPotlek += (honapiBesorolas / honapiOraAlap) * maradek * 0.4;
-            const dateCsuszo = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
-            if (dateCsuszo.getDay() === 0) {
-              osszesVasarnapiPotlek += (honapiBesorolas / honapiOraAlap) * maradek * 0.5;
-            }
-          }
-        } else if (shiftValue.includes("Csúszó") && !shiftValue.includes("Szabadság")) {
-          // Nappali csúszó: 12 óra az osztóba
-          osszesLedolgozottOra += 12;
-          const csuszoOra2 = this.extractHoursFromShift(shiftValue) || orak;
-          const maradek2 = Math.max(0, 12 - csuszoOra2);
-          const dateCsuszo2 = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
-          if (dateCsuszo2.getDay() === 0 && maradek2 > 0) {
-            osszesVasarnapiPotlek += (honapiBesorolas / honapiOraAlap) * maradek2 * 0.5;
-          }
-        } else if (shiftValue.includes("Szabadság") && shiftValue.includes("Csúszó") && shiftValue.includes("éj")) {
-          // Szabadság+Csúszó éj kombó: 12 óra az osztóba
-          osszesLedolgozottOra += 12;
-          const csuzsoMatch = shiftValue.match(/Csúszó\s+(\d+\.?\d*)\s+[oó]ra/i);
-          const csuszoOra = csuzsoMatch ? parseFloat(csuzsoMatch[1]) : 0;
-          const maradek = Math.max(0, 12 - csuszoOra);
-          if (maradek > 0) {
-            osszesEjszakaiPotlek += (honapiBesorolas / honapiOraAlap) * maradek * 0.4;
-            const dateKombo = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
-            if (dateKombo.getDay() === 0) {
-              osszesVasarnapiPotlek += (honapiBesorolas / honapiOraAlap) * maradek * 0.5;
-            }
-          }
-        } else if (shiftValue.includes("Szabadság") && shiftValue.includes("Csúszó")) {
-          // Szabadság+Csúszó nappali kombó: 12 óra az osztóba
-          osszesLedolgozottOra += 12;
-          const dateKombo2 = new Date(vizsgaltEv, vizsgaltHonap, parseInt(nap));
-          if (dateKombo2.getDay() === 0) {
-            const csuzsoMatch2 = shiftValue.match(/Csúszó\s+(\d+\.?\d*)\s+[oó]ra/i);
-            const csuszoOra2 = csuzsoMatch2 ? parseFloat(csuzsoMatch2[1]) : 0;
-            const maradek2 = Math.max(0, 12 - csuszoOra2);
-            if (maradek2 > 0) {
-              osszesVasarnapiPotlek += (honapiBesorolas / honapiOraAlap) * maradek2 * 0.5;
-            }
+            osszesVasarnapiPotlek += (honapiBesorolas / 174) * orak * 0.5;
           }
         }
       });
