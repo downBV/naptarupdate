@@ -2,50 +2,37 @@
   "name": "Műszak Naptár",
   "short_name": "Műszak Naptár",
   "description": "Műszak beosztás és bérszámfejtés kalkulátor",
-  "start_url": "/naptarupdate/",
+  "start_url": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "background_color": "#f4f4f4",
-  "theme_color": "#000000",
+  "background_color": "#f2f4f6",
+  "theme_color": "#1b2430",
   "icons": [
     {
-      "src": "calendar.png",
-      "sizes": "451x513",
-      "type": "image/png"
-    },
-    {
-      "src": "ber.png",
-      "sizes": "3686x3200",
-      "type": "image/png"
-    },
-    {
-      "src": "settings.png",
-      "sizes": "980x982",
-      "type": "image/png"
-    },
-    {
-      "src": "info.png",
-      "sizes": "1005x1005",
-      "type": "image/png"
-    },
-    {
-      "src": "left.png",
-      "sizes": "1280x1280",
-      "type": "image/png"
-    },
-    {
-      "src": "right.png",
-      "sizes": "1280x1280",
-      "type": "image/png"
-    },
-    {
-      "src": "icon.png",
-      "sizes": "2048x2048",
+      "src": "icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "orientation": "portrait",
   "prefer_related_applications": false,
-  "scope": "/naptarupdate/"
+  "scope": "/"
 }

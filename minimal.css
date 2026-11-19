@@ -1,0 +1,924 @@
+/* =====================================================================
+   Műszak Naptár – letisztult kinézet (v3.3.0)
+   A style.css adja az elrendezést, ez a fájl a kinézetet (színek, betűk,
+   keretek). A style.css UTÁN töltődik be, ezért felülírja.
+   ===================================================================== */
+
+/* ---------- Tokenek ---------- */
+:root,
+[data-theme="light"] {
+  --paper: #f2f4f6;          /* app háttér */
+  --surface: #ffffff;        /* kártyák, táblázat */
+  --surface-2: #f7f8fa;      /* halvány kiemelés */
+  --ink: #1b2430;            /* fő szöveg */
+  --muted: #5f6b78;          /* másodlagos szöveg */
+  --line: #dce1e6;           /* vonalak */
+  --accent: #2b4c7e;         /* kiemelés: acélindigó */
+  --accent-ink: #ffffff;
+  --accent-soft: #e6ecf5;
+  --danger: #b23a2e;         /* ünnep, 13. havi, törlés */
+  --nav: #1b2430;            /* felső sáv */
+  --nav-ink: #ffffff;
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  /* a régi változók az új értékekre mutatnak */
+  --bg-primary: var(--paper);
+  --bg-secondary: var(--paper);
+  --bg-tertiary: var(--surface);
+  --text-primary: var(--ink);
+  --text-secondary: var(--muted);
+  --border-color: var(--line);
+  --shadow-color: rgba(27, 36, 48, 0.06);
+  --setting-group-bg: var(--surface);
+  --setting-group-border: var(--line);
+  --payroll-table-bg: var(--surface);
+  --navbar-bg: var(--nav);
+  --calendar-bg: var(--surface);
+}
+
+[data-theme="dark"] {
+  --paper: #111519;
+  --surface: #1a1f26;
+  --surface-2: #20262e;
+  --ink: #e5e9ee;
+  --muted: #93a0ad;
+  --line: #2a313a;
+  --accent: #93aedd;
+  --accent-ink: #111519;
+  --accent-soft: #222e43;
+  --danger: #e2766a;
+  --nav: #0b0f13;
+  --nav-ink: #e5e9ee;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Alap ---------- */
+* {
+  font-family: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-weight: inherit;
+  transition: none !important;
+}
+
+html,
+body {
+  background-color: var(--paper) !important;
+  color: var(--ink) !important;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, th, strong, b, label {
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+}
+
+/* ---------- Felső sáv ---------- */
+#navbar {
+  background: var(--nav) !important;
+  box-shadow: none;
+  height: 70px;
+}
+
+#navbar button,
+#navbar button:hover,
+#navbar button.active {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0;
+  margin: 0;
+  transform: none;
+}
+
+#navbar button > span,
+#navbar button::before,
+#navbar button::after,
+#navbar button.active::before {
+  display: none !important;
+}
+
+/* aktív fül: vékony vonal alul */
+#navbar button.active::after {
+  display: block !important;
+  content: "" !important;
+  position: absolute;
+  left: 28%;
+  right: 28%;
+  width: auto !important;
+  bottom: 10px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--nav-ink) !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+.nav-icon,
+#navbar button:hover .nav-icon,
+#navbar button:active .nav-icon {
+  width: 28px;
+  height: 28px;
+  filter: brightness(0) invert(1) !important;
+  opacity: 0.5;
+  transform: none !important;
+  animation: none !important;
+}
+
+#navbar button.active .nav-icon,
+#calendar-btn.active .nav-icon,
+#payroll-btn.active .nav-icon,
+#settings-btn.active .nav-icon,
+#help-btn.active .nav-icon {
+  filter: brightness(0) invert(1) !important;
+  opacity: 1;
+  animation: none !important;
+}
+
+/* ---------- Fejlécek (hónap / év lapozó) ---------- */
+#calendar-header,
+#payroll-header,
+#settings-header {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  text-shadow: none !important;
+  padding: 0 4px;
+}
+
+#current-month,
+#current-payroll-month,
+#current-settings-year {
+  color: var(--ink) !important;
+  text-shadow: none !important;
+  font-size: 21px !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  text-transform: lowercase;
+}
+
+#current-month::first-letter,
+#current-payroll-month::first-letter {
+  text-transform: uppercase;
+}
+
+#calendar-header button,
+#payroll-header button,
+#settings-header button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#calendar-header button img,
+#payroll-header button img,
+#settings-header button img {
+  width: 18px !important;
+  height: 18px !important;
+  opacity: 0.75;
+}
+
+/* ---------- Naptár ---------- */
+#calendarTable {
+  border-collapse: separate !important;
+  border-spacing: 3px;
+  padding: 0 3px;
+  background: var(--paper);
+}
+
+#calendarTable th {
+  border: none !important;
+  box-shadow: none !important;
+  height: 28px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  text-transform: none;
+}
+
+#calendarTable th:nth-child(6),
+#calendarTable th:nth-child(7) {
+  color: var(--ink);
+}
+
+#calendarTable td {
+  background: transparent;
+}
+
+.date-container {
+  position: relative;
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-sm);
+  background: var(--surface) !important;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+/* a nap száma: kicsi, bal felül */
+.date-number,
+.holiday .date-number,
+.today .date-number,
+[data-theme="dark"] .date-number {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* mai nap: a szám kiemelt színnel, a cella vékony kerettel */
+.today .date-container {
+  background: var(--surface) !important;
+  border-color: var(--accent) !important;
+  box-shadow: inset 0 0 0 1px var(--accent) !important;
+}
+
+.today .date-number {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+/* ünnepnap: piros szám, nincs piros doboz */
+.holiday,
+td.holiday {
+  background: transparent !important;
+}
+
+.holiday .date-number {
+  color: var(--danger) !important;
+  font-weight: 600 !important;
+}
+
+/* a műszak mező: a beosztástábla jelölőcsíkja */
+.shift-select,
+div.shift-select {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 18px 3px 4px 6px !important;
+  height: 100%;
+  background: transparent;
+  color: var(--ink);
+  font-size: clamp(9px, 2.6vw, 13px) !important;
+  font-weight: 600;
+  line-height: 1.15;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  text-align: left !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+div.shift-select.has-shift {
+  box-shadow: inset 3px 0 0 currentColor !important;
+}
+
+.note-display {
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 9px;
+  font-weight: 400;
+  left: 6px;
+  right: 3px;
+  bottom: 3px;
+}
+
+/* lapozó animáció árnyék nélkül */
+.slide-in-right,
+.slide-in-left,
+.slide-out-right,
+.slide-out-left {
+  box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #calendar-body,
+  #payroll-body,
+  .slide-in-right,
+  .slide-in-left,
+  .slide-out-right,
+  .slide-out-left {
+    animation: none !important;
+  }
+}
+
+/* ---------- Napválasztó ablak ---------- */
+.shift-select-overlay {
+  background: rgba(17, 21, 25, 0.45) !important;
+}
+
+.shift-select-modal,
+[data-theme="dark"] .shift-select-modal {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border: none !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+  padding: 18px !important;
+  width: 88% !important;
+}
+
+.shift-select-modal h2 {
+  color: var(--ink) !important;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.shift-select-modal label {
+  color: var(--muted) !important;
+  font-weight: 500 !important;
+  font-size: 13px;
+}
+
+.shift-select-modal textarea {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 15px !important;
+}
+
+.shift-select-modal button.shift-option {
+  margin-bottom: 8px !important;
+  padding: 12px 14px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 15px !important;
+  font-weight: 600;
+  text-align: left;
+  box-shadow: inset 3px 0 0 currentColor;
+}
+
+.shift-select-modal button.shift-option-plain,
+[data-theme="dark"] .shift-select-modal button.shift-option-plain {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: none;
+}
+
+.shift-select-modal button.modal-close-btn,
+[data-theme="dark"] .shift-select-modal button.modal-close-btn {
+  margin-top: 6px;
+  padding: 13px !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--ink) !important;
+  color: var(--surface) !important;
+  font-size: 15px !important;
+  font-weight: 600;
+}
+
+/* óraszám- és munkakezdés-ablak */
+.shift-select-modal .modal-desc {
+  color: var(--muted) !important;
+  font-size: 14px;
+}
+
+.shift-select-modal .modal-hour-input {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 26px !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.shift-select-modal .modal-hour-input:focus {
+  border-color: var(--accent) !important;
+}
+
+.shift-select-modal .modal-quick-btn {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+
+.shift-select-modal .modal-validation {
+  color: var(--danger) !important;
+}
+
+.shift-select-modal .modal-primary-btn,
+.shift-select-modal .modal-secondary-btn {
+  border-radius: var(--radius-sm) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  padding: 13px !important;
+}
+
+.shift-select-modal .modal-primary-btn {
+  background: var(--accent) !important;
+  color: var(--accent-ink) !important;
+}
+
+.shift-select-modal .modal-secondary-btn {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+}
+
+/* ---------- Bérszámfejtés ---------- */
+#payroll-header {
+  background: var(--paper) !important;
+}
+
+#payroll-content {
+  margin: 50px 12px 0 !important;
+}
+
+#payroll-table {
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius);
+  border-collapse: separate !important;
+  border-spacing: 0;
+  overflow: hidden;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+  font-size: 15px !important;
+  color: var(--ink) !important;
+}
+
+#payroll-table thead {
+  display: none;
+}
+
+#payroll-table th,
+#payroll-table td,
+#payroll-table tr:nth-child(even) td {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--line) !important;
+  box-shadow: none !important;
+  padding: 11px 14px !important;
+  height: auto;
+  font-weight: 400;
+}
+
+#payroll-table tr td:first-child {
+  color: var(--muted) !important;
+  font-weight: 400;
+}
+
+#payroll-table tr td:last-child {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#payroll-table tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* csoportok elválasztása: időadatok / pénzek / kézi tételek / összesítés */
+#payroll-table tr[data-tetel="Alapbér"] td,
+#payroll-table tr[data-tetel="Bónusz"] td,
+#payroll-table tr[data-tetel="Bruttó bér"] td {
+  border-top: 6px solid var(--paper) !important;
+}
+
+#payroll-table tr[data-tetel="Bruttó bér"] td,
+#payroll-table tr[data-tetel="Nettó"] td,
+#payroll-table tr.tizenharmadik-netto td {
+  color: var(--ink) !important;
+  font-weight: 600 !important;
+}
+
+#payroll-table tr[data-tetel="Nettó"] td {
+  background: var(--accent-soft) !important;
+  font-size: 17px;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+#payroll-table tr[data-tetel="Megmaradt szabadságok"] td {
+  border-top: 6px solid var(--paper) !important;
+}
+
+/* kézi mezők */
+#payroll-body input[type="number"] {
+  width: 96px !important;
+  height: 36px !important;
+  padding: 0 10px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  box-shadow: none !important;
+}
+
+#payroll-body input[type="number"]:focus {
+  border-color: var(--accent) !important;
+  background: var(--surface) !important;
+}
+
+/* 13. havi blokk */
+#payroll-table tr.tizenharmadik-fejlec td {
+  border-top: 2px solid var(--danger) !important;
+  color: var(--danger) !important;
+  text-transform: none !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+  font-size: 15px;
+  padding-top: 14px !important;
+}
+
+#payroll-table tr.tizenharmadik-netto td {
+  background: var(--accent-soft) !important;
+  color: var(--ink) !important;
+  font-size: 17px;
+}
+
+/* ---------- Beállítások ---------- */
+#settings-section {
+  background: var(--paper) !important;
+  border-radius: 0;
+  padding-bottom: 28px;
+}
+
+.theme-toggle-container {
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+  padding: 8px 14px;
+  margin: 8px auto 4px;
+}
+
+.ui-switch {
+  --switch-bg: var(--line);
+  --circle-bg: var(--accent);
+}
+
+.ui-switch input:checked + .slider .circle {
+  background-color: var(--accent);
+}
+
+.setting-group,
+[data-theme="dark"] .setting-group {
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+  margin: 12px 12px !important;
+  text-align: left;
+}
+
+.setting-group h3 {
+  background: transparent !important;
+  color: var(--ink) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  padding: 14px 14px 2px !important;
+}
+
+.setting-group label {
+  color: var(--muted) !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  text-align: left !important;
+}
+
+.mobile-button,
+select.mobile-button,
+input.mobile-button {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: none !important;
+  min-height: 44px;
+  padding: 10px 12px !important;
+  margin: 6px 0 !important;
+  font-size: 15px !important;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+input.mobile-button::placeholder {
+  color: var(--muted) !important;
+}
+
+.mobile-button:focus {
+  border-color: var(--accent) !important;
+  background: var(--surface) !important;
+}
+
+/* gombok: elsődleges művelet kitöltve, a többi körvonalas */
+button.mobile-button {
+  background: var(--surface) !important;
+  font-weight: 600;
+}
+
+#save-settings,
+#export-all-btn,
+#add-midyear-shift-change,
+#add-midyear-change {
+  background: var(--accent) !important;
+  color: var(--accent-ink) !important;
+  border-color: var(--accent) !important;
+  width: 100% !important;
+  display: block;
+}
+
+#import-all-btn {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+}
+
+#save-settings:hover {
+  background: var(--accent) !important;
+  opacity: 0.9;
+}
+
+select.mobile-button[style*="grey"] {
+  color: var(--ink) !important;
+}
+
+.checkbox-container,
+.midyear-change-item,
+[data-theme="dark"] .midyear-change-item {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--ink) !important;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+}
+
+/* színbeállítások */
+#color-settings,
+[data-theme="dark"] #color-settings {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+}
+
+.color-row,
+[data-theme="dark"] .color-row {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  padding: 10px 0 !important;
+  margin: 0 !important;
+}
+
+.color-row:last-child {
+  border-bottom: none !important;
+}
+
+.color-preview {
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: inset 3px 0 0 currentColor;
+  font-weight: 600 !important;
+  height: 40px !important;
+}
+
+.color-picker {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500;
+}
+
+/* a színbeállítás-előnézetek alapszínei (a JS felülírja a valódi színnel) */
+.nappal-preview { background-color: #fbefc6; color: #6e5200; }
+.ejszaka-preview { background-color: #dde5f6; color: #223d73; }
+.szabadsag-preview { background-color: #ddefe0; color: #1e6332; }
+.tulora-preview { background-color: #f7deda; color: #962b20; }
+.csuszo-preview { background-color: #ede3f2; color: #633878; }
+.tappenz-preview { background-color: #e4e6ea; color: #2c3239; }
+
+/* ---------- Súgó ---------- */
+#help-section > div {
+  margin: 0 !important;
+  padding: 16px 12px 28px !important;
+  text-align: left !important;
+}
+
+#help-section .help-title,
+[data-theme="dark"] #help-section .help-title {
+  color: var(--ink) !important;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 4px 4px 16px;
+}
+
+#help-section .help-contact,
+[data-theme="dark"] #help-section .help-contact {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+#help-section .help-contact p,
+[data-theme="dark"] #help-section .help-contact p {
+  color: var(--muted) !important;
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+#help-section .help-contact a,
+[data-theme="dark"] #help-section .help-contact a {
+  color: var(--accent) !important;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.info-accordion-item {
+  margin-bottom: 8px !important;
+}
+
+.info-accordion-header,
+[data-theme="dark"] .info-accordion-header {
+  background: var(--surface) !important;
+  border: 1px solid var(--line);
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+  padding: 14px 16px !important;
+  transform: none !important;
+}
+
+.info-accordion-header:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.info-accordion-header h3,
+.info-accordion-header span,
+[data-theme="dark"] .info-accordion-header,
+[data-theme="dark"] .info-accordion-header * {
+  color: var(--ink) !important;
+  font-size: 16px !important;
+  font-weight: 600;
+}
+
+.info-accordion-header span[id$="-arrow"] {
+  color: var(--muted) !important;
+  font-size: 13px !important;
+}
+
+.info-accordion-header > div > span:first-child {
+  font-size: 18px !important;
+}
+
+.info-accordion-content {
+  border-radius: var(--radius) !important;
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+/* útmutató */
+.guide-content {
+  background: var(--paper) !important;
+  padding: 4px 0 !important;
+}
+
+.guide-step,
+[data-theme="dark"] .guide-step {
+  background: var(--surface) !important;
+  border: 1px solid var(--line);
+  box-shadow: none !important;
+  border-radius: var(--radius) !important;
+}
+
+.guide-step p,
+[data-theme="dark"] #help-section .guide-step p {
+  color: var(--ink) !important;
+  font-weight: 400;
+}
+
+.guide-step strong,
+[data-theme="dark"] #help-section .guide-step strong {
+  color: var(--ink) !important;
+  font-weight: 600;
+}
+
+.guide-step-title,
+[data-theme="dark"] #help-section .guide-step-title {
+  color: var(--ink) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+.guide-num,
+[data-theme="dark"] #help-section .guide-num {
+  background: var(--accent) !important;
+  color: var(--accent-ink) !important;
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.guide-tip,
+[data-theme="dark"] #help-section .guide-tip {
+  background: var(--surface-2) !important;
+  border-left: 3px solid var(--accent) !important;
+  color: var(--ink) !important;
+}
+
+.guide-img {
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+}
+
+/* ---------- Frissítési ablak ---------- */
+.changelog-overlay {
+  background: rgba(17, 21, 25, 0.5) !important;
+}
+
+.changelog-modal {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-radius: 16px !important;
+  padding: 22px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+.changelog-header,
+.changelog-header * {
+  color: var(--ink) !important;
+  border-bottom-color: var(--line) !important;
+  text-align: left !important;
+  font-weight: 600;
+}
+
+.changelog-version {
+  background: transparent !important;
+  border-left: none !important;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0 !important;
+  padding: 10px 0 12px !important;
+  margin-bottom: 4px !important;
+  color: var(--ink) !important;
+}
+
+.changelog-version:last-of-type {
+  border-bottom: none;
+}
+
+.changelog-version h4 {
+  color: var(--ink) !important;
+  font-size: 15px !important;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-version li,
+.changelog-version p,
+.changelog-version strong {
+  color: var(--ink) !important;
+  font-weight: 400;
+}
+
+.changelog-close-btn {
+  background: var(--ink) !important;
+  color: var(--surface) !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 600;
+}

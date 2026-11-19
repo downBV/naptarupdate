@@ -12,25 +12,17 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="minimal.css">
     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
-    <link rel="icon" type="image/png" sizes="1024x1024" href="./icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="./icon.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./icon.png">
-    <link rel="shortcut icon" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="1024x1024" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="./icon.png">
-    <link rel="apple-touch-icon" sizes="57x57" href="./icon.png">
-    <link rel="apple-touch-icon" href="./icon.png">
-    <link rel="icon" type="image/png" href="./icon.png">
-    <link rel="apple-touch-icon" href="/icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="Műszak Naptár">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <title>Műszak Naptár</title>
 </head>
 <body>
@@ -80,10 +72,10 @@
             <tr>
             <th>H</th>
             <th>K</th>
-            <th>SZE</th>
-            <th>CS</th>
+            <th>Sze</th>
+            <th>Cs</th>
             <th>P</th>
-            <th>SZO</th>
+            <th>Szo</th>
             <th>V</th>
             </tr>
         </thead>
@@ -209,7 +201,7 @@
         </div>
 
         <div class="setting-group">
-            <h3>🔄 Évközi műszakváltás</h3>            
+            <h3>Évközi műszakváltás</h3>            
             <div style="margin-top: 10px">                
                 <!-- Dátum választók egy sorban -->
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -348,7 +340,7 @@
 
         <!-- ADATOK MENTÉSE ÉS VISSZAÁLLÍTÁSA -->
         <div class="setting-group">
-        <h3>📁 Adatok mentése és visszaállítása</h3>
+        <h3>Adatok mentése és visszaállítása</h3>
         
         <!-- Teljes backup -->
         <div style="margin-bottom: 15px;">
@@ -496,19 +488,71 @@
 
     <div id="help-section" class="section">
     <div style="margin: 15px; text-align: center; padding: 20px;">
-        <h2 style="font-size: 28px; color: #2c3e50; margin-bottom: 30px;">
-            📚 Súgó és Információk
-        </h2>
+        <h2 class="help-title">Súgó és információk</h2>
 
         <!-- EMAIL KAPCSOLAT -->
-        <div style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); border-radius: 12px; padding: 20px 25px; margin-bottom: 25px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
-            <p style="color: white; font-size: 16px; margin: 0 0 12px 0;">
-                💡 Ha ötlete vagy javaslata van a program fejlesztésével kapcsolatban, írja meg e-mailben!
-            </p>
-            <a href="mailto:infomuszaknaptar@gmail.com" 
-               style="display: inline-block; background: white; color: #27ae60; font-weight: bold; font-size: 15px; padding: 10px 22px; border-radius: 8px; text-decoration: none;">
-                ✉️ infomuszaknaptar@gmail.com
-            </a>
+        <div class="help-contact">
+            <p>Ötleted vagy javaslatod van a programhoz? Írd meg e-mailben.</p>
+            <a href="mailto:infomuszaknaptar@gmail.com">infomuszaknaptar@gmail.com</a>
+        </div>
+
+        <!-- 0. ÚTMUTATÓ LÉPÉSRŐL LÉPÉSRE -->
+        <div class="info-accordion-item" style="margin-bottom: 15px;">
+            <div class="info-accordion-header" onclick="toggleAccordion('guide')" 
+                 style="background: linear-gradient(135deg, #16a085 0%, #138d75 100%); color: white; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="font-size: 24px;">📖</span>
+                    <h3 style="margin: 0; font-size: 20px;">Útmutató lépésről lépésre</h3>
+                </div>
+                <span id="guide-arrow" style="font-size: 20px; transition: transform 0.3s ease;">▼</span>
+            </div>
+            <div id="guide-content" class="info-accordion-content guide-content" style="display: none;">
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">1</span>Tedd ki a kezdőképernyőre</div>
+                    <p>Így alkalmazásként nyílik meg, és internet nélkül is működik. <strong>Androidon</strong> a Chrome menüjében (⋮) válaszd a <em>Hozzáadás a kezdőképernyőhöz</em> vagy <em>Alkalmazás telepítése</em> pontot. <strong>iPhone-on</strong> a Safariban nyomd meg a Megosztás gombot, majd a <em>Főképernyőhöz adás</em> pontot.</p>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">2</span>Állítsd be a műszakrendedet és az alapadatokat</div>
+                    <p>Nyisd meg a <strong>⚙️ Beállításokat</strong>. Válaszd ki a műszakrendedet, és nyomd meg a <strong>Műszak mentése</strong> gombot. Utána írd be a besorolási béredet, az éves szabadságod napjait és a gyermekeid számát.</p><p class="guide-tip">💡 A beállítások <strong>évenként külön</strong> tárolódnak. A fenti nyilakkal válts évet, és minden évnél állítsd be őket.</p>
+                    <img src="utmutato/beallitasok.webp" alt="Beállítások: műszakrend és alapadatok" loading="lazy" class="guide-img"/>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">3</span>Nézd meg a naptárt</div>
+                    <p>A <strong>📅 Naptárban</strong> a műszakjaid automatikusan megjelennek (alapból sárga a nappal, kék az éjszaka). A hónapok között a nyilakkal lépkedhetsz.</p>
+                    <img src="utmutato/naptar.webp" alt="Naptár a műszakokkal" loading="lazy" class="guide-img"/>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">4</span>Írd be, ha valami másképp volt</div>
+                    <p>Koppints egy napra, és válaszd ki, mi történt: szabadság, túlóra, csúszó, táppénz. Megjegyzést is írhatsz hozzá.</p><p class="guide-tip">⚠️ Ha aznap <strong>éjszakás</strong> lettél volna, az <strong>„éj”</strong> változatot válaszd (például <em>Szabadság éj 12 óra</em>), különben rosszul számol a műszakpótlék.</p><p class="guide-tip">🔁 Műszakcserénél ne a „csúszót” használd: állítsd az eredeti napot <em>Szabadnap</em>-ra, és az új napra tedd be a műszakot. A <em>Csúszó túlórakeretből</em> akkor kell, ha a túlórakeretedből veszel ki időt.</p>
+                    <img src="utmutato/napvalaszto.webp" alt="A nap kiválasztása: szabadság, túlóra" loading="lazy" class="guide-img"/>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">5</span>Táppénz beírása</div>
+                    <p>Az első napra a <strong>Táppénz kezdete</strong> kerül (<em>műszak</em> vagy <em>szabadnap</em>, attól függően, be voltál-e osztva). Utána <strong>csak a műszakos napokra</strong> tedd a <strong>Táppénz</strong> jelölést, a szabadnapokat hagyd üresen. Az utolsó napra a <strong>Táppénz vége</strong> kerül. A közbeeső szabadnapokat a program magától beszámolja.</p>
+                    <img src="utmutato/napvalaszto-tappenz.webp" alt="A táppénz opciói" loading="lazy" class="guide-img"/>
+                    <img src="utmutato/naptar-tappenz.webp" alt="Példa: helyesen beírt táppénz" loading="lazy" class="guide-img"/>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">6</span>Nézd meg a béredet</div>
+                    <p>A <strong>💰 Bérszámfejtésben</strong> hónapra bontva látod a ledolgozott napokat, a pótlékokat, a levonásokat és a nettót. A hónapok között a nyilakkal léphetsz.</p>
+                    <img src="utmutato/ber-teteje.webp" alt="Bérszámfejtés" loading="lazy" class="guide-img"/>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">7</span>Amit havonta kézzel kell beírni</div>
+                    <p>Ezeket a program nem tudja, ezért minden hónapban írd be: a <strong>Bónusz</strong> szorzót (0, 1 vagy 2), az <strong>Éttermi fogyasztás</strong> összegét, és ha volt, az <strong>Egyéb jövedelmet</strong> (nettóban).</p>
+                    <img src="utmutato/ber-kezi.webp" alt="Kézzel beírandó mezők" loading="lazy" class="guide-img"/>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">8</span>13. havi fizetés</div>
+                    <p>A <strong>novemberi</strong> bérszámfejtés alján, piros vonal alatt látod a 13. havi fizetést: a bruttót, a levonásokat és a nettót. Ezt nem kell beírni, magától számolja.</p>
+                    <img src="utmutato/tizenharmadik.webp" alt="13. havi fizetés novemberben" loading="lazy" class="guide-img"/>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-title"><span class="guide-num">9</span>Mentsd el az adataidat</div>
+                    <p>Minden adat <strong>csak a telefonodon</strong> van. Néha nyomd meg a <strong>📤 Adatok mentése</strong> gombot a Beállítások alján, és tedd biztos helyre a fájlt. Új telefonon vagy törlés után az <strong>📥 Adatok betöltése</strong> gombbal hozhatod vissza.</p>
+                    <img src="utmutato/mentes.webp" alt="Adatok mentése és betöltése" loading="lazy" class="guide-img"/>
+                </div>
+            </div>
         </div>
 
         <!-- 1. PROGRAM HASZNÁLATA -->
@@ -581,6 +625,11 @@
                     </ul>
                 </div>
 
+                <h4 style="color: #d35400;">💰 Táppénz használata:</h4>
+                <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                    <p><strong>A táppénz használatához fontos, hogy: Amikor az orvos kiír táppénzre, a programban válaszd ki a "Táppénz kezdete műszak vagy szabadnap" opciót, attól függően, hogy műszakba-e kell lenned aznap. A naptárban ezután már csak a "Táppénz" opciót kell kiválasztanod DE! csak a műszakos napokra, NEM minden napra. Végül az utolsó táppénzes napodra válaszd ki a "Táppénz vége műszak vagy szabadnap" opciót, attól függően, hogy műszakban lennél-e.</strong></p>
+                </div>                
+
                 <h4 style="color: #d35400;">💰 Alapbér számítása:</h4>
                 <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
                     <p><strong>Ez nem a besorolási béred! A két adat teljesen más!</strong></p>
@@ -631,7 +680,7 @@
                     <p><strong>2026 Januártól:</strong> 1 gyermek: 20.000 Ft/hó, 2 gyermek: 40.000 Ft/hó/gyermek, 3+ gyermek: 66.000 Ft/hó/gyermek</p>
                 </div>
 
-                <h4 style="color: #d35400;">💚 Végső számítás:</h4>
+                <h4 style="color: #d35400;">Végső számítás:</h4>
                 <div style="background-color: #f1f8e9; padding: 15px; border-radius: 8px; margin: 10px 0; border: 2px solid #4caf50;">
                     <p><strong>Nettó bér = Bruttó béred 33,5%-a alap esetben, kivéve ha adókedvezményes - Éttermi fogyasztás</strong></p>
                 </div>
