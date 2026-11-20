@@ -1,4 +1,4 @@
-const CACHE_NAME = 'muszaknaptar_V3.3.0';
+const CACHE_NAME = 'muszaknaptar_V3.3.2';
 const urlsToCache = [
   '/',
   '/index.html',

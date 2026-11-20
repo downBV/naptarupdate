@@ -390,7 +390,7 @@ function showSuccessMessage(message) {
 class ChangelogManager {
   constructor() {
     // FONTOS: Ezt a verziószámot növeld minden új funkcióval!
-    this.currentVersion = "v3.3.0"; // <-- Itt változtasd a verziót
+    this.currentVersion = "v3.3.2"; // <-- Itt változtasd a verziót
     this.storageKey = "lastSeenChangelog";
   }
 
@@ -398,12 +398,6 @@ class ChangelogManager {
   getChangelog() {
     // Csak a legutóbbi frissítések jelennek meg (a régebbieket nem listázzuk)
     return [
-      {
-        version: "3.3.0",
-        date: "2026.11.19",
-        title: "Újdonság",
-        changes: ["✨ Új, letisztult kinézet, visszafogottabb műszakszínekkel"],
-      },
       {
         version: "3.2.7",
         date: "2026.11.19",
@@ -574,6 +568,243 @@ class ChangelogManager {
   resetVersion() {
     localStorage.removeItem(this.storageKey);
     console.log("Changelog verzió resetelve. Újratöltés után megjelenik.");
+  }
+}
+
+// ==================== MŰSZAK HÚZÁSA (DRAG & DROP) ====================
+// Hosszú nyomással (kb. 0,35 mp) felemelhető egy nap műszakja, és áthúzható egy másik
+// napra. Üres napra engedve áthelyezi, foglalt napra engedve felcseréli a kettőt.
+// Pointer eseményekkel működik (ujj és egér is); a böngésző beépített drag & drop-ja
+// érintőképernyőn nem működik, ezért azt nem használjuk.
+class ShiftDragDrop {
+  constructor(app) {
+    this.app = app;
+    this.root = document.getElementById("calendar-section");
+    this.LONG_PRESS_MS = 350;
+    this.MOVE_TOLERANCE = 10; // ennyi px mozgás a hosszú nyomás alatt még nem szakítja meg
+    this.pending = null; // hosszú nyomásra vár
+    this.drag = null; // folyamatban lévő húzás
+    this.blockClickUntil = 0;
+    this.blockSwipeUntil = 0;
+    this.toastTimer = null;
+  }
+
+  init() {
+    if (!this.root) return;
+    this.root.addEventListener("pointerdown", (e) => this.onDown(e));
+    window.addEventListener("pointermove", (e) => this.onMove(e), { passive: false });
+    window.addEventListener("pointerup", (e) => this.onUp(e));
+    window.addEventListener("pointercancel", () => this.cancel());
+    // Húzás közben a görgetés tiltása (ez kell, hogy a böngésző ne vegye el az ujjat)
+    this.root.addEventListener(
+      "touchmove",
+      (e) => {
+        if (this.drag) e.preventDefault();
+      },
+      { passive: false },
+    );
+    this.root.addEventListener("contextmenu", (e) => {
+      if (this.pending || this.drag) e.preventDefault();
+    });
+    // A húzás végén keletkező "kattintás" ne nyissa meg a napválasztót
+    this.root.addEventListener(
+      "click",
+      (e) => {
+        if (Date.now() < this.blockClickUntil) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      true,
+    );
+  }
+
+  // A hónapváltó lapozás ezt kérdezi meg
+  isBusy() {
+    return !!this.drag || Date.now() < this.blockSwipeUntil;
+  }
+
+  getCellInfo(el) {
+    const container = el && el.closest ? el.closest("#calendar-body .date-container") : null;
+    if (!container) return null;
+    const num = container.querySelector(".date-number");
+    const shift = container.querySelector(".shift-select");
+    if (!num || !shift) return null;
+    const day = parseInt(num.textContent, 10);
+    if (!day) return null;
+    return { container, shift, day, value: (shift.textContent || "").trim() };
+  }
+
+  onDown(e) {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (document.querySelector(".shift-select-overlay")) return;
+    const info = this.getCellInfo(e.target);
+    if (!info || !info.value || info.value === "Munkakezdés") return;
+    this.cancel();
+    this.pending = {
+      ...info,
+      pointerId: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      timer: setTimeout(() => this.start(), this.LONG_PRESS_MS),
+    };
+  }
+
+  start() {
+    const p = this.pending;
+    if (!p) return;
+    this.pending = null;
+    this.drag = { from: p, target: null, x: p.x, y: p.y };
+    if (navigator.vibrate) {
+      try {
+        navigator.vibrate(15);
+      } catch (_) {}
+    }
+    document.body.classList.add("shift-dragging");
+    p.container.classList.add("drag-source");
+
+    const ghost = document.createElement("div");
+    ghost.className = "drag-ghost";
+    ghost.textContent = p.value;
+    ghost.style.background = p.shift.style.background || p.shift.style.backgroundColor || "";
+    ghost.style.color = p.shift.style.color || "";
+    document.body.appendChild(ghost);
+    this.drag.ghost = ghost;
+    this.placeGhost(p.x, p.y);
+  }
+
+  placeGhost(x, y) {
+    const g = this.drag && this.drag.ghost;
+    if (!g) return;
+    // az ujj fölött lebeg, hogy látszódjon
+    g.style.transform = `translate(${Math.round(x - g.offsetWidth / 2)}px, ${Math.round(y - g.offsetHeight - 28)}px)`;
+  }
+
+  onMove(e) {
+    if (this.pending && e.pointerId === this.pending.pointerId) {
+      const dx = e.clientX - this.pending.x;
+      const dy = e.clientY - this.pending.y;
+      if (Math.hypot(dx, dy) > this.MOVE_TOLERANCE) this.cancelPending();
+      return;
+    }
+    if (!this.drag || e.pointerId !== this.drag.from.pointerId) return;
+    e.preventDefault();
+    this.drag.x = e.clientX;
+    this.drag.y = e.clientY;
+    this.placeGhost(e.clientX, e.clientY);
+
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const info = this.getCellInfo(under);
+    const valid = info && info.day !== this.drag.from.day && info.value !== "Munkakezdés";
+    if (this.drag.target && (!valid || this.drag.target.container !== info.container)) {
+      this.drag.target.container.classList.remove("drag-target");
+      this.drag.target = null;
+    }
+    if (valid && !this.drag.target) {
+      info.container.classList.add("drag-target");
+      this.drag.target = info;
+    }
+  }
+
+  onUp(e) {
+    if (this.pending && e.pointerId === this.pending.pointerId) {
+      this.cancelPending(); // rövid koppintás: a megszokott ablak nyílik
+      return;
+    }
+    if (!this.drag || e.pointerId !== this.drag.from.pointerId) return;
+    const from = this.drag.from.day;
+    const to = this.drag.target ? this.drag.target.day : null;
+    this.cleanup();
+    // a húzást követő kattintás és lapozás ne fusson le
+    this.blockClickUntil = Date.now() + 500;
+    this.blockSwipeUntil = Date.now() + 500;
+    if (to) this.moveShift(from, to);
+  }
+
+  cancelPending() {
+    if (this.pending) {
+      clearTimeout(this.pending.timer);
+      this.pending = null;
+    }
+  }
+
+  cancel() {
+    this.cancelPending();
+    if (this.drag) {
+      this.cleanup();
+      this.blockClickUntil = Date.now() + 500;
+      this.blockSwipeUntil = Date.now() + 500;
+    }
+  }
+
+  cleanup() {
+    if (!this.drag) return;
+    this.drag.from.container.classList.remove("drag-source");
+    if (this.drag.target) this.drag.target.container.classList.remove("drag-target");
+    if (this.drag.ghost) this.drag.ghost.remove();
+    document.body.classList.remove("shift-dragging");
+    this.drag = null;
+  }
+
+  // Áthelyezés (üres célnap) vagy csere (foglalt célnap). Az üres nap " " értéket kap,
+  // különben a program újragenerálná rajta az eredeti műszakot.
+  moveShift(fromDay, toDay) {
+    const app = this.app;
+    const y = app.currentYear;
+    const m = app.currentMonth;
+    const cd = app.yearlyData[y].calendar_data[m];
+    const ures = (v) => !v || !String(v).trim();
+    const a = cd[fromDay];
+    const b = cd[toDay];
+    if (ures(a)) return;
+    const elozo = { y, m, fromDay, toDay, a, b };
+    const csere = !ures(b);
+    cd[toDay] = a;
+    cd[fromDay] = csere ? b : " ";
+    this.refresh(y, m);
+    this.showToast(
+      csere
+        ? `${fromDay}. és ${toDay}. felcserélve`
+        : `${fromDay}. → ${toDay}. áthelyezve`,
+      () => {
+        const c = app.yearlyData[elozo.y].calendar_data[elozo.m];
+        c[elozo.fromDay] = elozo.a;
+        if (elozo.b === undefined) delete c[elozo.toDay];
+        else c[elozo.toDay] = elozo.b;
+        this.refresh(elozo.y, elozo.m);
+      },
+    );
+  }
+
+  refresh(y, m) {
+    const app = this.app;
+    app.saveYearlyData();
+    if (app.currentYear === y && app.currentMonth === m) app.generateCalendar();
+    app.currentPayrollYear = y;
+    app.currentPayrollMonth = m;
+    app.generatePayrollTable();
+  }
+
+  showToast(text, onUndo) {
+    let t = document.querySelector(".dd-toast");
+    if (t) t.remove();
+    clearTimeout(this.toastTimer);
+    t = document.createElement("div");
+    t.className = "dd-toast";
+    t.setAttribute("role", "status");
+    const span = document.createElement("span");
+    span.textContent = text;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Visszavonás";
+    btn.addEventListener("click", () => {
+      onUndo();
+      t.remove();
+    });
+    t.appendChild(span);
+    t.appendChild(btn);
+    document.body.appendChild(t);
+    this.toastTimer = setTimeout(() => t.remove(), 6000);
   }
 }
 
@@ -888,6 +1119,11 @@ class BerszamfejtoCalculator {
         { month: 11, day: 25 }, // Karácsony
         { month: 11, day: 26 }, // Karácsony másnapja
       ];
+
+      // Szenteste: 2026-tól állandó munkaszüneti nap (2026. évi LXXII. törvény, hatályos 2026.11.14-től)
+      if (year >= 2026) {
+        fixedHolidays.push({ month: 11, day: 24 });
+      }
 
       // Húsvét és kapcsolódó ünnepek kiszámítása
       const easter = this.calculateEaster(year);
@@ -2745,6 +2981,8 @@ class BerszamfejtoApp {
       this.initializeYearlyData();
       // Betöltjük a mentett adatokat
       this.loadYearlyData();
+      // Egyszeri javítás: december 24. munkaszüneti nap lett (2026-tól)
+      this.dec24Atallas();
       // További inicializálások
       document.getElementById("current-settings-year").textContent =
         this.currentSettingsYear;
@@ -2754,6 +2992,8 @@ class BerszamfejtoApp {
       this.initEventListeners();
       this.initSettingsNavigation();
       this.initTouchNavigation();
+      this.dragDrop = new ShiftDragDrop(this);
+      this.dragDrop.init();
       this.initSettings();
       this.salaryVisibility = initSalaryVisibility();
       this.generateCalendar();
@@ -2919,6 +3159,34 @@ class BerszamfejtoApp {
       localStorage.setItem("berszamfejtoYearlyData", JSON.stringify(yearData));
     } catch (error) {
       console.error("Hiba az adatok mentése során:", error);
+    }
+  }
+
+  // December 24. 2026-tól munkaszüneti nap. Az A/B/C műszakrendben ünnepnapon nincs
+  // műszak, ezért a korábban előre legenerált (és elmentett) december 24-i műszakot
+  // egyszer töröljük. Csak a pontosan "Nappal"/"Éjszaka" bejegyzést, a kézzel beírt
+  // szabadság, túlóra stb. megmarad. Az 1-4-es rendnél a műszak marad (ünnepnapi fizetés jár).
+  dec24Atallas() {
+    try {
+      if (localStorage.getItem("dec24UnnepAtallas") === "1") return;
+      let valtozott = false;
+      Object.keys(this.yearlyData || {}).forEach((ev) => {
+        const y = parseInt(ev);
+        if (!(y >= 2026)) return;
+        const dec = this.yearlyData[ev]?.calendar_data?.[11];
+        if (!dec) return;
+        const ertek = dec[24];
+        if (ertek !== "Nappal" && ertek !== "Éjszaka") return;
+        const rend = this.getEffectiveShiftPattern(y, 11, 24);
+        if (["A", "B", "C"].includes(rend)) {
+          delete dec[24];
+          valtozott = true;
+        }
+      });
+      if (valtozott) this.saveYearlyData();
+      localStorage.setItem("dec24UnnepAtallas", "1");
+    } catch (error) {
+      console.error("Hiba a december 24-i átállás során:", error);
     }
   }
 
@@ -3840,6 +4108,8 @@ class BerszamfejtoApp {
   }
 
   handleSwipe(startX, endX) {
+    // Műszak húzása közben (és utána rögtön) nincs hónapváltás
+    if (this.dragDrop && this.dragDrop.isBusy()) return;
     // Minimum elmozdulás érzékeléséhez
     const minSwipeDistance = 100;
 

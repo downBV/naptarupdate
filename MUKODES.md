@@ -1,6 +1,6 @@
 # Műszak Naptár – működés és számítások
 
-Ez a fájl azt írja le, hogyan működik az app és hogyan számolja a bérsorokat. Célja, hogy később (akár hónapok múlva, akár egy új Claude-beszélgetésben) gyorsan át lehessen látni, mit miért csinál a program. A leírás a **v3.3.0** állapotot tükrözi. Ahol valami nincs bérpapírral igazolva, azt külön jelzem.
+Ez a fájl azt írja le, hogyan működik az app és hogyan számolja a bérsorokat. Célja, hogy később (akár hónapok múlva, akár egy új Claude-beszélgetésben) gyorsan át lehessen látni, mit miért csinál a program. A leírás a **v3.3.2** állapotot tükrözi. Ahol valami nincs bérpapírral igazolva, azt külön jelzem.
 
 ---
 
@@ -55,7 +55,7 @@ A **besorolási bér** a havi alapbér (a beállításokban adod meg, és évent
 
 **Teljesítmény prémium.** Besorolási bér × 5% × a hónapra beírt prémium-szorzó. Ha a hónapban hiányzás volt, a valós bérpapíron gyakran nincs prémium; ilyenkor a prémium-szorzót érdemes 0-ra állítani.
 
-**Fizetett ünnepnap.** Besorolási bér ÷ ledolgozandó napok × a munkaszüneti napok száma, ha az ünnep beosztott munkanapra esik.
+**Fizetett ünnepnap.** Besorolási bér ÷ ledolgozandó napok × a munkaszüneti napok száma, ha az ünnep beosztott munkanapra esik. A munkaszüneti napok listája a `getHolidays()` függvényben van (fix ünnepek + húsvét és pünkösd). **December 24.** 2026-tól szerepel benne (2026. évi LXXII. törvény, hatályos 2026. november 14-től): a naptárban piros, aki dolgozik, annak ünnepnapi fizetés jár, az A/B/C rendben pedig nincs aznap műszak. A korábban előre legenerált A/B/C-s december 24-i műszakot az app egyszer, induláskor törli (`dec24Atallas()`), a kézzel beírt bejegyzéseket nem bántja.
 
 **Adóköteles bruttó.** Az előző sorok összege (alapbér, túlóra alap, szabadság, távolléti díj, betegszabadság, fizetett ünnep, túlórapótlék, hétvégi és műszakpótlék, prémium, plusz az egyéb jövedelem). A **táppénz nem része**, mert azt a TB fizeti.
 
@@ -122,6 +122,8 @@ A **képernyőmagasság** a `--app-h` CSS-változóból jön, amit a `script.js`
 Az **útmutató** (Információ fül, „Útmutató lépésről lépésre”) képei az `utmutato/` mappában vannak, WebP formátumban (600 px széles, összesen kb. 210 KB). Kitalált minta-adatokkal készültek a valódi appról; ha a felület változik, érdemes újrakészíteni őket.
 
 A **kinézet** (v3.3.0-tól) két rétegből áll: a `style.css` adja az elrendezést (méretek, magasságok, animációk), a `minimal.css` pedig a kinézetet (színek, betűk, keretek), és utána töltődik be, ezért felülírja. A színek a `minimal.css` elején vannak tokenként (`--paper`, `--surface`, `--ink`, `--muted`, `--line`, `--accent`, `--danger`), világos és sötét változatban; ha valamit át akarsz színezni, ott kell. A betűtípus IBM Plex Sans (Google Fonts), a számok egyforma szélességűek. A műszakszínek a `script.js` elején vannak: `SHIFT_COLORS` (világos) és `SHIFT_COLORS_DARK` (sötét); a naptárban a bal oldali csík a szövegszínt használja. Ha egy felhasználó korábban a régi, erős alapszíneket mentette el, azokat a program automatikusan az újakra cseréli (`SHIFT_COLORS_REGI`), a ténylegesen saját színeket viszont megtartja. A bérszámfejtés sorai `data-tetel` attribútumot kapnak (pl. `tr[data-tetel="Nettó"]`), így a CSS sorra pontosan célozhat.
+
+A **műszak húzása** (drag & drop) a `ShiftDragDrop` osztályban van. Hosszú nyomással (0,35 mp) indul, így a sima koppintás továbbra is a napválasztó ablakot nyitja, a gyors oldalra húzás pedig hónapot vált. A böngésző beépített drag & drop-ját szándékosan nem használja, mert az érintőképernyőn nem működik; helyette pointer eseményeket figyel, és húzás közben letiltja a görgetést (`touchmove` + `preventDefault`) és a hónapváltást (`handleSwipe` megkérdezi az `isBusy()`-t). Üres napra engedve áthelyez, foglalt napra engedve felcserél; az üres nap `" "` értéket kap, különben a program újragenerálná rajta az eredeti műszakot. A megjegyzések a dátumnál maradnak. A „Munkakezdés” nap nem húzható. Utána 6 másodpercig „Visszavonás” gomb jelenik meg. Csak a látott hónapon belül lehet húzni.
 
 Az ikonok: `icon-192.png` és `icon-512.png` (általános), `icon-maskable-192.png` és `icon-maskable-512.png` (Androidos maszkolt ikon, biztonságos margóval), `apple-touch-icon.png` (iOS, 180 px), valamint a favicon fájlok.
 
